@@ -1,0 +1,167 @@
+#pragma once
+
+namespace zonetool
+{
+	typedef float vec_t;
+	typedef vec_t vec2_t[2];
+	typedef vec_t vec3_t[3];
+	typedef vec_t vec4_t[4];
+
+	template <std::size_t N>
+	struct VecInternal
+	{
+		float data[N];
+	};
+
+	struct dummy
+	{
+	};
+
+	enum scr_string_t : std::int32_t
+	{
+	};
+
+	enum XAssetType
+	{
+		ASSET_TYPE_PHYSPRESET,
+		ASSET_TYPE_PHYS_COLLMAP,
+		ASSET_TYPE_PHYSWATERPRESET,
+		ASSET_TYPE_PHYS_WORLDMAP,
+		ASSET_TYPE_PHYSCONSTRAINT,
+		ASSET_TYPE_XANIM,
+		ASSET_TYPE_XMODELSURFS,
+		ASSET_TYPE_XMODEL,
+		ASSET_TYPE_MATERIAL,
+		ASSET_TYPE_COMPUTESHADER,
+		ASSET_TYPE_VERTEXSHADER,
+		ASSET_TYPE_HULLSHADER,
+		ASSET_TYPE_DOMAINSHADER,
+		ASSET_TYPE_PIXELSHADER,
+		ASSET_TYPE_VERTEXDECL,
+		ASSET_TYPE_TECHSET,
+		ASSET_TYPE_IMAGE,
+		ASSET_TYPE_SOUND,
+		ASSET_TYPE_SOUNDSUBMIX,
+		ASSET_TYPE_SNDCURVE,
+		ASSET_TYPE_LPFCURVE,
+		ASSET_TYPE_REVERBSENDCURVE,
+		ASSET_TYPE_SNDCONTEXT,
+		ASSET_TYPE_LOADED_SOUND,
+		ASSET_TYPE_COL_MAP_MP,
+		ASSET_TYPE_COM_MAP,
+		ASSET_TYPE_GLASS_MAP,
+		ASSET_TYPE_AIPATHS,
+		ASSET_TYPE_VEHICLE_TRACK,
+		ASSET_TYPE_MAP_ENTS,
+		ASSET_TYPE_FX_MAP,
+		ASSET_TYPE_GFX_MAP,
+		ASSET_TYPE_LIGHTDEF,
+		ASSET_TYPE_UI_MAP,
+		ASSET_TYPE_MENUFILE,
+		ASSET_TYPE_MENU,
+		ASSET_TYPE_ANIMCLASS,
+		ASSET_TYPE_LOCALIZE,
+		ASSET_TYPE_ATTACHMENT,
+		ASSET_TYPE_WEAPON,
+		ASSET_TYPE_SNDDRIVERGLOBALS,
+		ASSET_TYPE_FX,
+		ASSET_TYPE_IMPACTFX,
+		ASSET_TYPE_SURFACEFX,
+		ASSET_TYPE_AITYPE,
+		ASSET_TYPE_MPTYPE,
+		ASSET_TYPE_CHARACTER,
+		ASSET_TYPE_XMODELALIAS,
+		ASSET_TYPE_RAWFILE,
+		ASSET_TYPE_SCRIPTFILE,
+		ASSET_TYPE_STRINGTABLE,
+		ASSET_TYPE_LEADERBOARDDEF,
+		ASSET_TYPE_VIRTUALLEADERBOARDDEF,
+		ASSET_TYPE_STRUCTUREDDATADEF,
+		ASSET_TYPE_DDL,
+		ASSET_TYPE_PROTO,
+		ASSET_TYPE_TRACER,
+		ASSET_TYPE_VEHICLE,
+		ASSET_TYPE_ADDON_MAP_ENTS,
+		ASSET_TYPE_NETCONSTSTRINGS,
+		ASSET_TYPE_REVERBPRESET,
+		ASSET_TYPE_LUAFILE,
+		ASSET_TYPE_SCRIPTABLE,
+		ASSET_TYPE_EQUIPSNDTABLE,
+		ASSET_TYPE_VECTORFIELD,
+		ASSET_TYPE_DOPPLERPRESET,
+		ASSET_TYPE_PARTICLESIMANIMATION,
+		ASSET_TYPE_LASER,
+		ASSET_TYPE_SKELETONSCRIPT,
+		ASSET_TYPE_CLUT,
+		ASSET_TYPE_TTF,
+		ASSET_TYPE_COUNT
+	};
+
+	struct RawFile
+	{
+		const char* name;
+		int compressedLen;
+		int len;
+		const char* buffer;
+	}; static_assert(sizeof(RawFile) == 0x18);
+
+	union XAssetHeader
+	{
+		void* data;
+		RawFile* rawfile;
+	};
+
+	struct XAsset
+	{
+		XAssetType type;
+		XAssetHeader header;
+	};
+
+	struct XAssetEntry
+	{
+		XAsset asset;
+		char zoneIndex;
+		volatile char inuseMask;
+		unsigned int nextHash;
+		unsigned int nextOverride;
+		unsigned int nextPoolEntry;
+	};
+
+	enum DBSyncMode
+	{
+		DB_LOAD_ASYNC = 0x0,
+		DB_LOAD_SYNC = 0x1,
+		DB_LOAD_ASYNC_WAIT_ALLOC = 0x2,
+		DB_LOAD_ASYNC_FORCE_FREE = 0x3,
+		DB_LOAD_ASYNC_NO_SYNC_THREADS = 0x4,
+		DB_LOAD_SYNC_SKIP_ALWAYS_LOADED = 0x5,
+	};
+
+	enum DBAllocFlags : std::int32_t
+	{
+		DB_ZONE_NONE = 0x0,
+		DB_ZONE_COMMON = 0x1,
+		DB_ZONE_UI = 0x2,
+		DB_ZONE_GAME = 0x4,
+		DB_ZONE_LOAD = 0x8,
+		DB_ZONE_DEV = 0x10,
+		DB_ZONE_BASEMAP = 0x20,
+		DB_ZONE_TRANSIENT_POOL = 0x40,
+		DB_ZONE_TRANSIENT_MASK = 0x40,
+		DB_ZONE_CUSTOM = 0x80 // added for custom zone loading
+	};
+
+	struct XZoneInfo
+	{
+		const char* name;
+		int allocFlags;
+		int freeFlags;
+	};
+
+	struct XZoneInfoInternal
+	{
+		char name[64];
+		int flags;
+		int isBaseMap;
+	};
+}
