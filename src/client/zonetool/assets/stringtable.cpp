@@ -192,24 +192,27 @@ namespace zonetool
 
 	void IStringTable::dump(StringTable* asset)
 	{
-		auto f = filesystem::file(asset->name);
-		f.open("wb");
+		auto file = filesystem::file(asset->name);
+		file.open("wb");
 
-		for (int row = 0; row < asset->rowCount; row++)
+		if (file.get_fp())
 		{
-			for (int column = 0; column < asset->columnCount; column++)
+			for (int row = 0; row < asset->rowCount; row++)
 			{
-				fprintf(
-					f.get_fp(),
-					"%s%s",
-					(asset->values[(row * asset->columnCount) + column].string)
-					? asset->values[(row * asset->columnCount) + column].string
-					: "",
-					(column == asset->columnCount - 1) ? "\n" : ","
-				);
+				for (int column = 0; column < asset->columnCount; column++)
+				{
+					fprintf(
+						file.get_fp(),
+						"%s%s",
+						(asset->values[(row * asset->columnCount) + column].string)
+						? asset->values[(row * asset->columnCount) + column].string
+						: "",
+						(column == asset->columnCount - 1) ? "\n" : ","
+					);
+				}
 			}
 		}
 
-		f.close();
+		file.close();
 	}
 }

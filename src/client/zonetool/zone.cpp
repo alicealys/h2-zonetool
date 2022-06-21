@@ -3,6 +3,14 @@
 #include "zone.hpp"
 #include "utils/utils.hpp"
 
+#define FF_VERSION 66
+
+#define COMPRESS_TYPE_LZ4 4
+#define COMPRESS_TYPE_ZLIB 1
+
+#define COMPRESS_TYPE COMPRESS_TYPE_ZLIB
+static_assert(COMPRESS_TYPE == COMPRESS_TYPE_LZ4 || COMPRESS_TYPE == COMPRESS_TYPE_ZLIB);
+
 namespace zonetool
 {
 	IAsset* Zone::find_asset(std::int32_t type, const std::string& name)
@@ -112,6 +120,7 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_RAWFILE, IRawFile);
 			ADD_ASSET(ASSET_TYPE_SCRIPTFILE, IScriptFile);
 			ADD_ASSET(ASSET_TYPE_STRINGTABLE, IStringTable);
+			ADD_ASSET(ASSET_TYPE_TTF, IFont);
 		}
 		catch (std::exception& ex)
 		{
@@ -410,19 +419,25 @@ namespace zonetool
 		{
 			zone->streams[i] = buf->stream_offset(static_cast<std::uint8_t>(i));
 		}
-
+		
+#ifdef DEBUG
 		// Dump zone to disk (for debugging)
-		buf->save("zonetool\\debug\\" + this->name_ + ".zone");
+		buf->save("zonetool\\_debug\\" + this->name_ + ".zone");
+#endif
 
 		// Compress buffer
-		auto buf_compressed = buf->compress_zlib(); //auto buf_compressed = buf->compress_lz4();
+#if (COMPRESS_TYPE == COMPRESS_TYPE_LZ4)
+		auto buf_compressed = buf->compress_lz4(); // idk how to compress lz4 fastfiles properly
+#elif (COMPRESS_TYPE == COMPRESS_TYPE_ZLIB)
+		auto buf_compressed = buf->compress_zlib();
+#endif
 
 		// Generate FF header
 		auto header = this->m_zonemem->Alloc<XFileHeader>();
 		strcat(header->header, "S1ffu100");
-		header->version = 66;
+		header->version = FF_VERSION;
 		header->compress = 1;
-		header->compressType = 1; // 0 == INVALID, 1 == ZLIB, 3 == PASSTHROUGH, 4 == LZ4
+		header->compressType = COMPRESS_TYPE; // 0 == INVALID, 1 == ZLIB, 3 == PASSTHROUGH, 4 == LZ4
 		header->sizeOfPointer = 8;
 		header->sizeOfLong = 4;
 		header->fileTimeHigh = 0;
@@ -477,9 +492,8 @@ namespace zonetool
 
 		fastfile.write(buf_compressed.data(), buf_compressed.size());
 
-		std::filesystem::path path = "zone\\" + this->name_ + ".ff";
-		std::filesystem::create_directories(path.parent_path());
-		fastfile.save(path.string());
+		std::string path = "zone\\" + this->name_ + ".ff";
+		fastfile.save(path);
 
 		ZONETOOL_INFO("Successfully compiled fastfile \"%s\"!", this->name_.data());
 		ZONETOOL_INFO("Compiling took %u msec.", static_cast<std::uint32_t>(GetTickCount64() - startTime));

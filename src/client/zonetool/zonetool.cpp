@@ -139,6 +139,7 @@ namespace zonetool
 					DUMP_ASSET(ASSET_TYPE_SCRIPTFILE, IScriptFile, ScriptFile);
 					DUMP_ASSET(ASSET_TYPE_STRINGTABLE, IStringTable, StringTable);
 					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
+					DUMP_ASSET(ASSET_TYPE_TTF, IFont, TTFDef);
 				}
 				catch (std::exception& ex)
 				{

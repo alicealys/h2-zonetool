@@ -6,29 +6,26 @@ namespace zonetool
 	LuaFile* ILuaFile::parse(const std::string& name, ZoneMemory* mem)
 	{
 		auto file = filesystem::file(name);
+		file.open("rb");
 
-		if (file.exists())
+		if (file.get_fp())
 		{
 			ZONETOOL_INFO("Parsing luafile \"%s\"...", name.data());
+
+			const auto size = file.size();
+			auto data = file.read_bytes(size);
 
 			auto* luafile = mem->Alloc<LuaFile>();
 			luafile->name = mem->StrDup(name);
 
-			file.open("rb");
-			if (file.get_fp())
-			{
-				const auto size = file.size();
-				auto data = file.read_bytes(size);
+			luafile->len = static_cast<int>(size);
+			luafile->buffer = mem->Alloc<char>(luafile->len);
+			memcpy(
+				const_cast<char*>(luafile->buffer),
+				data.data(),
+				data.size());
 
-				luafile->len = static_cast<int>(size);
-				luafile->buffer = mem->Alloc<char>(luafile->len);
-				memcpy(
-					const_cast<char*>(luafile->buffer),
-					data.data(),
-					data.size());
-
-				file.close();
-			}
+			file.close();
 
 			return luafile;
 		}
@@ -86,14 +83,14 @@ namespace zonetool
 
 	void ILuaFile::dump(LuaFile* asset)
 	{
-		auto f = filesystem::file(asset->name);
-		f.open("wb");
+		auto file = filesystem::file(asset->name);
+		file.open("wb");
 
 		if (asset->len > 0)
 		{
-			f.write(asset->buffer, asset->len, 1);
+			file.write(asset->buffer, asset->len, 1);
 		}
 
-		f.close();
+		file.close();
 	}
 }

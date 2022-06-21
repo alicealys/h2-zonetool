@@ -7,13 +7,14 @@ namespace zonetool
 	{
 		const auto path = "netconststrings\\"s + name;
 		filesystem::file file(path);
-		if (file.exists())
+		file.open("rb");
+
+		if (file.get_fp())
 		{
 			ZONETOOL_INFO("Parsing netconststrings \"%s\"...", name.data());
 
 			auto asset = mem->Alloc<NetConstStrings>();
-
-			file.open("rb");
+			
 			const auto size = file.size();
 			auto bytes = file.read_bytes(size);
 			file.close();
@@ -96,8 +97,9 @@ namespace zonetool
 
 	void INetConstStrings::dump(NetConstStrings* asset)
 	{
-		auto f = filesystem::file(utils::string::va("netconststrings\\%s", asset->name));
-		f.open("wb");
+		const auto path = "netconststrings\\"s + asset->name;
+		auto file = filesystem::file(path);
+		file.open("wb");
 
 		ordered_json j;
 
@@ -110,11 +112,11 @@ namespace zonetool
 			j["stringList"][i] = asset->stringList[i];
 		}
 
-		auto s = j.dump(4);
+		auto str = j.dump(4);
 
 		j.clear();
 
-		f.write(s);
-		f.close();
+		file.write(str);
+		file.close();
 	}
 }

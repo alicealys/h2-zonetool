@@ -5,7 +5,7 @@ namespace zonetool
 {
 	bool ILocalize::parse_localizedstrings_file(IZone* zone, const std::string& file_name)
 	{
-		const auto path = "localizedstrings\\" + file_name + ".str";
+		const auto path = "localizedstrings\\"s + file_name + ".str";
 		auto file = filesystem::file(path);
 		file.open("rb");
 
@@ -169,15 +169,13 @@ namespace zonetool
 
 	LocalizeEntry* ILocalize::parse(const std::string& name, ZoneMemory* mem)
 	{
-		const auto path = "localizedstrings/" + name;
-
+		const auto path = "localizedstrings\\"s + name;
 		auto file = filesystem::file(path);
+		file.open("rb");
 
-		if (file.exists())
+		if (file.get_fp())
 		{
-			ZONETOOL_INFO("Parsing localizedstring \"%s\"...", name.c_str());
-
-			file.open("rb");
+			ZONETOOL_INFO("Parsing localizedstring \"%s\"...", name.data());
 
 			auto* localized = mem->Alloc<LocalizeEntry>();
 			localized->name = mem->StrDup(name);
@@ -258,7 +256,8 @@ namespace zonetool
 	{
 		if (asset)
 		{
-			auto file = filesystem::file("localizedstrings/"s + asset->name);
+			const auto path = "localizedstrings\\"s + asset->name;
+			auto file = filesystem::file(path);
 			file.open("wb");
 			file.write(asset->value, strlen(asset->value), 1);
 			file.close();

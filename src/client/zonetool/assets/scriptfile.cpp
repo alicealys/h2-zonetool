@@ -6,8 +6,8 @@ namespace zonetool
 {
 	ScriptFile* IScriptFile::parse(const std::string& name, ZoneMemory* mem)
 	{
-		auto file_1 = filesystem::file(name + ".cgsc");
-		auto file_2 = filesystem::file(name + ".cgsc.stack");
+		auto file_1 = filesystem::file(utils::string::va("%s.cgsc", name.data()));
+		auto file_2 = filesystem::file(utils::string::va("%s.cgsc.stack", name.data()));
 		if (file_1.exists() && file_2.exists())
 		{
 			auto* scriptfile = mem->Alloc<ScriptFile>();
@@ -17,8 +17,7 @@ namespace zonetool
 
 			// parse bytecode
 			file_1.open("rb");
-			auto* file = file_1.get_fp();
-			if (file)
+			if (file_1.get_fp())
 			{
 				ZONETOOL_INFO("Parsing scriptfile bytecode for script \"%s\"...", name.data());
 
@@ -34,8 +33,7 @@ namespace zonetool
 
 			// parse stack
 			file_2.open("rb");
-			file = file_2.get_fp();
-			if (file)
+			if (file_2.get_fp())
 			{
 				ZONETOOL_INFO("Parsing scriptfile heap for script \"%s\"...", name.data());
 
@@ -121,15 +119,15 @@ namespace zonetool
 
 	void IScriptFile::dump(ScriptFile* asset)
 	{
-		auto f1 = filesystem::file(utils::string::va("%s.cgsc", asset->name));
-		auto f2 = filesystem::file(utils::string::va("%s.cgsc.stack", asset->name));
+		auto file_1 = filesystem::file(utils::string::va("%s.cgsc", asset->name));
+		auto file_2 = filesystem::file(utils::string::va("%s.cgsc.stack", asset->name));
 
-		f1.open("wb");
-		f2.open("wb");
+		file_1.open("wb");
+		file_2.open("wb");
 
 		if (asset->bytecode)
 		{
-			f1.write(asset->bytecode, asset->bytecodeLen, 1);
+			file_1.write(asset->bytecode, asset->bytecodeLen, 1);
 		}
 
 		if (asset->buffer)
@@ -139,10 +137,10 @@ namespace zonetool
 
 			uncompress(uncompressed.data(), (uLongf*)&asset->len, (Bytef*)asset->buffer, asset->compressedLen);
 
-			f2.write(uncompressed.data(), uncompressed.size(), 1);
+			file_2.write(uncompressed.data(), uncompressed.size(), 1);
 		}
 
-		f1.close();
-		f2.close();
+		file_1.close();
+		file_2.close();
 	}
 }

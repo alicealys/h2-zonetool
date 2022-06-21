@@ -4,12 +4,15 @@
 
 #include <zstd.h>
 #include <zlib.h>
+
 #include <lz4.h>
+#include <lz4hc.h>
+#include <lz4frame.h>
 
 #include <tomcrypt.h>
 
-#define ZSTD_BEST_COMPRESSION 22
-#define ZLIB_BEST_COMPRESSION Z_BEST_COMPRESSION
+#define ZSTD_COMPRESSION 11
+#define ZLIB_COMPRESSION Z_BEST_COMPRESSION
 
 namespace zonetool
 {
@@ -386,6 +389,7 @@ namespace zonetool
 	void ZoneBuffer::save(const std::string& filename)
 	{
 		auto file = filesystem::file(filename);
+		file.create_path();
 		file.open("wb", false);
 		file.write(this->m_buf.data(), this->m_pos, 1);
 		file.close();
@@ -408,7 +412,7 @@ namespace zonetool
 			compressed.resize(size);
 
 			// compress buffer
-			compress2(compressed.data(), &size, data, static_cast<uLong>(data_size), ZLIB_BEST_COMPRESSION);
+			compress2(compressed.data(), &size, data, static_cast<uLong>(data_size), ZLIB_COMPRESSION);
 			compressed.resize(size);
 
 			// return compressed buffer
@@ -432,7 +436,7 @@ namespace zonetool
 
 				// compress block buffer
 				unsigned long size;
-				compress2(block.data(), &size, data_ptr, block_size, ZLIB_BEST_COMPRESSION);
+				compress2(block.data(), &size, data_ptr, block_size, ZLIB_COMPRESSION);
 				if (size >= block_size)
 				{
 					// discard compressed data and just store uncompressed data
@@ -463,7 +467,6 @@ namespace zonetool
 				compressed.insert(compressed.end(), block.begin(), block.end());
 			}
 
-
 			return compressed;
 		}
 	}
@@ -488,7 +491,7 @@ namespace zonetool
 		compressed.resize(size);
 
 		// compress buffer
-		auto destsize = ZSTD_compress(compressed.data(), size, this->m_buf.data(), this->m_pos, 11);
+		auto destsize = ZSTD_compress(compressed.data(), size, this->m_buf.data(), this->m_pos, ZSTD_COMPRESSION);
 		compressed.resize(destsize);
 
 		if (ZSTD_isError(destsize))

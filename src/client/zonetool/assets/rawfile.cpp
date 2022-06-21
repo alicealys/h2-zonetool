@@ -10,33 +10,30 @@ namespace zonetool
 	RawFile* IRawFile::parse(const std::string& name, ZoneMemory* mem)
 	{
 		auto file = filesystem::file(name);
+		file.open("rb");
 
-		if (file.exists())
+		if (file.get_fp())
 		{
 			ZONETOOL_INFO("Parsing rawfile \"%s\"...", name.data());
+
+			const auto size = file.size();
+			auto data = file.read_bytes(size);
 
 			auto* rawfile = mem->Alloc<RawFile>();
 			rawfile->name = mem->StrDup(name);
 
-			file.open("rb");
-			if (file.get_fp())
-			{
-				const auto size = file.size();
-				auto data = file.read_bytes(size);
+			ZoneBuffer buf(data);
+			auto compressed = buf.compress_zlib();
 
-				ZoneBuffer buf(data);
-				auto compressed = buf.compress_zlib();
+			rawfile->len = static_cast<int>(size);
+			rawfile->compressedLen = static_cast<int>(compressed.size());
+			rawfile->buffer = mem->Alloc<char>(compressed.size());
+			memcpy(
+				const_cast<char*>(rawfile->buffer),
+				compressed.data(),
+				compressed.size());
 
-				rawfile->len = static_cast<int>(size);
-				rawfile->compressedLen = static_cast<int>(compressed.size());
-				rawfile->buffer = mem->Alloc<char>(compressed.size());
-				memcpy(
-					const_cast<char*>(rawfile->buffer),
-					compressed.data(),
-					compressed.size());
-
-				file.close();
-			}
+			file.close();
 
 			return rawfile;
 		}
@@ -107,8 +104,8 @@ namespace zonetool
 
 	void IRawFile::dump(RawFile* asset)
 	{
-		auto f = filesystem::file(asset->name);
-		f.open("wb");
+		auto file = filesystem::file(asset->name);
+		file.open("wb");
 
 		if (asset->compressedLen > 0)
 		{
@@ -117,13 +114,13 @@ namespace zonetool
 
 			uncompress(uncompressed.data(), (uLongf*)&asset->len, (Bytef*)asset->buffer, asset->compressedLen);
 
-			f.write(uncompressed.data(), uncompressed.size(), 1);
+			file.write(uncompressed.data(), uncompressed.size(), 1);
 		}
 		else if (asset->len > 0)
 		{
-			f.write(asset->buffer, asset->len, 1);
+			file.write(asset->buffer, asset->len, 1);
 		}
 
-		f.close();
+		file.close();
 	}
 }

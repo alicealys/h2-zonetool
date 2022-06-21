@@ -19,6 +19,7 @@
 #include "assets/rawfile.hpp"
 #include "assets/scriptfile.hpp"
 #include "assets/stringtable.hpp"
+#include "assets/ttf.hpp"
 
 #include "zone.hpp"
 

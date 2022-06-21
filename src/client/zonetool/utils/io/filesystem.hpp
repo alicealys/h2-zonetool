@@ -23,6 +23,8 @@ namespace zonetool
 			size_t read(void* buffer, size_t size, size_t count);
 			int close();
 
+			bool create_path();
+
 			std::size_t size();
 			std::vector<uint8_t> read_bytes(std::size_t size);
 		private:

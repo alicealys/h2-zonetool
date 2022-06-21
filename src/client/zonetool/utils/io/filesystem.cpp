@@ -121,6 +121,11 @@ namespace zonetool
 			return -1;
 		}
 
+		bool file::create_path()
+		{
+			return create_directory(this->parent_path);
+		}
+
 		std::size_t file::size()
 		{
 			if (this->fp)
@@ -139,7 +144,7 @@ namespace zonetool
 
 		std::vector<std::uint8_t> file::read_bytes(std::size_t size)
 		{
-			if (size)
+			if (this->fp && size)
 			{
 				// alloc vector
 				std::vector<std::uint8_t> buffer;
