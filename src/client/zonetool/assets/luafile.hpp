@@ -3,14 +3,14 @@
 
 namespace zonetool
 {
-	class IRawFile : public IAsset
+	class ILuaFile : public IAsset
 	{
 	private:
 		std::string name_;
-		RawFile* asset_ = nullptr;
+		LuaFile* asset_ = nullptr;
 
 	public:
-		RawFile* parse(const std::string& name, ZoneMemory* mem);
+		LuaFile* parse(const std::string& name, ZoneMemory* mem);
 
 		void init(const std::string& name, ZoneMemory* mem) override;
 		void prepare(ZoneBuffer* buf, ZoneMemory* mem) override;
@@ -21,6 +21,6 @@ namespace zonetool
 		std::int32_t type() override;
 		void write(IZone* zone, ZoneBuffer* buffer) override;
 
-		static void dump(RawFile* asset);
+		static void dump(LuaFile* asset);
 	};
 }

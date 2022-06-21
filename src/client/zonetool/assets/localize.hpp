@@ -3,15 +3,17 @@
 
 namespace zonetool
 {
-	class IRawFile : public IAsset
+	class ILocalize : public IAsset
 	{
 	private:
 		std::string name_;
-		RawFile* asset_ = nullptr;
+		LocalizeEntry* asset_ = nullptr;
 
 	public:
-		RawFile* parse(const std::string& name, ZoneMemory* mem);
+		static bool parse_localizedstrings_file(IZone* zone, const std::string& file_name);
+		LocalizeEntry* parse(const std::string& name, ZoneMemory* mem);
 
+		void init(void* asset, ZoneMemory* mem) override;
 		void init(const std::string& name, ZoneMemory* mem) override;
 		void prepare(ZoneBuffer* buf, ZoneMemory* mem) override;
 		void load_depending(IZone* zone) override;
@@ -21,6 +23,6 @@ namespace zonetool
 		std::int32_t type() override;
 		void write(IZone* zone, ZoneBuffer* buffer) override;
 
-		static void dump(RawFile* asset);
+		static void dump(LocalizeEntry* asset);
 	};
 }

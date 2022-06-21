@@ -5,6 +5,8 @@
 // Decide whether to load the game as lib or to inject it
 //#define INJECT_HOST_AS_LIB
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #pragma warning(push)
 #pragma warning(disable: 4100)
 #pragma warning(disable: 4127)

@@ -29,7 +29,7 @@ namespace zonetool
 		ASSET_TYPE_PHYS_WORLDMAP,
 		ASSET_TYPE_PHYSCONSTRAINT,
 		ASSET_TYPE_XANIM,
-		ASSET_TYPE_XMODELSURFS,
+		ASSET_TYPE_XMODEL_SURFS,
 		ASSET_TYPE_XMODEL,
 		ASSET_TYPE_MATERIAL,
 		ASSET_TYPE_COMPUTESHADER,
@@ -38,7 +38,7 @@ namespace zonetool
 		ASSET_TYPE_DOMAINSHADER,
 		ASSET_TYPE_PIXELSHADER,
 		ASSET_TYPE_VERTEXDECL,
-		ASSET_TYPE_TECHSET,
+		ASSET_TYPE_TECHNIQUE_SET,
 		ASSET_TYPE_IMAGE,
 		ASSET_TYPE_SOUND,
 		ASSET_TYPE_SOUNDSUBMIX,
@@ -60,13 +60,13 @@ namespace zonetool
 		ASSET_TYPE_MENUFILE,
 		ASSET_TYPE_MENU,
 		ASSET_TYPE_ANIMCLASS,
-		ASSET_TYPE_LOCALIZE,
+		ASSET_TYPE_LOCALIZE_ENTRY,
 		ASSET_TYPE_ATTACHMENT,
 		ASSET_TYPE_WEAPON,
 		ASSET_TYPE_SNDDRIVERGLOBALS,
 		ASSET_TYPE_FX,
-		ASSET_TYPE_IMPACTFX,
-		ASSET_TYPE_SURFACEFX,
+		ASSET_TYPE_IMPACT_FX,
+		ASSET_TYPE_SURFACE_FX,
 		ASSET_TYPE_AITYPE,
 		ASSET_TYPE_MPTYPE,
 		ASSET_TYPE_CHARACTER,
@@ -75,27 +75,33 @@ namespace zonetool
 		ASSET_TYPE_SCRIPTFILE,
 		ASSET_TYPE_STRINGTABLE,
 		ASSET_TYPE_LEADERBOARDDEF,
-		ASSET_TYPE_VIRTUALLEADERBOARDDEF,
+		ASSET_TYPE_VIRTUAL_LEADERBOARD,
 		ASSET_TYPE_STRUCTUREDDATADEF,
 		ASSET_TYPE_DDL,
 		ASSET_TYPE_PROTO,
 		ASSET_TYPE_TRACER,
 		ASSET_TYPE_VEHICLE,
 		ASSET_TYPE_ADDON_MAP_ENTS,
-		ASSET_TYPE_NETCONSTSTRINGS,
+		ASSET_TYPE_NET_CONST_STRINGS,
 		ASSET_TYPE_REVERBPRESET,
-		ASSET_TYPE_LUAFILE,
+		ASSET_TYPE_LUA_FILE,
 		ASSET_TYPE_SCRIPTABLE,
-		ASSET_TYPE_EQUIPSNDTABLE,
+		ASSET_TYPE_EQUIPMENT_SND_TABLE,
 		ASSET_TYPE_VECTORFIELD,
 		ASSET_TYPE_DOPPLERPRESET,
-		ASSET_TYPE_PARTICLESIMANIMATION,
+		ASSET_TYPE_PARTICLE_SIM_ANIMATION,
 		ASSET_TYPE_LASER,
 		ASSET_TYPE_SKELETONSCRIPT,
 		ASSET_TYPE_CLUT,
 		ASSET_TYPE_TTF,
 		ASSET_TYPE_COUNT
 	};
+
+	struct LocalizeEntry
+	{
+		const char* value;
+		const char* name;
+	}; static_assert(sizeof(LocalizeEntry) == 0x10);
 
 	struct RawFile
 	{
@@ -105,10 +111,73 @@ namespace zonetool
 		const char* buffer;
 	}; static_assert(sizeof(RawFile) == 0x18);
 
+	struct ScriptFile
+	{
+		const char* name;
+		int compressedLen;
+		int len;
+		int bytecodeLen;
+		const char* buffer;
+		char* bytecode;
+	}; static_assert(sizeof(ScriptFile) == 0x28);
+
+	struct StringTableCell
+	{
+		const char* string;
+		int hash;
+	};
+
+	struct StringTable
+	{
+		const char* name;
+		int columnCount;
+		int rowCount;
+		StringTableCell* values;
+	}; static_assert(sizeof(StringTable) == 0x18);
+
+	enum NetConstStringType
+	{
+	};
+
+	enum NetConstStringSource
+	{
+	};
+
+	struct NetConstStrings
+	{
+		const char* name;
+		NetConstStringType stringType;
+		NetConstStringSource sourceType;
+		unsigned int entryCount;
+		const char** stringList;
+	}; static_assert(sizeof(NetConstStrings) == 0x20);
+
+	struct LuaFile
+	{
+		const char* name;
+		int len;
+		char strippingType;
+		const char* buffer;
+	}; static_assert(sizeof(LuaFile) == 0x18);
+
+	struct TTFDef
+	{
+		const char* name;
+		int fileLen;
+		const char* file;
+		void* ftFace;
+	}; static_assert(sizeof(TTFDef) == 0x20);
+
 	union XAssetHeader
 	{
 		void* data;
+		LocalizeEntry* localize;
 		RawFile* rawfile;
+		ScriptFile* scriptfile;
+		StringTable* stringTable;
+		NetConstStrings* netConstStrings;
+		LuaFile* luaFile;
+		TTFDef* ttfDef;
 	};
 
 	struct XAsset
@@ -125,6 +194,53 @@ namespace zonetool
 		unsigned int nextHash;
 		unsigned int nextOverride;
 		unsigned int nextPoolEntry;
+	};
+
+	struct ScriptStringList
+	{
+		int count;
+		const char** strings;
+	};
+
+	union GfxZoneTableEntry
+	{
+		char* dataPtr;
+		void* voidPtr;
+		//ID3D11Buffer* buffer;
+		//ID3D11DepthStencilState* depthStencilState;
+		//ID3D11BlendState* blendState;
+	};
+
+	struct XGfxGlobals
+	{
+		unsigned int depthStencilStateCount;
+		unsigned int blendStateCount;
+		std::uint64_t* depthStencilStateBits;
+		std::uint32_t* blendStateBits;
+		GfxZoneTableEntry* depthStencilStates;
+		GfxZoneTableEntry* blendStates;
+		unsigned int perPrimConstantBufferCount;
+		unsigned int perObjConstantBufferCount;
+		unsigned int stableConstantBufferCount;
+		unsigned int* perPrimConstantBufferSizes;
+		unsigned int* perObjConstantBufferSizes;
+		unsigned int* stableConstantBufferSizes;
+		GfxZoneTableEntry* perPrimConstantBuffers;
+		GfxZoneTableEntry* perObjConstantBuffers;
+		GfxZoneTableEntry* stableConstantBuffers;
+	};
+
+	struct XGlobals
+	{
+		XGfxGlobals* gfxGlobals;
+	};
+
+	struct XAssetList
+	{
+		ScriptStringList stringList;
+		int assetCount;
+		XAsset* assets;
+		XGlobals* globals;
 	};
 
 	enum DBSyncMode

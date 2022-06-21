@@ -5,6 +5,7 @@ namespace zonetool
 	extern const char* get_asset_name(XAssetType type, void* pointer);
 	extern const char* get_asset_name(XAsset* asset);
 	extern const char* type_to_string(XAssetType type);
+	extern std::int32_t type_to_int(std::string type);
 
 	extern bool zone_exists(const std::string& zone);
 

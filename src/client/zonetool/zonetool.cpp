@@ -28,6 +28,22 @@ namespace zonetool
 		return g_assetNames[type];
 	}
 
+	std::int32_t type_to_int(std::string type)
+	{
+		for (std::int32_t i = 0; i < ASSET_TYPE_COUNT; i++)
+		{
+			if (g_assetNames[i] == type)
+				return i;
+		}
+
+		return -1;
+	}
+
+	bool is_valid_asset_type(const std::string& type)
+	{
+		return type_to_int(type) >= 0;
+	}
+
 	bool zone_exists(const std::string& zone)
 	{
 		return DB_FileExists(zone.data(), 0);
@@ -75,8 +91,8 @@ namespace zonetool
 
 		// dump all
 		//dump = true;
-		//std::string fastfile = static_cast<std::string>(reinterpret_cast<const char*>(*reinterpret_cast<std::uintptr_t*>(0x3BD1020_b)
-		//	+ 32));
+		//std::string fastfile = static_cast<std::string>(
+		//	reinterpret_cast<const char*>(*reinterpret_cast<std::uintptr_t*>(0x14338E020) + 32));
 		//filesystem::set_fastfile(fastfile);
 
 		if (dump)
@@ -116,6 +132,12 @@ namespace zonetool
 				try
 				{
 					// dump assets
+					DUMP_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize, LocalizeEntry);
+					DUMP_ASSET(ASSET_TYPE_LUA_FILE, ILuaFile, LuaFile);
+					DUMP_ASSET(ASSET_TYPE_NET_CONST_STRINGS, INetConstStrings, NetConstStrings);
+					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
+					DUMP_ASSET(ASSET_TYPE_SCRIPTFILE, IScriptFile, ScriptFile);
+					DUMP_ASSET(ASSET_TYPE_STRINGTABLE, IStringTable, StringTable);
 					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
 				}
 				catch (std::exception& ex)
@@ -319,16 +341,190 @@ namespace zonetool
 		}
 	}
 
-	void build_zone(const std::string& zone)
+	void add_assets_using_iterator(const std::string& fastfile, const std::string& type, const std::string& folder,
+		const std::string& extension, bool skip_reference, IZone* zone)
 	{
+		if (std::filesystem::is_directory("zonetool\\" + fastfile + "\\" + folder))
+		{
+			for (auto& file : std::filesystem::recursive_directory_iterator(
+				"zonetool\\" + fastfile + "\\" + folder))
+			{
+				if (is_regular_file(file))
+				{
+					auto filename = file.path().filename().string();
 
+					if (skip_reference && filename[0] == ',')
+					{
+						// skip this file
+						continue;
+					}
+
+					if (!extension.empty())
+					{
+						// check if the filename contains the correct extension
+						if (filename.length() > extension.length() &&
+							filename.substr(filename.length() - extension.length()) == extension)
+						{
+							// remove the extension
+							filename = filename.substr(0, filename.length() - extension.length());
+
+							// add asset to disk
+							zone->add_asset_of_type(type, filename);
+						}
+					}
+					else if (file.path().extension().empty())
+					{
+						// add asset to disk
+						zone->add_asset_of_type(type, filename);
+					}
+				}
+			}
+		}
+	}
+
+	void parse_csv_file(IZone* zone, const std::string& fastfile, const std::string& csv)
+	{
+		auto path = "zone_source\\" + csv + ".csv";
+		auto* parser = CsvParser_new(path.data(), ",", false);
+
+		if (!parser)
+		{
+			ZONETOOL_ERROR("Could not find csv file \"%s\" to build zone!", csv.data());
+			return;
+		}
+
+		auto is_referencing = false;
+		auto* row = CsvParser_getRow(parser);
+		while (row != nullptr)
+		{
+			// parse options
+			if ((strlen(row->fields_[0]) >= 1 && row->fields_[0][0] == '#') || (strlen(row->fields_[0]) >= 2 && row->
+				fields_[0][0] == '/' && row->fields_[0][1] == '/'))
+			{
+				// comment line, go to next line.
+				goto nextRow;
+			}
+			if (!strlen(row->fields_[0]))
+			{
+				// empty line, go to next line.
+				goto nextRow;
+			}
+			if (row->fields_[0] == "require"s)
+			{
+				load_zone(row->fields_[1], DB_LOAD_SYNC);
+			}
+			else if (row->fields_[0] == "include"s)
+			{
+				parse_csv_file(zone, fastfile, row->fields_[1]);
+			}
+			// this allows us to reference assets instead of rewriting them
+			else if (row->fields_[0] == "reference"s)
+			{
+				if (row->numOfFields_ >= 2)
+				{
+					is_referencing = row->fields_[1] == "true"s;
+				}
+			}
+			// this will use a directory iterator to automatically add assets
+			else if (row->fields_[0] == "iterate"s)
+			{
+				try
+				{
+					add_assets_using_iterator(fastfile, "fx", "fx", ".fxe", true, zone);
+					add_assets_using_iterator(fastfile, "xanimparts", "XAnim", ".xae2", true, zone);
+					add_assets_using_iterator(fastfile, "xmodel", "XModel", ".xme6", true, zone);
+					add_assets_using_iterator(fastfile, "material", "materials", "", true, zone);
+				}
+				catch (std::exception& ex)
+				{
+					ZONETOOL_FATAL("A fatal exception occured while building zone \"%s\", exception was: %s\n", fastfile.data(), ex.what());
+				}
+			}
+			// if entry is not an option, it should be an asset.
+			else
+			{
+				if (row->fields_[0] == "localize"s && row->numOfFields_ >= 2 &&
+					filesystem::file("localizedstrings/"s + row->fields_[1] + ".str").exists())
+				{
+					ILocalize::parse_localizedstrings_file(zone, row->fields_[1]);
+				}
+				else
+				{
+					if (row->numOfFields_ >= 2)
+					{
+						if (is_valid_asset_type(row->fields_[0]))
+						{
+							try
+							{
+								zone->add_asset_of_type(
+									row->fields_[0],
+									((is_referencing) ? ","s : ""s) + row->fields_[1]
+								);
+							}
+							catch (std::exception& ex)
+							{
+								ZONETOOL_FATAL("A fatal exception occured while building zone \"%s\", exception was: %s\n", fastfile.data(), ex.what());
+							}
+						}
+					}
+				}
+			}
+
+		nextRow:
+			// destroy row and alloc next one.
+			CsvParser_destroy_row(row);
+			row = CsvParser_getRow(parser);
+		}
+
+		// free csv parser
+		CsvParser_destroy(parser);
+	}
+
+	std::shared_ptr<IZone> alloc_zone(const std::string& zone)
+	{
+		auto ptr = std::make_shared<Zone>(zone);
+		return ptr;
+	}
+
+	std::shared_ptr<ZoneBuffer> alloc_buffer()
+	{
+		auto ptr = std::make_shared<ZoneBuffer>();
+		ptr->init_streams(7);
+
+		return ptr;
+	}
+
+	void build_zone(const std::string& fastfile)
+	{
+		// make sure FS is correct.
+		filesystem::set_fastfile(fastfile);
+
+		ZONETOOL_INFO("Building fastfile \"%s\"", fastfile.data());
+
+		auto zone = alloc_zone(fastfile);
+		if (zone == nullptr)
+		{
+			ZONETOOL_ERROR("An error occured while building fastfile \"%s\": Are you out of memory?", fastfile.data());
+			return;
+		}
+
+		parse_csv_file(zone.get(), fastfile, fastfile);
+
+		// allocate zone buffer
+		auto buffer = alloc_buffer();
+
+		// add branding asset
+		zone->add_asset_of_type("rawfile", fastfile);
+
+		// compile zone
+		zone->build(buffer.get());
 	}
 
 	void register_commands()
 	{
 		command::add("quit", []()
 		{
-			std::exit(0);
+			std::quick_exit(0);
 		});
 
 		command::add("buildzone", [](const command::params& params)
@@ -456,7 +652,7 @@ namespace zonetool
 	{
 		on_exit();
 		doexit_hook.invoke<void>(a1, a2, a3);
-		//std::exit(0);
+		//std::quick_exit(0);
 	}
 
 	void init_zonetool()
@@ -468,14 +664,14 @@ namespace zonetool
 		ZONETOOL_INFO("ZoneTool is initializing...");
 
 		// reallocs
-		reallocate_asset_pool_multiplier(ASSET_TYPE_LUAFILE, 2);
+		reallocate_asset_pool_multiplier(ASSET_TYPE_LUA_FILE, 2);
 		reallocate_asset_pool_multiplier(ASSET_TYPE_WEAPON, 2);
-		reallocate_asset_pool_multiplier(ASSET_TYPE_LOCALIZE, 2);
+		reallocate_asset_pool_multiplier(ASSET_TYPE_LOCALIZE_ENTRY, 2);
 		reallocate_asset_pool_multiplier(ASSET_TYPE_XANIM, 2);
 		reallocate_asset_pool_multiplier(ASSET_TYPE_ATTACHMENT, 2);
 		reallocate_asset_pool_multiplier(ASSET_TYPE_TTF, 2);
 		reallocate_asset_pool_multiplier(ASSET_TYPE_SNDDRIVERGLOBALS, 4);
-		reallocate_asset_pool_multiplier(ASSET_TYPE_EQUIPSNDTABLE, 4);
+		reallocate_asset_pool_multiplier(ASSET_TYPE_EQUIPMENT_SND_TABLE, 4);
 		reallocate_asset_pool_multiplier(ASSET_TYPE_SOUND, 2);
 		reallocate_asset_pool_multiplier(ASSET_TYPE_LOADED_SOUND, 2);
 		reallocate_asset_pool_multiplier(ASSET_TYPE_LEADERBOARDDEF, 2);

@@ -12,7 +12,15 @@
 
 #include "utils/utils.hpp"
 
+#include "assets/localize.hpp"
+#include "assets/luafile.hpp"
 #include "assets/rawfile.hpp"
+#include "assets/netconststrings.hpp"
+#include "assets/rawfile.hpp"
+#include "assets/scriptfile.hpp"
+#include "assets/stringtable.hpp"
+
+#include "zone.hpp"
 
 namespace zonetool
 {

@@ -2,6 +2,21 @@
 
 #include "io/filesystem.hpp"
 
+#include "zone/zone.hpp"
+#include "zone/zonebuffer.hpp"
+#include "zone/zonememory.hpp"
+
+#include "csv.hpp"
+
+#include "iasset.hpp"
+
+//#define JSON_DIAGNOSTICS 1
+#include "json.hpp"
+using json = nlohmann::json;
+using ordered_json = nlohmann::ordered_json;
+
+#define MAX_ZONE_SIZE (1024ull * 1024ull * 1024ull) * 2ull
+
 #define ZONETOOL_INFO(__FMT__,...) \
 	printf("[ INFO ][ " __FUNCTION__ " ]: " __FMT__ "\n", __VA_ARGS__)
 
@@ -18,5 +33,57 @@
 
 namespace zonetool
 {
+#pragma pack(push, 1)
+	struct XFileHeader
+	{
+		char header[8];
+		std::uint32_t version;
+		std::uint8_t compress;
+		std::uint8_t compressType;
+		std::uint8_t sizeOfPointer;
+		std::uint8_t sizeOfLong;
+		std::uint32_t fileTimeHigh;
+		std::uint32_t fileTimeLow;
+		std::uint32_t imageCount;
+		std::uint64_t baseFileLen;
+		std::uint64_t totalFileLen;
+	};
 
+	template <std::size_t num_streams>
+	struct XZoneMemory
+	{
+		std::uint64_t size;
+		std::uint64_t externalsize;
+		std::uint64_t streams[num_streams];
+	};
+
+	struct XStreamFile
+	{
+		std::uint16_t isLocalized;
+		std::uint16_t fileIndex;
+		std::uint16_t unk;
+		char pad[2];
+		std::uint64_t offset;
+		std::uint64_t offsetEnd;
+	};
+
+	struct DB_AuthSignature
+	{
+		unsigned char bytes[256];
+	};
+
+	struct DB_AuthHash
+	{
+		unsigned char bytes[32];
+	};
+
+	struct XPakHeader
+	{
+		char header[8];
+		std::int32_t version;
+		unsigned char unknown[16];
+		DB_AuthHash hash;
+		DB_AuthSignature signature;
+	};
+#pragma pack(pop)
 }
