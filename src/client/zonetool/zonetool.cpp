@@ -298,7 +298,7 @@ namespace zonetool
 		// wait for database to be ready
 		while (!WaitForSingleObject(*reinterpret_cast<HANDLE*>(0x149811020), 0) == 0)
 		{
-			Sleep(1);
+			Sleep(5);
 		}
 
 		ZONETOOL_INFO("Dumping zone \"%s\"...", name.data());
@@ -327,7 +327,7 @@ namespace zonetool
 		// wait for database to be ready
 		while (!WaitForSingleObject(*reinterpret_cast<HANDLE*>(0x149811020), 0) == 0)
 		{
-			Sleep(1);
+			Sleep(5);
 		}
 
 		verify = true;

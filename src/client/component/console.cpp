@@ -21,8 +21,9 @@ namespace console
 		while (!exit)
 		{
 			std::getline(std::cin, cmd);
-			if (ingame)
+			if (ingame && !cmd.empty())
 			{
+				cmd.append("\n");
 				game::Cbuf_AddText(0, cmd.data());
 			}
 		}

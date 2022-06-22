@@ -68,54 +68,11 @@ void remove_crash_file()
 	utils::io::remove_file("__h1Exe");
 }
 
-void enable_dpi_awareness()
-{
-	const utils::nt::library user32{ "user32.dll" };
-	const auto set_dpi = user32
-		? user32.get_proc<BOOL(WINAPI*)(DPI_AWARENESS_CONTEXT)>("SetProcessDpiAwarenessContext")
-		: nullptr;
-	if (set_dpi)
-	{
-		set_dpi(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-	}
-}
-
-void limit_parallel_dll_loading()
-{
-	const utils::nt::library self;
-	const auto registry_path = R"(Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\)" + self.
-		get_name();
-
-	HKEY key = nullptr;
-	if (RegCreateKeyA(HKEY_LOCAL_MACHINE, registry_path.data(), &key) == ERROR_SUCCESS)
-	{
-		RegCloseKey(key);
-	}
-
-	key = nullptr;
-	if (RegOpenKeyExA(
-		HKEY_LOCAL_MACHINE, registry_path.data(), 0,
-		KEY_ALL_ACCESS, &key) != ERROR_SUCCESS)
-	{
-		return;
-	}
-
-	DWORD value = 1;
-	RegSetValueExA(key, "MaxLoaderThreads", 0, REG_DWORD, reinterpret_cast<const BYTE*>(&value), sizeof(value));
-
-	RegCloseKey(key);
-}
-
 int main()
 {
 	ShowWindow(GetConsoleWindow(), SW_HIDE);
 
 	FARPROC entry_point;
-	enable_dpi_awareness();
-
-	// This requires admin privilege, but I suppose many
-	// people will start with admin rights if it crashes.
-	limit_parallel_dll_loading();
 
 	srand(uint32_t(time(nullptr)));
 	remove_crash_file();
