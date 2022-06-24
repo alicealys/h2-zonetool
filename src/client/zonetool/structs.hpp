@@ -42,10 +42,10 @@ namespace zonetool
 		ASSET_TYPE_IMAGE,
 		ASSET_TYPE_SOUND,
 		ASSET_TYPE_SOUNDSUBMIX,
-		ASSET_TYPE_SNDCURVE,
-		ASSET_TYPE_LPFCURVE,
-		ASSET_TYPE_REVERBSENDCURVE,
-		ASSET_TYPE_SNDCONTEXT,
+		ASSET_TYPE_SOUND_CURVE,
+		ASSET_TYPE_LPF_CURVE,
+		ASSET_TYPE_REVERB_CURVE,
+		ASSET_TYPE_SOUND_CONTEXT,
 		ASSET_TYPE_LOADED_SOUND,
 		ASSET_TYPE_COL_MAP_MP,
 		ASSET_TYPE_COM_MAP,
@@ -83,12 +83,12 @@ namespace zonetool
 		ASSET_TYPE_VEHICLE,
 		ASSET_TYPE_ADDON_MAP_ENTS,
 		ASSET_TYPE_NET_CONST_STRINGS,
-		ASSET_TYPE_REVERBPRESET,
+		ASSET_TYPE_REVERB_PRESET,
 		ASSET_TYPE_LUA_FILE,
 		ASSET_TYPE_SCRIPTABLE,
 		ASSET_TYPE_EQUIPMENT_SND_TABLE,
 		ASSET_TYPE_VECTORFIELD,
-		ASSET_TYPE_DOPPLERPRESET,
+		ASSET_TYPE_DOPPLER_PRESET,
 		ASSET_TYPE_PARTICLE_SIM_ANIMATION,
 		ASSET_TYPE_LASER,
 		ASSET_TYPE_SKELETONSCRIPT,
@@ -96,6 +96,200 @@ namespace zonetool
 		ASSET_TYPE_TTF,
 		ASSET_TYPE_COUNT
 	};
+
+	enum snd_alias_type_t : std::int8_t
+	{
+		SAT_UNKNOWN = 0x0,
+		SAT_LOADED = 0x1,
+		SAT_STREAMED = 0x2,
+		SAT_PRIMED = 0x3,
+		SAT_COUNT = 0x4,
+	};
+
+	struct StreamFileNameRaw
+	{
+		const char* dir;
+		const char* name;
+	};
+
+	struct StreamFileNamePacked
+	{
+		unsigned __int64 offset;
+		unsigned __int64 length;
+	};
+
+	union StreamFileInfo
+	{
+		StreamFileNameRaw raw;
+		StreamFileNamePacked packed;
+	};
+
+	struct StreamFileName
+	{
+		bool isLocalized;
+		bool isStreamed;
+		unsigned short fileIndex;
+		StreamFileInfo info;
+	};
+
+	struct StreamedSound
+	{
+		StreamFileName filename;
+		unsigned int totalMsec;
+	};
+
+	struct LoadedSoundInfo
+	{
+		char* data;
+		unsigned int sampleRate;
+		unsigned int dataByteCount;
+		unsigned int numSamples;
+		char channels;
+		char numBits;
+		char blockAlign;
+		short format;
+		int loadedSize;
+	}; static_assert(sizeof(LoadedSoundInfo) == 0x20);
+
+	struct LoadedSound
+	{
+		const char* name;
+		StreamFileName filename;
+		LoadedSoundInfo info;
+	}; static_assert(sizeof(LoadedSound) == 0x40);
+
+	struct PrimedSound
+	{
+		LoadedSound* loadedPart;
+		StreamFileName streamedPart;
+		int dataOffset; // not sure
+		int totalSize; // not sure
+	}; static_assert(sizeof(PrimedSound) == 0x28);
+
+	union SoundFileRef
+	{
+		LoadedSound* loadSnd;
+		StreamedSound streamSnd;
+		PrimedSound primedSnd;
+	};
+
+	struct SoundFile
+	{
+		snd_alias_type_t type;
+		bool exists;
+		SoundFileRef u;
+	};
+
+	struct SndContext
+	{
+		const char* name;
+		char __pad0[8];
+	};
+
+	struct SndCurve
+	{
+		bool isDefault;
+		union
+		{
+			const char* filename;
+			const char* name;
+		};
+		unsigned short knotCount;
+		float knots[16][2];
+	}; static_assert(sizeof(SndCurve) == 0x98);
+
+	struct SpeakerLevels
+	{
+		char speaker;
+		char numLevels;
+		float levels[2];
+	};
+
+	struct ChannelMap
+	{
+		int speakerCount;
+		SpeakerLevels speakers[6];
+	};
+
+	struct SpeakerMap
+	{
+		bool isDefault;
+		const char* name;
+		int unknown;
+		ChannelMap channelMaps[2][2];
+	}; static_assert(sizeof(SpeakerMap) == 0x148);
+
+	struct DopplerPreset
+	{
+		const char* name;
+		float speedOfSound;
+		float playerVelocityScale;
+		float minPitch;
+		float maxPitch;
+		float smoothing;
+	}; static_assert(sizeof(DopplerPreset) == 0x20);
+
+	// TODO:
+	struct snd_alias_t
+	{
+		const char* aliasName;
+		const char* subtitle;
+		const char* secondaryAliasName; 
+		const char* chainAliasName;
+		SoundFile* soundFile;
+		const char* mixerGroup;
+		char __pad0[8];
+		int sequence;
+		int u4;
+		int u5;
+		float volMin;
+		float volMax;
+		int volModIndex;
+		float pitchMin;
+		float pitchMax;
+		float distMin;
+		float distMax;
+		float velocityMin;
+		int flags;
+		char masterPriority;
+		float masterPercentage;
+		float slavePercentage;
+		char u18;
+		float probability;
+		char u20; // value: 0-4
+		SndContext* sndContext;
+		char __pad1[12];
+		int startDelay;
+		SndCurve* sndCurve;
+		char __pad2[8];
+		SndCurve* lpfCurve;
+		SndCurve* reverbSendCurve;
+		SpeakerMap* speakerMap;
+		char __pad3[39];
+		unsigned char allowDoppler;
+		DopplerPreset* dopplerPreset;
+		char __pad4[8];
+	}; static_assert(sizeof(snd_alias_t) == 0xF8);
+	static_assert(offsetof(snd_alias_t, soundFile) == 32);
+	static_assert(offsetof(snd_alias_t, sndContext) == 128);
+	static_assert(offsetof(snd_alias_t, sndCurve) == 152);
+	static_assert(offsetof(snd_alias_t, lpfCurve) == 168);
+	static_assert(offsetof(snd_alias_t, reverbSendCurve) == 176);
+	static_assert(offsetof(snd_alias_t, speakerMap) == 184);
+	static_assert(offsetof(snd_alias_t, dopplerPreset) == 232);
+
+	struct snd_alias_list_t
+	{
+		union
+		{
+			const char* aliasName;
+			const char* name;
+		};
+		snd_alias_t* head;
+		short* unk;
+		unsigned char count;
+		unsigned char unkCount;
+	}; static_assert(sizeof(snd_alias_list_t) == 0x20);
 
 	struct LocalizeEntry
 	{
@@ -171,6 +365,12 @@ namespace zonetool
 	union XAssetHeader
 	{
 		void* data;
+		snd_alias_list_t* sound;
+		SndCurve* sndCurve;
+		SndCurve* lpfCurve;
+		SndCurve* reverbCurve;
+		SndContext* sndContext;
+		LoadedSound* loadSnd;
 		LocalizeEntry* localize;
 		RawFile* rawfile;
 		ScriptFile* scriptfile;
@@ -178,6 +378,7 @@ namespace zonetool
 		NetConstStrings* netConstStrings;
 		LuaFile* luaFile;
 		TTFDef* ttfDef;
+		DopplerPreset* doppler;
 	};
 
 	struct XAsset

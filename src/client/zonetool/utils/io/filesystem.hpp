@@ -14,7 +14,7 @@ namespace zonetool
 			~file();
 			FILE* get_fp();
 			bool exists();
-			errno_t open(std::string mode = "wb", bool use_path = true);
+			errno_t open(std::string mode = "wb", bool use_path = true, bool is_zone = false);
 			size_t write_string(const std::string& str);
 			size_t write_string(const char* str);
 			template <typename T> size_t write(T val, size_t count = 1);
@@ -37,6 +37,7 @@ namespace zonetool
 
 		void set_fastfile(const std::string& ff);
 		const std::string& get_fastfile();
+		std::string get_zone_path(const std::string& name = "");
 		std::string get_file_path(const std::string& name);
 		std::string get_dump_path();
 		bool create_directory(const std::string& name);

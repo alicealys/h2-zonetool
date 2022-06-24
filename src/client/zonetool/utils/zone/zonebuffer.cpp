@@ -390,7 +390,7 @@ namespace zonetool
 	{
 		auto file = filesystem::file(filename);
 		file.create_path();
-		file.open("wb", false);
+		file.open("wb", false, true);
 		file.write(this->m_buf.data(), this->m_pos, 1);
 		file.close();
 	}

@@ -114,11 +114,18 @@ namespace zonetool
 		try
 		{
 			// declare asset interfaces
+			ADD_ASSET(ASSET_TYPE_DOPPLER_PRESET, IDopplerPreset);
+			ADD_ASSET(ASSET_TYPE_LOADED_SOUND, ILoadedSound);
 			ADD_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize);
+			ADD_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve);
 			ADD_ASSET(ASSET_TYPE_LUA_FILE, ILuaFile);
 			ADD_ASSET(ASSET_TYPE_NET_CONST_STRINGS, INetConstStrings);
 			ADD_ASSET(ASSET_TYPE_RAWFILE, IRawFile);
+			ADD_ASSET(ASSET_TYPE_REVERB_CURVE, IReverbCurve);
 			ADD_ASSET(ASSET_TYPE_SCRIPTFILE, IScriptFile);
+			ADD_ASSET(ASSET_TYPE_SOUND, ISound);
+			ADD_ASSET(ASSET_TYPE_SOUND_CONTEXT, ISoundContext);
+			ADD_ASSET(ASSET_TYPE_SOUND_CURVE, ISoundCurve);
 			ADD_ASSET(ASSET_TYPE_STRINGTABLE, IStringTable);
 			ADD_ASSET(ASSET_TYPE_TTF, IFont);
 		}
@@ -492,7 +499,7 @@ namespace zonetool
 
 		fastfile.write(buf_compressed.data(), buf_compressed.size());
 
-		std::string path = "zone\\" + this->name_ + ".ff";
+		std::string path = this->name_ + ".ff";
 		fastfile.save(path);
 
 		ZONETOOL_INFO("Successfully compiled fastfile \"%s\"!", this->name_.data());

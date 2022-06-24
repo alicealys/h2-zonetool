@@ -132,11 +132,18 @@ namespace zonetool
 				try
 				{
 					// dump assets
+					DUMP_ASSET(ASSET_TYPE_DOPPLER_PRESET, IDopplerPreset, DopplerPreset);
+					DUMP_ASSET(ASSET_TYPE_LOADED_SOUND, ILoadedSound, LoadedSound);
 					DUMP_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize, LocalizeEntry);
+					DUMP_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve, SndCurve);
 					DUMP_ASSET(ASSET_TYPE_LUA_FILE, ILuaFile, LuaFile);
 					DUMP_ASSET(ASSET_TYPE_NET_CONST_STRINGS, INetConstStrings, NetConstStrings);
 					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
+					DUMP_ASSET(ASSET_TYPE_REVERB_CURVE, IReverbCurve, SndCurve);
 					DUMP_ASSET(ASSET_TYPE_SCRIPTFILE, IScriptFile, ScriptFile);
+					DUMP_ASSET(ASSET_TYPE_SOUND, ISound, snd_alias_list_t);
+					DUMP_ASSET(ASSET_TYPE_SOUND_CONTEXT, ISoundContext, SndContext);
+					DUMP_ASSET(ASSET_TYPE_SOUND_CURVE, ISoundCurve, SndCurve);
 					DUMP_ASSET(ASSET_TYPE_STRINGTABLE, IStringTable, StringTable);
 					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
 					DUMP_ASSET(ASSET_TYPE_TTF, IFont, TTFDef);
@@ -678,7 +685,7 @@ namespace zonetool
 		reallocate_asset_pool_multiplier(ASSET_TYPE_LEADERBOARDDEF, 2);
 		reallocate_asset_pool_multiplier(ASSET_TYPE_VERTEXDECL, 6);
 		reallocate_asset_pool_multiplier(ASSET_TYPE_COMPUTESHADER, 4);
-		reallocate_asset_pool_multiplier(ASSET_TYPE_REVERBPRESET, 2);
+		reallocate_asset_pool_multiplier(ASSET_TYPE_REVERB_PRESET, 2);
 
 		// enable dumping
 		DB_LinkXAssetEntry1_hook.create(0x1402BC920, &DB_LinkXAssetEntry1);

@@ -10,10 +10,33 @@
 
 #include "iasset.hpp"
 
-//#define JSON_DIAGNOSTICS 1
+#define JSON_DIAGNOSTICS 1
 #include "json.hpp"
 using json = nlohmann::json;
 using ordered_json = nlohmann::ordered_json;
+
+namespace nlohmann
+{
+	static inline std::vector<std::uint8_t> get_object_bytes(json object)
+	{
+		if (!object.is_object())
+		{
+			throw (detail::concat("type must be object, but is ", object.type_name()));
+		}
+		auto bytes = object["bytes"];
+		if (bytes.is_null())
+		{
+			throw ("object doesn't have \"bytes\" field");
+		}
+		std::vector<std::uint8_t> m_bytes(bytes.size());
+		for (auto i = 0; i < bytes.size(); i++)
+		{
+			auto byte = bytes[i].get<std::uint8_t>();
+			m_bytes[i] = byte;
+		}
+		return m_bytes;
+	}
+}
 
 #define MAX_ZONE_SIZE (1024ull * 1024ull * 1024ull) * 2ull
 
