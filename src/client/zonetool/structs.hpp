@@ -465,7 +465,7 @@ namespace zonetool
 		DB_ZONE_BASEMAP = 0x20,
 		DB_ZONE_TRANSIENT_POOL = 0x40,
 		DB_ZONE_TRANSIENT_MASK = 0x40,
-		DB_ZONE_CUSTOM = 0x80 // added for custom zone loading
+		DB_ZONE_CUSTOM = 0x400 // added for custom zone loading
 	};
 
 	struct XZoneInfo

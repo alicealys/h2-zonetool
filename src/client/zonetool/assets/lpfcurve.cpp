@@ -15,7 +15,7 @@ namespace zonetool
 
 		if (!this->asset_)
 		{
-			this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name().data()).sndCurve;
+			this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name().data()).lpfCurve;
 		}
 	}
 

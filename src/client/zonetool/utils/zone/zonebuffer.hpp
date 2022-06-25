@@ -242,7 +242,7 @@ namespace zonetool
 			*reinterpret_cast<std::uintptr_t*>(ptr) = static_cast<std::uintptr_t>(0xFDFDFDFFFFFFFFFF);
 		}
 
-		void save(const std::string& filename);
+		void save(const std::string& filename, bool use_zone_path = true);
 
 		std::vector<std::uint8_t> compress_zlib(const std::uint8_t* data, const std::size_t size, bool compress_blocks = false);
 		std::vector<std::uint8_t> compress_zlib(const std::vector<std::uint8_t>& data, bool compress_blocks = false);

@@ -386,11 +386,11 @@ namespace zonetool
 		return this->m_streamfiles.size();
 	}
 
-	void ZoneBuffer::save(const std::string& filename)
+	void ZoneBuffer::save(const std::string& filename, bool use_zone_path)
 	{
 		auto file = filesystem::file(filename);
 		file.create_path();
-		file.open("wb", false, true);
+		file.open("wb", false, use_zone_path);
 		file.write(this->m_buf.data(), this->m_pos, 1);
 		file.close();
 	}

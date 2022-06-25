@@ -429,7 +429,7 @@ namespace zonetool
 		
 #ifdef DEBUG
 		// Dump zone to disk (for debugging)
-		buf->save("zonetool\\_debug\\" + this->name_ + ".zone");
+		buf->save("zonetool\\_debug\\" + this->name_ + ".zone", false);
 #endif
 
 		// Compress buffer
@@ -459,7 +459,7 @@ namespace zonetool
 		auto streamfiles_count = buf->streamfile_count();
 		if (streamfiles_count > 0)
 		{
-			if (streamfiles_count > 48000)
+			if (streamfiles_count > 93056)
 			{
 				ZONETOOL_ERROR("There was an error writing the zone: Too many streamFiles!");
 				return;

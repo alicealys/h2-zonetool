@@ -25,7 +25,7 @@ namespace fastfiles
 			const auto original = a.newLabel();
 
 			a.pushad64();
-			a.test(esi, 0x80); // allocFlags
+			a.test(esi, 0x400); // allocFlags
 			a.jnz(skip);
 
 			a.bind(original);
@@ -37,9 +37,9 @@ namespace fastfiles
 
 			a.bind(skip);
 			a.popad64();
-			a.mov(r14d, 0x80);
+			a.mov(r14d, 0x400);
 			a.not_(r14d);
-			a.and_(ebp, r14d);
+			a.and_(esi, r14d);
 			a.jmp(0x1402BDB7F);
 		}
 	}
@@ -54,15 +54,14 @@ namespace fastfiles
 #endif
 
 			// Allow loading of unsigned fastfiles
-			utils::hook::set<uint8_t>(0x14028D79B, 0xEB); // main function
-			utils::hook::nop(0x14028DDB3, 2); // DB_AuthLoad_InflateInit
+			utils::hook::nop(0x14028DDB3, 2); // DB_InflateInit
+
+			// Allow loading of mixed compressor types
+			utils::hook::nop(0x14028E447, 2);
 
 			// Don't load extra zones with loadzone
 			utils::hook::nop(0x1402BDA91, 15);
 			utils::hook::jump(0x1402BDA91, utils::hook::assemble(skip_extra_zones_stub), true);
-
-			// Allow loading of mixed compressor types
-			utils::hook::nop(0x14028E447, 2);
 		}
 	};
 }
