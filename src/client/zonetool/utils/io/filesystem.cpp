@@ -86,7 +86,7 @@ namespace zonetool
 		{
 			if (this->fp)
 			{
-				return fwrite(str.data(), str.size(), 1, this->fp);
+				return fwrite(str.c_str(), str.size() + 1, 1, this->fp);
 			}
 			return 0;
 		}
@@ -94,15 +94,6 @@ namespace zonetool
 		size_t file::write_string(const char* str)
 		{
 			return this->write_string(std::string(str));
-		}
-
-		template <typename T> size_t file::write(T val, size_t count)
-		{
-			if (this->fp)
-			{
-				return fwrite(&val, sizeof(T), count, this->fp);
-			}
-			return 0;
 		}
 
 		size_t file::write(const void* buffer, size_t size, size_t count)
@@ -116,7 +107,40 @@ namespace zonetool
 
 		size_t file::write(const std::string& str)
 		{
-			return this->write_string(str);
+			return this->write(str.data(), str.size(), 1);
+		}
+
+		template <typename T> size_t file::write(T val, size_t count)
+		{
+			return this->write(&val, sizeof(T), count);
+		}
+
+		inline size_t get_string_size(FILE* fp)
+		{
+			auto i = ftell(fp);
+			char c;
+			size_t size = 0;
+			while (fread(&c, sizeof(byte), 1, fp) == 1)
+			{
+				if (c == '\0') // null terminator
+				{
+					break;
+				}
+				size++;
+			}
+			fseek(fp, i, SEEK_SET);
+			return size;
+		}
+
+		size_t file::read_string(std::string* str)
+		{
+			if (this->fp)
+			{
+				auto size = get_string_size(this->fp);
+				str->resize(size + 1);
+				fread(str->data(), sizeof(char), size + 1, this->fp);
+			}
+			return 0;
 		}
 
 		size_t file::read(void* buffer, size_t size, size_t count)
@@ -126,6 +150,11 @@ namespace zonetool
 				return fread(buffer, size, count, this->fp);
 			}
 			return 0;
+		}
+
+		template <typename T> size_t file::read(T val, size_t count)
+		{
+			return this->read(&val, sizeof(T), count);
 		}
 
 		int file::close()

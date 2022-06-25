@@ -6,55 +6,28 @@ namespace zonetool
 {
 	ScriptFile* IScriptFile::parse(const std::string& name, ZoneMemory* mem)
 	{
-		auto file_1 = filesystem::file(utils::string::va("%s.cgsc", name.data()));
-		auto file_2 = filesystem::file(utils::string::va("%s.cgsc.stack", name.data()));
-		if (file_1.exists() && file_2.exists())
+		auto file = filesystem::file(utils::string::va("%s.gscbin", name.data()));
+		file.open("rb");
+		auto* fp = file.get_fp();
+
+		if (fp)
 		{
-			auto* scriptfile = mem->Alloc<ScriptFile>();
-			scriptfile->name = mem->StrDup(name);
+			auto* asset = mem->Alloc<ScriptFile>();
 
-			ZONETOOL_INFO("Parsing scriptfile \"%s\"...", name.data());
+			std::string m_name;
+			file.read_string(&m_name);
+			asset->name = mem->StrDup(m_name);
 
-			// parse bytecode
-			file_1.open("rb");
-			if (file_1.get_fp())
-			{
-				ZONETOOL_INFO("Parsing scriptfile bytecode for script \"%s\"...", name.data());
+			file.read(&asset->compressedLen, sizeof(asset->compressedLen), 1);
+			file.read(&asset->len, sizeof(asset->len), 1);
+			file.read(&asset->bytecodeLen, sizeof(asset->bytecodeLen), 1);
 
-				auto size = file_1.size();
-				auto data = file_1.read_bytes(size);
+			asset->buffer = mem->Alloc<char>(asset->compressedLen);
+			asset->bytecode = mem->Alloc<char>(asset->bytecodeLen);
+			file.read(const_cast<char*>(asset->buffer), sizeof(char), asset->compressedLen);
+			file.read(const_cast<char*>(asset->bytecode), sizeof(char), asset->bytecodeLen);
 
-				scriptfile->bytecode = mem->Alloc<char>(size);
-				scriptfile->bytecodeLen = static_cast<int>(size);
-				memcpy(scriptfile->bytecode, &data[0], size);
-
-				file_1.close();
-			}
-
-			// parse stack
-			file_2.open("rb");
-			if (file_2.get_fp())
-			{
-				ZONETOOL_INFO("Parsing scriptfile heap for script \"%s\"...", name.data());
-
-				auto size = file_2.size();
-				auto data = file_2.read_bytes(size);
-
-				ZoneBuffer buf(data);
-				auto compressed = buf.compress_zlib();
-
-				scriptfile->len = static_cast<int>(size);
-				scriptfile->compressedLen = static_cast<int>(compressed.size());
-				scriptfile->buffer = mem->Alloc<char>(compressed.size());
-				memcpy(
-					const_cast<char*>(scriptfile->buffer),
-					compressed.data(),
-					compressed.size());
-
-				file_2.close();
-			}
-
-			return scriptfile;
+			return asset;
 		}
 
 		return nullptr;
@@ -119,28 +92,20 @@ namespace zonetool
 
 	void IScriptFile::dump(ScriptFile* asset)
 	{
-		auto file_1 = filesystem::file(utils::string::va("%s.cgsc", asset->name));
-		auto file_2 = filesystem::file(utils::string::va("%s.cgsc.stack", asset->name));
+		auto file = filesystem::file(utils::string::va("%s.gscbin", asset->name));
+		file.open("wb");
+		auto* fp = file.get_fp();
 
-		file_1.open("wb");
-		file_2.open("wb");
-
-		if (asset->bytecode)
+		if (fp)
 		{
-			file_1.write(asset->bytecode, asset->bytecodeLen, 1);
+			file.write_string(asset->name);
+			file.write(&asset->compressedLen, sizeof(asset->compressedLen), 1);
+			file.write(&asset->len, sizeof(asset->len), 1);
+			file.write(&asset->bytecodeLen, sizeof(asset->bytecodeLen), 1);
+			file.write(asset->buffer, asset->compressedLen, 1);
+			file.write(asset->bytecode, asset->bytecodeLen , 1);
+
+			file.close();
 		}
-
-		if (asset->buffer)
-		{
-			std::vector<std::uint8_t> uncompressed;
-			uncompressed.resize(asset->len);
-
-			uncompress(uncompressed.data(), (uLongf*)&asset->len, (Bytef*)asset->buffer, asset->compressedLen);
-
-			file_2.write(uncompressed.data(), uncompressed.size(), 1);
-		}
-
-		file_1.close();
-		file_2.close();
 	}
 }

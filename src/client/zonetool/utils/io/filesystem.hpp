@@ -17,10 +17,12 @@ namespace zonetool
 			errno_t open(std::string mode = "wb", bool use_path = true, bool is_zone = false);
 			size_t write_string(const std::string& str);
 			size_t write_string(const char* str);
-			template <typename T> size_t write(T val, size_t count = 1);
 			size_t write(const std::string& str);
 			size_t write(const void* buffer, size_t size, size_t count);
+			template <typename T> size_t write(T val, size_t count = 1);
+			size_t read_string(std::string* str);
 			size_t read(void* buffer, size_t size, size_t count);
+			template <typename T> size_t read(T val, size_t count = 1);
 			int close();
 
 			bool create_path();
