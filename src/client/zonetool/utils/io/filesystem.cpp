@@ -110,11 +110,6 @@ namespace zonetool
 			return this->write(str.data(), str.size(), 1);
 		}
 
-		template <typename T> size_t file::write(T val, size_t count)
-		{
-			return this->write(&val, sizeof(T), count);
-		}
-
 		inline size_t get_string_size(FILE* fp)
 		{
 			auto i = ftell(fp);
@@ -137,8 +132,9 @@ namespace zonetool
 			if (this->fp)
 			{
 				auto size = get_string_size(this->fp);
-				str->resize(size + 1);
-				fread(str->data(), sizeof(char), size + 1, this->fp);
+				str->resize(size);
+				fread(str->data(), sizeof(char), size, this->fp);
+				fseek(this->fp, ftell(this->fp) + 1, SEEK_CUR); // skip null terminator
 			}
 			return 0;
 		}
@@ -150,11 +146,6 @@ namespace zonetool
 				return fread(buffer, size, count, this->fp);
 			}
 			return 0;
-		}
-
-		template <typename T> size_t file::read(T val, size_t count)
-		{
-			return this->read(&val, sizeof(T), count);
 		}
 
 		int file::close()

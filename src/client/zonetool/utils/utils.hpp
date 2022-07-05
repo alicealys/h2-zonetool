@@ -1,6 +1,7 @@
 #pragma once
 
 #include "io/filesystem.hpp"
+#include "io/assetmanager.hpp"
 
 #include "zone/zone.hpp"
 #include "zone/zonebuffer.hpp"
