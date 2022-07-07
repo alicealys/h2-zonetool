@@ -86,7 +86,7 @@ namespace zonetool
 		{
 			if (this->fp)
 			{
-				return fwrite(str.c_str(), str.size() + 1, 1, this->fp);
+				return fwrite(str.data(), str.size() + 1, 1, this->fp);
 			}
 			return 0;
 		}
@@ -133,8 +133,7 @@ namespace zonetool
 			{
 				auto size = get_string_size(this->fp);
 				str->resize(size);
-				fread(str->data(), sizeof(char), size, this->fp);
-				fseek(this->fp, ftell(this->fp) + 1, SEEK_CUR); // skip null terminator
+				fread(str->data(), sizeof(char), size + 1, this->fp);
 			}
 			return 0;
 		}
