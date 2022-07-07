@@ -84,7 +84,7 @@ namespace zonetool
 		}
 		catch (std::exception& ex)
 		{
-			ZONETOOL_FATAL("A fatal exception occured while adding asset \"%s\" of type %s, exception was: %s\n",
+			ZONETOOL_FATAL("A fatal exception occured while adding asset \"%s\" of type %s, exception was: \n%s",
 				name.data(), type_to_string(XAssetType(type)), ex.what());
 		}
 	}
@@ -119,6 +119,7 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize);
 			ADD_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve);
 			ADD_ASSET(ASSET_TYPE_LUA_FILE, ILuaFile);
+			ADD_ASSET(ASSET_TYPE_MAP_ENTS, IMapEnts);
 			ADD_ASSET(ASSET_TYPE_NET_CONST_STRINGS, INetConstStrings);
 			ADD_ASSET(ASSET_TYPE_RAWFILE, IRawFile);
 			ADD_ASSET(ASSET_TYPE_REVERB_CURVE, IReverbCurve);
@@ -131,7 +132,7 @@ namespace zonetool
 		}
 		catch (std::exception& ex)
 		{
-			ZONETOOL_FATAL("A fatal exception occured while adding asset \"%s\" of type %s, exception was: %s\n",
+			ZONETOOL_FATAL("A fatal exception occured while adding asset \"%s\" of type %s, exception was: \n%s",
 				name.data(), type_to_string(XAssetType(type)), ex.what());
 		}
 	}

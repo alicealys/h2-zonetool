@@ -137,6 +137,7 @@ namespace zonetool
 					DUMP_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize, LocalizeEntry);
 					DUMP_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve, SndCurve);
 					DUMP_ASSET(ASSET_TYPE_LUA_FILE, ILuaFile, LuaFile);
+					DUMP_ASSET(ASSET_TYPE_MAP_ENTS, IMapEnts, MapEnts);
 					DUMP_ASSET(ASSET_TYPE_NET_CONST_STRINGS, INetConstStrings, NetConstStrings);
 					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
 					DUMP_ASSET(ASSET_TYPE_REVERB_CURVE, IReverbCurve, SndCurve);
@@ -146,11 +147,12 @@ namespace zonetool
 					DUMP_ASSET(ASSET_TYPE_SOUND_CURVE, ISoundCurve, SndCurve);
 					DUMP_ASSET(ASSET_TYPE_STRINGTABLE, IStringTable, StringTable);
 					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
+					DUMP_ASSET(ASSET_TYPE_STRUCTUREDDATADEF, IStructuredDataDefSet, StructuredDataDefSet);
 					DUMP_ASSET(ASSET_TYPE_TTF, IFont, TTFDef);
 				}
 				catch (std::exception& ex)
 				{
-					ZONETOOL_FATAL("A fatal exception occured while dumping zone \"%s\", exception was: %s\n", filesystem::get_fastfile().data(), ex.what());
+					ZONETOOL_FATAL("A fatal exception occured while dumping zone \"%s\", exception was: \n%s", filesystem::get_fastfile().data(), ex.what());
 				}
 			}
 		}
@@ -445,7 +447,7 @@ namespace zonetool
 				}
 				catch (std::exception& ex)
 				{
-					ZONETOOL_FATAL("A fatal exception occured while building zone \"%s\", exception was: %s\n", fastfile.data(), ex.what());
+					ZONETOOL_FATAL("A fatal exception occured while building zone \"%s\", exception was: \n%s", fastfile.data(), ex.what());
 				}
 			}
 			// if entry is not an option, it should be an asset.
@@ -471,7 +473,7 @@ namespace zonetool
 							}
 							catch (std::exception& ex)
 							{
-								ZONETOOL_FATAL("A fatal exception occured while building zone \"%s\", exception was: %s\n", fastfile.data(), ex.what());
+								ZONETOOL_FATAL("A fatal exception occured while building zone \"%s\", exception was: \n%s", fastfile.data(), ex.what());
 							}
 						}
 					}

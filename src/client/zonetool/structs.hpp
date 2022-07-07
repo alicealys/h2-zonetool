@@ -97,6 +97,12 @@ namespace zonetool
 		ASSET_TYPE_COUNT
 	};
 
+	struct Bounds
+	{
+		vec3_t midPoint;
+		vec3_t halfSize;
+	};
+
 	enum snd_alias_type_t : std::int8_t
 	{
 		SAT_UNKNOWN = 0x0,
@@ -297,6 +303,136 @@ namespace zonetool
 		const char* name;
 	}; static_assert(sizeof(LocalizeEntry) == 0x10);
 
+	struct TriggerModel
+	{
+		int contents;
+		unsigned short hullCount;
+		unsigned short firstHull;
+	};
+
+	struct TriggerHull
+	{
+		Bounds bounds;
+		int contents;
+		unsigned short slabCount;
+		unsigned short firstSlab;
+	};
+
+	struct TriggerSlab
+	{
+		float dir[3];
+		float midPoint;
+		float halfSize;
+	};
+
+	struct MapTriggers
+	{
+		unsigned int count;
+		TriggerModel* models;
+		unsigned int hullCount;
+		TriggerHull* hulls;
+		unsigned int slabCount;
+		TriggerSlab* slabs;
+	};
+
+	struct ClientTriggerAabbNode
+	{
+		Bounds bounds;
+		unsigned short firstChild;
+		unsigned short childCount;
+	};
+
+	struct ClientTriggers
+	{
+		MapTriggers trigger;
+		unsigned short numClientTriggerNodes;
+		ClientTriggerAabbNode* clientTriggerAabbTree;
+		unsigned int triggerStringLength;
+		char* triggerString;
+		short* unk0;
+		short* unk1;
+		short* unk2;
+		short* triggerType;
+		vec3_t* origins;
+		float* scriptDelay;
+		short* unk3;
+		short* unk4;
+		short* unk5;
+		short* unk6;
+		short* unk7;
+		short* unk8;
+	}; static_assert(sizeof(ClientTriggers) == 0xB0);
+
+	struct ClientTriggerBlendNode
+	{
+		float pointA[3];
+		float pointB[3];
+		unsigned short triggerA;
+		unsigned short triggerB;
+	};
+
+	struct ClientTriggerBlend
+	{
+		unsigned short numClientTriggerBlendNodes;
+		ClientTriggerBlendNode* blendNodes;
+	};
+
+	struct SpawnPointEntityRecord
+	{
+		unsigned short index;
+		scr_string_t name;
+		scr_string_t target;
+		scr_string_t script_noteworthy;
+		scr_string_t unknown;
+		float origin[3];
+		float angles[3];
+	};
+
+	struct SpawnPointRecordList
+	{
+		unsigned short spawnsCount;
+		SpawnPointEntityRecord* spawns;
+	};
+
+	struct SplinePointEntityRecord
+	{
+		int splineId;
+		int splineNodeId;
+		char* splineNodeLabel;
+		float splineNodeTension;
+		float origin[3];
+		float corridorDims[2];
+		float tangent[3];
+		float distToNextNode;
+		vec3_t* positionCubic;
+		vec3_t* tangentQuadratic;
+	};
+
+	struct SplinePointRecordList
+	{
+		unsigned short splinePointCount;
+		float splineLength;
+		SplinePointEntityRecord* splinePoints;
+	};
+
+	struct SplineRecordList
+	{
+		unsigned short splineCount;
+		SplinePointRecordList* splines;
+	};
+
+	struct MapEnts
+	{
+		const char* name;
+		char* entityString;
+		int numEntityChars;
+		MapTriggers trigger;
+		ClientTriggers clientTrigger;
+		ClientTriggerBlend clientTriggerBlend;
+		SpawnPointRecordList spawnList;
+		SplineRecordList splineList;
+	}; static_assert(sizeof(MapEnts) == 0x128);
+
 	struct RawFile
 	{
 		const char* name;
@@ -328,6 +464,108 @@ namespace zonetool
 		int rowCount;
 		StringTableCell* values;
 	}; static_assert(sizeof(StringTable) == 0x18);
+
+	struct StructuredDataEnumEntry
+	{
+		scr_string_t string;
+		unsigned short index;
+	};
+
+	struct StructuredDataEnum
+	{
+		int entryCount;
+		int reservedEntryCount;
+		StructuredDataEnumEntry* entries;
+	};
+
+	enum StructuredDataTypeCategory
+	{
+		DATA_INT = 0x0,
+		DATA_BYTE = 0x1,
+		DATA_BOOL = 0x2,
+		DATA_STRING = 0x3,
+		DATA_ENUM = 0x4,
+		DATA_STRUCT = 0x5,
+		DATA_INDEXED_ARRAY = 0x6,
+		DATA_ENUM_ARRAY = 0x7,
+		DATA_FLOAT = 0x8,
+		DATA_SHORT = 0x9,
+		DATA_COUNT = 0xA,
+	};
+
+	union StructuredDataTypeUnion
+	{
+		unsigned int stringDataLength;
+		int enumIndex;
+		int structIndex;
+		int indexedArrayIndex;
+		int enumedArrayIndex;
+		int index;
+	};
+
+	struct StructuredDataType
+	{
+		StructuredDataTypeCategory type;
+		StructuredDataTypeUnion u;
+	};
+
+	enum StructuredDataValidationType
+	{
+		VALIDATION_NONE = 0x0,
+	};
+
+	struct StructuredDataStructProperty
+	{
+		scr_string_t name;
+		StructuredDataType type;
+		unsigned int offset;
+		StructuredDataValidationType validation;
+	};
+
+	struct StructuredDataStruct
+	{
+		int propertyCount;
+		StructuredDataStructProperty* properties;
+		int size;
+		unsigned int bitOffset;
+	};
+
+	struct StructuredDataIndexedArray
+	{
+		int arraySize;
+		StructuredDataType elementType;
+		unsigned int elementSize;
+	};
+
+	struct StructuredDataEnumedArray
+	{
+		int enumIndex;
+		StructuredDataType elementType;
+		unsigned int elementSize;
+	};
+
+	struct StructuredDataDef
+	{
+		int version;
+		unsigned int formatChecksum;
+		int enumCount;
+		StructuredDataEnum* enums;
+		int structCount;
+		StructuredDataStruct* structs;
+		int indexedArrayCount;
+		StructuredDataIndexedArray* indexedArrays;
+		int enumedArrayCount;
+		StructuredDataEnumedArray* enumedArrays;
+		StructuredDataType rootType;
+		unsigned int size;
+	}; static_assert(sizeof(StructuredDataDef) == 0x58);
+
+	struct StructuredDataDefSet
+	{
+		const char* name;
+		unsigned int defCount;
+		StructuredDataDef* defs;
+	}; static_assert(sizeof(StructuredDataDefSet) == 0x18);
 
 	enum NetConstStringType
 	{
@@ -372,9 +610,11 @@ namespace zonetool
 		SndContext* sndContext;
 		LoadedSound* loadSnd;
 		LocalizeEntry* localize;
+		MapEnts* mapEnts;
 		RawFile* rawfile;
 		ScriptFile* scriptfile;
 		StringTable* stringTable;
+		StructuredDataDefSet* structuredDataDefSet;
 		NetConstStrings* netConstStrings;
 		LuaFile* luaFile;
 		TTFDef* ttfDef;

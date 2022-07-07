@@ -154,7 +154,7 @@ namespace zonetool
 					}
 					catch (std::exception& ex)
 					{
-						ZONETOOL_FATAL("A fatal exception occured while adding localizedstring: \"%s\" from file: \"%s\", exception was: %s",
+						ZONETOOL_FATAL("A fatal exception occured while adding localizedstring: \"%s\" from file: \"%s\", exception was: \n%s",
 							name.data(), path.data(), ex.what());
 					}
 					name.clear();

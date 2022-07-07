@@ -17,6 +17,7 @@
 #include "assets/localize.hpp"
 #include "assets/lpfcurve.hpp"
 #include "assets/luafile.hpp"
+#include "assets/mapents.hpp"
 #include "assets/rawfile.hpp"
 #include "assets/netconststrings.hpp"
 #include "assets/rawfile.hpp"
@@ -26,6 +27,7 @@
 #include "assets/soundcontext.hpp"
 #include "assets/soundcurve.hpp"
 #include "assets/stringtable.hpp"
+#include "assets/structureddatadefset.hpp"
 #include "assets/ttf.hpp"
 
 #include "zone.hpp"
