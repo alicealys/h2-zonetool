@@ -524,7 +524,10 @@ namespace zonetool
 
 				read_entries.clear();
 
-				read_header();
+				if (is_open())
+				{
+					read_header();
+				}
 			}
 
 			bool is_open()
