@@ -115,6 +115,7 @@ namespace zonetool
 		{
 			// declare asset interfaces
 			ADD_ASSET(ASSET_TYPE_DOPPLER_PRESET, IDopplerPreset);
+			ADD_ASSET(ASSET_TYPE_IMAGE, IGfxImage);
 			ADD_ASSET(ASSET_TYPE_LOADED_SOUND, ILoadedSound);
 			ADD_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize);
 			ADD_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve);

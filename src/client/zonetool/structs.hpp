@@ -1,4 +1,5 @@
 #pragma once
+#include <d3d11.h>
 
 namespace zonetool
 {
@@ -102,6 +103,81 @@ namespace zonetool
 		vec3_t midPoint;
 		vec3_t halfSize;
 	};
+
+	struct GfxImageLoadDef
+	{
+		char levelCount;
+		char numElements;
+		char pad[2];
+		int flags;
+		int format;
+		int resourceSize;
+		char data[1];
+	};
+
+	union $3FA29451CE6F1FA138A5ABAB84BE9676
+	{
+		ID3D11Texture1D* linemap;
+		ID3D11Texture2D* map;
+		ID3D11Texture3D* volmap;
+		ID3D11Texture2D* cubemap;
+		GfxImageLoadDef* loadDef;
+	};
+
+	struct GfxTexture
+	{
+		$3FA29451CE6F1FA138A5ABAB84BE9676 ___u0;
+		ID3D11ShaderResourceView* shaderView;
+		ID3D11ShaderResourceView* shaderViewAlternate;
+	};
+
+	struct Picmip
+	{
+		unsigned char platform[2];
+	};
+
+	struct GfxImageStreamData
+	{
+		unsigned short width;
+		unsigned short height;
+		unsigned int pixelSize;
+	};
+
+	enum MapType : std::uint8_t
+	{
+		MAPTYPE_NONE = 0x0,
+		MAPTYPE_INVALID1 = 0x1,
+		MAPTYPE_1D = 0x2,
+		MAPTYPE_2D = 0x3,
+		MAPTYPE_3D = 0x4,
+		MAPTYPE_CUBE = 0x5,
+		MAPTYPE_ARRAY = 0x6,
+		MAPTYPE_COUNT = 0x7,
+	};
+
+	struct GfxImage
+	{
+		GfxTexture texture;
+		DXGI_FORMAT imageFormat;
+		MapType mapType;
+		unsigned char sematic;
+		unsigned char category;
+		unsigned char flags;
+		Picmip picmip;
+		char __pad0[2];
+		unsigned int dataLen1;
+		unsigned int dataLen2;
+		unsigned short width;
+		unsigned short height;
+		unsigned short depth;
+		unsigned short numElements;
+		unsigned char levelCount;
+		unsigned char streamed;
+		char __pad1[2];
+		unsigned char* pixelData;
+		GfxImageStreamData streams[4];
+		const char* name;
+	}; static_assert(sizeof(GfxImage) == 0x68);
 
 	enum snd_alias_type_t : std::int8_t
 	{
@@ -603,6 +679,7 @@ namespace zonetool
 	union XAssetHeader
 	{
 		void* data;
+		GfxImage* image;
 		snd_alias_list_t* sound;
 		SndCurve* sndCurve;
 		SndCurve* lpfCurve;

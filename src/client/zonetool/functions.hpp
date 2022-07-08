@@ -16,6 +16,7 @@ namespace zonetool
 	WEAK game::symbol<const char* (const XAsset* asset)> DB_GetXAssetName{ 0x14028BE50 };
 	WEAK game::symbol<XAssetHeader(XAssetType type, const char* name, int createDefault)> DB_FindXAssetHeader{ 0x1402BAC70 };
 	WEAK game::symbol<XAssetEntry* (XAssetType type, const char* name)> DB_FindXAssetEntry{ 0x1402BABA0 };
+	WEAK game::symbol<bool(XAssetType, const char* name)> DB_IsXAssetDefault{ 0x1402BC370 };
 	WEAK game::symbol<void(XZoneInfo* zoneInfo, unsigned int zoneCount, DBSyncMode syncMode)> DB_LoadXAssets{ 0x1402BCF90 };
 	WEAK game::symbol<bool(const char* zone, int source)> DB_FileExists{ 0x1402BA970 };
 	WEAK game::symbol<size_t(XAssetType type)> DB_GetXAssetTypeSize{ 0x14028BE70 };

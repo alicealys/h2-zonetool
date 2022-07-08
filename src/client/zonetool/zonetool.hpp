@@ -13,6 +13,7 @@
 #include "utils/utils.hpp"
 
 #include "assets/dopplerpreset.hpp"
+#include "assets/gfximage.hpp"
 #include "assets/loadedsound.hpp"
 #include "assets/localize.hpp"
 #include "assets/lpfcurve.hpp"

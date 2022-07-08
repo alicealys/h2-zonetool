@@ -110,12 +110,6 @@ namespace zonetool
 				fprintf(csv_file.get_fp(), "%s,%s\n", type_to_string(asset->type), get_asset_name(asset));
 			}
 
-			// check if we're done loading the zone
-			if (asset->type == ASSET_TYPE_RAWFILE && get_asset_name(asset) == filesystem::get_fastfile())
-			{
-				stop_dumping();
-			}
-
 			// dump referenced later
 			if (is_referenced_asset(asset))
 			{
@@ -133,6 +127,7 @@ namespace zonetool
 				{
 					// dump assets
 					DUMP_ASSET(ASSET_TYPE_DOPPLER_PRESET, IDopplerPreset, DopplerPreset);
+					DUMP_ASSET(ASSET_TYPE_IMAGE, IGfxImage, GfxImage);
 					DUMP_ASSET(ASSET_TYPE_LOADED_SOUND, ILoadedSound, LoadedSound);
 					DUMP_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize, LocalizeEntry);
 					DUMP_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve, SndCurve);
@@ -190,9 +185,9 @@ namespace zonetool
 
 				const auto& asset_header = DB_FindXAssetHeader_Safe(asset.first, asset_name);
 
-				if (!asset_header.data)
+				if (!asset_header.data || DB_IsXAssetDefault(asset.first, asset_name))
 				{
-					ZONETOOL_ERROR("Could not find referenced asset \"%s\"!", asset_name);
+					ZONETOOL_ERROR("Could not find referenced asset \"%s\" of type \"%s\"", asset_name, type_to_string(asset.first));
 					continue;
 				}
 
