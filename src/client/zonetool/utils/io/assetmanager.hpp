@@ -2,19 +2,10 @@
 #include "filesystem.hpp"
 #include "../zone/zonememory.hpp"
 
-#define ASSETMAN_MAGIC "assetman"
-#define ASSETMAN_VERSION 1
-
 namespace zonetool
 {
 	namespace assetmanager
 	{
-		struct dump_header
-		{
-			char magic[8];
-			std::uint32_t version;
-		};
-
 		struct dump_entry
 		{
 			std::uintptr_t ptr;
@@ -74,18 +65,6 @@ namespace zonetool
 				dump_entry entry;
 				entry.ptr = str;
 				dump_entries.push_back(entry);
-			}
-
-			void write_header()
-			{
-				dump_header header;
-
-				memset(header.magic, 0, sizeof(header.magic));
-				memcpy(header.magic, ASSETMAN_MAGIC, sizeof(header.magic));
-
-				header.version = ASSETMAN_VERSION;
-
-				file.write(&header);
 			}
 
 			void write_type(dump_type type)
@@ -174,8 +153,6 @@ namespace zonetool
 				file.open("wb");
 
 				dump_entries.clear();
-
-				write_header();
 			}
 
 			bool is_open()
@@ -377,35 +354,6 @@ namespace zonetool
 				read_entries.push_back(entry);
 			}
 
-			void check_magic(const char* magic, size_t size)
-			{
-				if (strncmp(magic, ASSETMAN_MAGIC, size))
-				{
-					throw std::runtime_error("Reader error: Magic is wrong!");
-				}
-			}
-
-			void check_version(std::uint32_t version)
-			{
-				if (version != ASSETMAN_VERSION)
-				{
-					throw std::runtime_error("Reader error: Version is wrong!");
-				}
-			}
-
-			void check_header(dump_header* header)
-			{
-				check_magic(header->magic, sizeof(header->magic));
-				check_version(header->version);
-			}
-
-			void read_header()
-			{
-				dump_header header;
-				file.read(&header);
-				check_header(&header);
-			}
-
 			void read_type(dump_type* type)
 			{
 				file.read(type);
@@ -523,11 +471,6 @@ namespace zonetool
 				file.open("rb");
 
 				read_entries.clear();
-
-				if (is_open())
-				{
-					read_header();
-				}
 			}
 
 			bool is_open()
