@@ -9,5 +9,5 @@ namespace zonetool
 
 	WEAK game::symbol<XZoneInfoInternal> g_zoneInfo{ 0x145122460 };
 	WEAK game::symbol<unsigned int> g_zoneCount{ 0x143498F0C };
-	WEAK game::symbol<unsigned int> g_zoneIndex{ 0x1434A9B68 };
+	WEAK game::symbol<unsigned short> g_zoneIndex{ 0x1434A9B68 };
 }

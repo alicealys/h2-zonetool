@@ -11,6 +11,11 @@ namespace zonetool
 
 	filesystem::file csv_file;
 
+	// referenced assets
+	std::vector<std::pair<XAssetType, std::string>> referenced_assets;
+
+	std::unordered_map<std::uint32_t, XGfxGlobals*> xGfxGlobals_map;
+
 	const char* get_asset_name(XAssetType type, void* pointer)
 	{
 		XAssetHeader header{ .data = pointer };
@@ -48,9 +53,6 @@ namespace zonetool
 	{
 		return DB_FileExists(zone.data(), 0);
 	}
-
-	// referenced assets
-	std::vector<std::pair<XAssetType, std::string>> referencedAssets;
 
 	bool is_referenced_asset(XAsset* asset)
 	{
@@ -132,6 +134,7 @@ namespace zonetool
 					DUMP_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize, LocalizeEntry);
 					DUMP_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve, SndCurve);
 					DUMP_ASSET(ASSET_TYPE_LUA_FILE, ILuaFile, LuaFile);
+					DUMP_ASSET(ASSET_TYPE_MATERIAL, IMaterial, Material);
 					DUMP_ASSET(ASSET_TYPE_MAP_ENTS, IMapEnts, MapEnts);
 					DUMP_ASSET(ASSET_TYPE_NET_CONST_STRINGS, INetConstStrings, NetConstStrings);
 					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
@@ -143,7 +146,15 @@ namespace zonetool
 					DUMP_ASSET(ASSET_TYPE_STRINGTABLE, IStringTable, StringTable);
 					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
 					DUMP_ASSET(ASSET_TYPE_STRUCTUREDDATADEF, IStructuredDataDefSet, StructuredDataDefSet);
+					DUMP_ASSET(ASSET_TYPE_TECHNIQUE_SET, ITechset, MaterialTechniqueSet);
 					DUMP_ASSET(ASSET_TYPE_TTF, IFont, TTFDef);
+
+					DUMP_ASSET(ASSET_TYPE_COMPUTESHADER, IComputeShader, ComputeShader);
+					DUMP_ASSET(ASSET_TYPE_DOMAINSHADER, IDomainShader, MaterialDomainShader);
+					DUMP_ASSET(ASSET_TYPE_HULLSHADER, IHullShader, MaterialHullShader);
+					DUMP_ASSET(ASSET_TYPE_PIXELSHADER, IPixelShader, MaterialPixelShader);
+					DUMP_ASSET(ASSET_TYPE_VERTEXDECL, IVertexDecl, MaterialVertexDeclaration);
+					DUMP_ASSET(ASSET_TYPE_VERTEXSHADER, IVertexShader, MaterialVertexShader);
 				}
 				catch (std::exception& ex)
 				{
@@ -165,10 +176,10 @@ namespace zonetool
 		if (dump)
 		{
 			// remove duplicates
-			sort(referencedAssets.begin(), referencedAssets.end());
-			referencedAssets.erase(unique(referencedAssets.begin(), referencedAssets.end()), referencedAssets.end());
+			sort(referenced_assets.begin(), referenced_assets.end());
+			referenced_assets.erase(unique(referenced_assets.begin(), referenced_assets.end()), referenced_assets.end());
 
-			for (auto& asset : referencedAssets)
+			for (auto& asset : referenced_assets)
 			{
 				if (asset.second.length() <= 1)
 				{
@@ -203,7 +214,7 @@ namespace zonetool
 
 			ZONETOOL_INFO("Zone \"%s\" dumped.", filesystem::get_fastfile().data());
 
-			referencedAssets.clear();
+			referenced_assets.clear();
 
 			csv_file.close();
 			csv_file = {};
@@ -232,6 +243,25 @@ namespace zonetool
 		verify = false;
 		stop_dumping();
 		return DB_FinishLoadXFile_hook.invoke<void>();
+	}
+
+	utils::hook::detour Load_XGfxGlobals_hook;
+	void Load_XGfxGlobals(bool atStreamStart)
+	{
+		Load_XGfxGlobals_hook.invoke<void>(atStreamStart);
+
+		XGfxGlobals* varXGfxGlobals = *reinterpret_cast<zonetool::XGfxGlobals**>(0x143411DB0);
+		xGfxGlobals_map[*g_zoneIndex] = varXGfxGlobals;
+	}
+
+	XGfxGlobals* GetXGfxGlobalsForCurrentZone()
+	{
+		return xGfxGlobals_map[*g_zoneIndex];
+	}
+
+	XGfxGlobals* GetXGfxGlobalsForZone(std::uint32_t zone_index)
+	{
+		return xGfxGlobals_map[zone_index];
 	}
 
 	void reallocate_asset_pool(const XAssetType type, const unsigned int new_size)
@@ -523,13 +553,16 @@ namespace zonetool
 
 		// compile zone
 		zone->build(buffer.get());
+
+		// clear asset shit
+		ITechset::vertexdecl_pointers.clear();
 	}
 
 	void register_commands()
 	{
 		command::add("quit", []()
 		{
-			std::quick_exit(0);
+			std::quick_exit(EXIT_SUCCESS);
 		});
 
 		command::add("buildzone", [](const command::params& params)
@@ -635,7 +668,7 @@ namespace zonetool
 				}
 			}
 
-			std::quick_exit(0);
+			std::quick_exit(EXIT_SUCCESS);
 		}
 	}
 
@@ -689,6 +722,9 @@ namespace zonetool
 
 		// stop dumping
 		DB_FinishLoadXFile_hook.create(0x14028DC30, &DB_FinishLoadXFile);
+
+		// store xGfxGlobals pointers
+		Load_XGfxGlobals_hook.create(0x1402A8EA0, &Load_XGfxGlobals);
 
 		doexit_hook.create(0x1407948E0, doexit);
 		atexit(on_exit);

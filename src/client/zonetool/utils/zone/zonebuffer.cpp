@@ -279,11 +279,20 @@ namespace zonetool
 		return this->m_depthstencilstatebits.size();
 	}
 
-	std::uint8_t ZoneBuffer::write_blendstatebits(std::uint32_t bits)
+	std::uint8_t ZoneBuffer::write_blendstatebits(std::array<std::uint32_t, 3> bits)
 	{
 		for (std::uint8_t i = 0; i < this->m_blendstatebits.size(); i++)
 		{
-			if (this->m_blendstatebits[i] == bits)
+			bool match = true;
+			for (auto j = 0; j < 3; j++)
+			{
+				if (this->m_blendstatebits[i][j] != bits[j])
+				{
+					match = false;
+					break;
+				}
+			}
+			if (match)
 			{
 				return i;
 			}
@@ -292,7 +301,7 @@ namespace zonetool
 		return static_cast<std::uint8_t>(this->m_blendstatebits.size() - 1);
 	}
 
-	std::uint32_t ZoneBuffer::get_blendstatebits(std::size_t idx)
+	std::array<std::uint32_t, 3> ZoneBuffer::get_blendstatebits(std::size_t idx)
 	{
 		return this->m_blendstatebits[idx];
 	}

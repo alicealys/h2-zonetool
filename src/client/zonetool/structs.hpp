@@ -104,6 +104,330 @@ namespace zonetool
 		vec3_t halfSize;
 	};
 
+	struct Packed128
+	{
+		std::uint64_t p0;
+		std::uint64_t p1;
+	};
+
+	union GfxDrawSurf
+	{
+		//GfxDrawSurfFields fields;
+		Packed128 packed;
+	};
+
+	struct GfxComputeShaderLoadDef
+	{
+		unsigned char* program;
+		unsigned int programSize;
+		char __pad[4];
+	};
+
+	struct ComputeShaderProgram
+	{
+		ID3D11ComputeShader* cs;
+		GfxComputeShaderLoadDef loadDef;
+	};
+
+	struct ComputeShader
+	{
+		const char* name;
+		ComputeShaderProgram prog;
+	}; static_assert(sizeof(ComputeShader) == 0x20);
+
+	struct GfxVertexShaderLoadDef
+	{
+		unsigned char* program;
+		unsigned int programSize;
+		unsigned int microCodeCrc;
+	};
+
+	struct MaterialVertexShaderProgram
+	{
+		ID3D11VertexShader* vs;
+		GfxVertexShaderLoadDef loadDef;
+	};
+
+	struct MaterialVertexShader
+	{
+		const char* name;
+		MaterialVertexShaderProgram prog;
+	}; static_assert(sizeof(MaterialVertexShader) == 0x20);
+
+	struct GfxPixelShaderLoadDef
+	{
+		unsigned char* program;
+		unsigned int programSize;
+		unsigned int microCodeCrc;
+	};
+
+	struct MaterialPixelShaderProgram
+	{
+		ID3D11PixelShader* ps;
+		GfxPixelShaderLoadDef loadDef;
+	};
+
+	struct MaterialPixelShader
+	{
+		const char* name;
+		MaterialPixelShaderProgram prog;
+	}; static_assert(sizeof(MaterialPixelShader) == 0x20);
+
+	struct GfxHullShaderLoadDef
+	{
+		unsigned char* program;
+		unsigned int programSize;
+		char __pad[4];
+	};
+
+	struct MaterialHullShaderProgram
+	{
+		ID3D11HullShader* hs;
+		GfxHullShaderLoadDef loadDef;
+	};
+
+	struct MaterialHullShader
+	{
+		const char* name;
+		MaterialHullShaderProgram prog;
+	}; static_assert(sizeof(MaterialHullShader) == 0x20);
+
+	struct GfxDomainShaderLoadDef
+	{
+		unsigned char* program;
+		unsigned int programSize;
+		char __pad[4];
+	};
+
+	struct MaterialDomainShaderProgram
+	{
+		ID3D11DomainShader* ds;
+		GfxDomainShaderLoadDef loadDef;
+	};
+
+	struct MaterialDomainShader
+	{
+		const char* name;
+		MaterialDomainShaderProgram prog;
+	}; static_assert(sizeof(MaterialDomainShader) == 0x20);
+
+	struct MaterialArgumentCodeConst
+	{
+		unsigned short index;
+		unsigned char firstRow;
+		unsigned char rowCount;
+	};
+
+	union MaterialArgumentDef
+	{
+		const float* literalConst;
+		MaterialArgumentCodeConst codeConst;
+		unsigned int codeSampler;
+		unsigned int nameHash;
+	};
+
+	struct MaterialShaderArgument
+	{
+		unsigned char type;
+		unsigned char shader;
+		unsigned short dest;
+		MaterialArgumentDef u;
+	}; static_assert(sizeof(MaterialShaderArgument) == 0x10);
+
+	struct MaterialStreamRouting
+	{
+		unsigned char source;
+		unsigned char dest;
+		unsigned char mask;
+	};
+
+	struct MaterialVertexStreamRouting
+	{
+		MaterialStreamRouting data[32];
+		ID3D11InputLayout* decl[250];
+	};
+
+	struct MaterialVertexDeclaration
+	{
+		const char* name;
+		unsigned char streamCount;
+		bool hasOptionalSource;
+		MaterialVertexStreamRouting routing;
+	}; static_assert(sizeof(MaterialVertexDeclaration) == 0x840);
+
+	struct MaterialPass
+	{
+		MaterialVertexShader* vertexShader;
+		MaterialVertexDeclaration* vertexDecl;
+		MaterialHullShader* hullShader;
+		MaterialDomainShader* domainShader;
+		MaterialPixelShader* pixelShader;
+		unsigned char pixelOutputMask;
+		unsigned char perPrimArgCount;
+		unsigned char perObjArgCount;
+		unsigned char stableArgCount;
+		unsigned short perPrimArgSize;
+		unsigned short perObjArgSize;
+		unsigned short stableArgSize;
+		unsigned short zone;
+		unsigned char perPrimConstantBuffer;
+		unsigned char perObjConstantBuffer;
+		unsigned char stableConstantBuffer;
+		unsigned int customBufferFlags;
+		unsigned char customSamplerFlags;
+		unsigned char precompiledIndex;
+		unsigned char stageConfig;
+		MaterialShaderArgument* args;
+	};
+
+	struct MaterialTechniqueHeader
+	{
+		const char* name;
+		unsigned short flags;
+		unsigned short passCount;
+	};
+
+	struct MaterialTechnique
+	{
+		//const char* name;
+		//unsigned short flags;
+		//unsigned short passCount;
+		MaterialTechniqueHeader hdr;
+		MaterialPass passArray[1];
+	};
+
+	struct MaterialTechniqueSet
+	{
+		const char* name;
+		unsigned short flags;
+		unsigned char worldVertFormat;
+		unsigned char preDisplacementOnlyCount;
+		MaterialTechnique* techniques[240];
+	}; static_assert(sizeof(MaterialTechniqueSet) == 0x790);
+
+	struct GfxImage;
+
+	struct WaterWritable
+	{
+		float floatTime;
+	};
+
+	struct water_t
+	{
+		WaterWritable writable;
+		float* H0X;
+		float* H0Y;
+		float* wTerm;
+		int M;
+		int N;
+		float Lx;
+		float Lz;
+		float gravity;
+		float windvel;
+		float winddir[2];
+		float amplitude;
+		GfxImage* image;
+		GfxImage* stagingImage;
+	};
+
+	union MaterialTextureDefInfo
+	{
+		GfxImage* image;
+		water_t* water;
+	};
+
+	struct MaterialTextureDef
+	{
+		unsigned int nameHash;
+		char nameStart;
+		char nameEnd;
+		unsigned char samplerState;
+		unsigned char semantic;
+		MaterialTextureDefInfo u;
+	}; static_assert(sizeof(MaterialTextureDef) == 0x10);
+
+	struct MaterialConstantDef
+	{
+		unsigned int nameHash;
+		char name[12];
+		float literal[4];
+	}; static_assert(sizeof(MaterialConstantDef) == 0x20);
+
+	struct GfxStateBits
+	{
+		unsigned int loadBits[6]; // loadbits[3], blendstatebits[3]
+		unsigned short zone;
+		unsigned char depthStencilState[11];
+		unsigned char blendState;
+		unsigned char rasterizerState;
+	}; static_assert(sizeof(GfxStateBits) == 0x28);
+
+	struct MaterialConstantBufferDef
+	{
+		unsigned int vsDataSize;
+		unsigned int hsDataSize;
+		unsigned int dsDataSize;
+		unsigned int psDataSize;
+		unsigned int vsOffsetDataSize;
+		unsigned int hsOffsetDataSize;
+		unsigned int dsOffsetDataSize;
+		unsigned int psOffsetDataSize;
+		unsigned char* vsData;
+		unsigned char* hsData;
+		unsigned char* dsData;
+		unsigned char* psData;
+		unsigned short* vsOffsetData;
+		unsigned short* hsOffsetData;
+		unsigned short* dsOffsetData;
+		unsigned short* psOffsetData;
+		ID3D11Buffer* vsConstantBuffer;
+		ID3D11Buffer* hsConstantBuffer;
+		ID3D11Buffer* dsConstantBuffer;
+		ID3D11Buffer* psConstantBuffer;
+	};
+
+	struct MaterialInfo
+	{
+		const char* name;
+		unsigned char gameFlags;
+		unsigned char sortKey;
+		unsigned char textureAtlasRowCount;
+		unsigned char textureAtlasColumnCount;
+		unsigned char textureAtlasFrameBlend;
+		unsigned char textureAtlasAsArray;
+		unsigned char renderFlags;
+		GfxDrawSurf drawSurf;
+		unsigned int surfaceTypeBits;
+		unsigned short hashIndex;
+		char __pad0[10];
+	}; static_assert(sizeof(MaterialInfo) == 48);
+
+	struct Material
+	{
+		union
+		{
+			const char* name;
+			MaterialInfo info;
+		};
+		unsigned char stateBitsEntry[240];
+		unsigned char textureCount;
+		unsigned char constantCount;
+		unsigned char stateBitsCount;
+		unsigned char stateFlags;
+		unsigned char cameraRegion;
+		unsigned char materialType;
+		unsigned char layerCount;
+		unsigned char assetFlags;
+		MaterialTechniqueSet* techniqueSet;
+		MaterialTextureDef* textureTable;
+		MaterialConstantDef* constantTable;
+		GfxStateBits* stateBitsTable;
+		unsigned char constantBufferIndex[240];
+		MaterialConstantBufferDef* constantBufferTable;
+		unsigned char constantBufferCount;
+		const char** subMaterials;
+	}; static_assert(sizeof(Material) == 0x250);
+
 	struct GfxImageLoadDef
 	{
 		char levelCount;
@@ -115,18 +439,16 @@ namespace zonetool
 		char data[1];
 	};
 
-	union $3FA29451CE6F1FA138A5ABAB84BE9676
-	{
-		ID3D11Texture1D* linemap;
-		ID3D11Texture2D* map;
-		ID3D11Texture3D* volmap;
-		ID3D11Texture2D* cubemap;
-		GfxImageLoadDef* loadDef;
-	};
-
 	struct GfxTexture
 	{
-		$3FA29451CE6F1FA138A5ABAB84BE9676 ___u0;
+		union
+		{
+			ID3D11Texture1D* linemap;
+			ID3D11Texture2D* map;
+			ID3D11Texture3D* volmap;
+			ID3D11Texture2D* cubemap;
+			GfxImageLoadDef* loadDef;
+		};
 		ID3D11ShaderResourceView* shaderView;
 		ID3D11ShaderResourceView* shaderViewAlternate;
 	};
@@ -679,6 +1001,14 @@ namespace zonetool
 	union XAssetHeader
 	{
 		void* data;
+		Material* material;
+		ComputeShader* computeShader;
+		MaterialVertexShader* vertexShader;
+		MaterialHullShader* hullShader;
+		MaterialDomainShader* domainShader;
+		MaterialPixelShader* pixelShader;
+		MaterialVertexDeclaration* vertexDecl;
+		MaterialTechniqueSet* techniqueSet;
 		GfxImage* image;
 		snd_alias_list_t* sound;
 		SndCurve* sndCurve;
@@ -724,9 +1054,9 @@ namespace zonetool
 	{
 		char* dataPtr;
 		void* voidPtr;
-		//ID3D11Buffer* buffer;
-		//ID3D11DepthStencilState* depthStencilState;
-		//ID3D11BlendState* blendState;
+		ID3D11Buffer* buffer;
+		ID3D11DepthStencilState* depthStencilState;
+		ID3D11BlendState* blendState;
 	};
 
 	struct XGfxGlobals
@@ -734,7 +1064,7 @@ namespace zonetool
 		unsigned int depthStencilStateCount;
 		unsigned int blendStateCount;
 		std::uint64_t* depthStencilStateBits;
-		std::uint32_t* blendStateBits;
+		std::uint32_t (*blendStateBits)[3];
 		GfxZoneTableEntry* depthStencilStates;
 		GfxZoneTableEntry* blendStates;
 		unsigned int perPrimConstantBufferCount;

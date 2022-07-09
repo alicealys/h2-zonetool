@@ -23,8 +23,9 @@ namespace zonetool
 
 		std::vector<std::string> m_scriptstrings;
 
+		// material shit
 		std::vector<std::uint64_t> m_depthstencilstatebits;
-		std::vector<std::uint32_t> m_blendstatebits;
+		std::vector<std::array<std::uint32_t, 3>> m_blendstatebits;
 
 		// technique shit
 		std::vector<std::uint32_t> m_ppas;
@@ -210,8 +211,8 @@ namespace zonetool
 		std::uint64_t get_depthstencilstatebit(std::size_t idx);
 		std::size_t depthstencilstatebit_count();
 
-		std::uint8_t write_blendstatebits(std::uint32_t bits);
-		std::uint32_t get_blendstatebits(std::size_t idx);
+		std::uint8_t write_blendstatebits(std::array<std::uint32_t, 3> bits);
+		std::array<std::uint32_t, 3> get_blendstatebits(std::size_t idx);
 		std::size_t blendstatebits_count();
 
 		void write_streamfile(std::uintptr_t stream);

@@ -26,19 +26,19 @@ namespace zonetool
 
 		std::string clean_name(const std::string& name)
 		{
-			auto newName = name;
+			auto new_name = name;
 
 			for (auto i = 0u; i < name.size(); i++)
 			{
-				switch (newName[i])
+				switch (new_name[i])
 				{
 				case '*':
-					newName[i] = '_';
+					new_name[i] = '_';
 					break;
 				}
 			}
 
-			return newName;
+			return new_name;
 		}
 	}
 

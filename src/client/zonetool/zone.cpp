@@ -121,6 +121,7 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve);
 			ADD_ASSET(ASSET_TYPE_LUA_FILE, ILuaFile);
 			ADD_ASSET(ASSET_TYPE_MAP_ENTS, IMapEnts);
+			ADD_ASSET(ASSET_TYPE_MATERIAL, IMaterial);
 			ADD_ASSET(ASSET_TYPE_NET_CONST_STRINGS, INetConstStrings);
 			ADD_ASSET(ASSET_TYPE_RAWFILE, IRawFile);
 			ADD_ASSET(ASSET_TYPE_REVERB_CURVE, IReverbCurve);
@@ -129,7 +130,15 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_SOUND_CONTEXT, ISoundContext);
 			ADD_ASSET(ASSET_TYPE_SOUND_CURVE, ISoundCurve);
 			ADD_ASSET(ASSET_TYPE_STRINGTABLE, IStringTable);
+			ADD_ASSET(ASSET_TYPE_TECHNIQUE_SET, ITechset);
 			ADD_ASSET(ASSET_TYPE_TTF, IFont);
+
+			ADD_ASSET(ASSET_TYPE_COMPUTESHADER, IComputeShader);
+			ADD_ASSET(ASSET_TYPE_DOMAINSHADER, IDomainShader);
+			ADD_ASSET(ASSET_TYPE_HULLSHADER, IHullShader);
+			ADD_ASSET(ASSET_TYPE_PIXELSHADER, IPixelShader);
+			ADD_ASSET(ASSET_TYPE_VERTEXDECL, IVertexDecl);
+			ADD_ASSET(ASSET_TYPE_VERTEXSHADER, IVertexShader);
 		}
 		catch (std::exception& ex)
 		{
@@ -229,12 +238,15 @@ namespace zonetool
 			}
 
 			globals->blendStateCount = static_cast<unsigned int>(buf->blendstatebits_count());
-			globals->blendStateBits = mem_->Alloc<std::uint32_t>(globals->blendStateCount);
+			globals->blendStateBits = mem_->Alloc<std::uint32_t[3]>(globals->blendStateCount);
 			globals->blendStates = mem_->Alloc<GfxZoneTableEntry>(globals->blendStateCount);
 
 			for (unsigned int i = 0; i < globals->blendStateCount; i++)
 			{
-				globals->blendStateBits[i] = buf->get_blendstatebits(i);
+				for (auto j = 0; j < 3; j++)
+				{
+					globals->blendStateBits[i][j] = buf->get_blendstatebits(i)[j];
+				}
 			}
 
 			globals->perPrimConstantBufferCount = static_cast<unsigned int>(buf->ppas_count());
