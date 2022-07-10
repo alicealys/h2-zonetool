@@ -98,6 +98,36 @@ namespace zonetool
 		ASSET_TYPE_COUNT
 	};
 
+	struct PhysPreset
+	{
+		const char* name;
+		char __pad0[88];
+	}; static_assert(sizeof(PhysPreset) == 0x60);
+
+	struct PhysCollmap
+	{
+		const char* name;
+		char __pad0[80];
+	}; static_assert(sizeof(PhysCollmap) == 0x58);
+
+	struct PhysWaterPreset
+	{
+		const char* name;
+		char __pad0[120];
+	}; static_assert(sizeof(PhysWaterPreset) == 0x80);
+
+	struct PhysWorldMap
+	{
+		const char* name;
+		char __pad0[48];
+	}; static_assert(sizeof(PhysWorldMap) == 0x38);
+
+	struct PhysConstraint
+	{
+		const char* name;
+		char __pad0[32];
+	}; static_assert(sizeof(PhysConstraint) == 0x28);
+
 	struct Bounds
 	{
 		vec3_t midPoint;
@@ -998,9 +1028,520 @@ namespace zonetool
 		void* ftFace;
 	}; static_assert(sizeof(TTFDef) == 0x20);
 
+	struct SkeletonScript
+	{
+		const char* name;
+		char __pad0[56];
+	}; static_assert(sizeof(SkeletonScript) == 0x40);
+
+	union XAnimDynamicFrames
+	{
+		unsigned char(*_1)[3];
+		unsigned short(*_2)[3];
+	};
+
+	union XAnimDynamicIndices
+	{
+		unsigned char _1[1];
+		unsigned short _2[1];
+	};
+
+	struct XAnimPartTransFrames
+	{
+		float mins[3];
+		float size[3];
+		XAnimDynamicFrames frames;
+		XAnimDynamicIndices indices;
+	};
+
+	union XAnimPartTransData
+	{
+		XAnimPartTransFrames frames;
+		float frame0[3];
+	};
+
+	struct XAnimPartTrans
+	{
+		unsigned short size;
+		unsigned char smallTrans;
+		XAnimPartTransData u;
+	};
+
+	struct XAnimDeltaPartQuatDataFrames2
+	{
+		short(*frames)[2];
+		XAnimDynamicIndices indices;
+	};
+
+	union XAnimDeltaPartQuatData2
+	{
+		XAnimDeltaPartQuatDataFrames2 frames;
+		short frame0[2];
+	};
+
+	struct XAnimDeltaPartQuat2
+	{
+		unsigned short size;
+		XAnimDeltaPartQuatData2 u;
+	};
+
+	struct XAnimDeltaPartQuatDataFrames
+	{
+		short(*frames)[4];
+		XAnimDynamicIndices indices;
+	};
+
+	union XAnimDeltaPartQuatData
+	{
+		XAnimDeltaPartQuatDataFrames frames;
+		short frame0[4];
+	};
+
+	struct XAnimDeltaPartQuat
+	{
+		unsigned short size;
+		XAnimDeltaPartQuatData u;
+	};
+
+	struct XAnimDeltaPart
+	{
+		XAnimPartTrans* trans;
+		XAnimDeltaPartQuat2* quat2;
+		XAnimDeltaPartQuat* quat;
+	};
+
+	union XAnimIndices
+	{
+		unsigned char* _1;
+		unsigned short* _2;
+		void* data;
+	};
+
+	struct XAnimNotifyInfo
+	{
+		scr_string_t name;
+		float time;
+	};
+
+	enum XAnimPartsFlags : std::uint8_t
+	{
+		ANIM_NONE = 0x0,
+		ANIM_LOOP = 0x1,
+		ANIM_DELTA = 0x2,
+		ANIM_DELTA_3D = 0x4,
+		ANIM_DEFAULT = 0x8,
+	};
+
+	typedef char XAnimPartsUnknown;
+
+	struct XAnimParts
+	{
+		const char* name; // 0
+		unsigned short dataByteCount; // 8
+		unsigned short dataShortCount; // 10
+		unsigned short dataIntCount; // 12
+		unsigned short numframes; // 14
+		unsigned char flags; // 15
+		unsigned char boneCount[10]; // 16
+		char u1; // unused?
+		char u2; // unused?
+		unsigned char notifyCount; // 29
+		unsigned char assetType; // 30
+		unsigned char ikType; // 31
+		unsigned int randomDataByteCount; // 32
+		unsigned int randomDataShortCount; // 36
+		unsigned int randomDataIntCount; // 40
+		unsigned int indexCount; // 44
+		float framerate;  // 48
+		float frequency; // 56
+		scr_string_t* names; // 56
+		char* dataByte; // 64
+		short* dataShort; // 72
+		int* dataInt; // 80
+		short* randomDataShort; // 88
+		unsigned char* randomDataByte; // 96
+		int* randomDataInt; // 104
+		XAnimIndices indices; // 112
+		XAnimNotifyInfo* notify; // 120
+		XAnimDeltaPart* deltaPart; // 128
+		const char* secondaryName; // 136
+		short u3; // unknown
+		unsigned short blendShapeWeightCount; // 146
+		short u4; // unused? padding?
+		scr_string_t* blendShapeWeightNames; // 152
+		char (*blendShapeWeightUnknown1)[3]; // 160
+		unsigned short* blendShapeWeightUnknown2; // 168
+		unsigned short* blendShapeWeightUnknown3; // 176
+		unsigned short* blendShapeWeightUnknown4; // 184
+		float* blendShapeWeights; // 192
+		std::uint64_t unknown5;
+		XAnimPartsUnknown* unknown6; // 208 // count = 8
+	}; static_assert(sizeof(XAnimParts) == 0xD8);
+
+	union PackedUnitVec
+	{
+		unsigned int packed;
+	};
+
+	union PackedTexCoords
+	{
+		unsigned int packed;
+	};
+
+	union GfxColor
+	{
+		unsigned char array[4];
+		unsigned int packed;
+	};
+
+	struct GfxPackedVertex
+	{
+		float xyz[3];
+		float binormalSign;
+		GfxColor color;
+		PackedTexCoords texCoord;
+		PackedUnitVec normal;
+		PackedUnitVec tangent;
+	};
+
+	struct GfxPackedMotionVertex
+	{
+		float xyz[3];
+		float binormalSignAndHeight;
+		GfxColor pieceIndex;
+		PackedTexCoords texCoord;
+		PackedUnitVec normal;
+		PackedUnitVec tangent;
+	};
+
+	union GfxVertexUnion0
+	{
+		GfxPackedVertex* packedVerts0;
+		GfxPackedMotionVertex* packedMotionVerts0;
+		void* verts0;
+	};
+
+	struct Face
+	{
+		unsigned short v1;
+		unsigned short v2;
+		unsigned short v3;
+	};
+
+	struct XSurfaceCollisionAabb
+	{
+		unsigned short mins[3];
+		unsigned short maxs[3];
+	};
+
+	struct XSurfaceCollisionNode
+	{
+		XSurfaceCollisionAabb aabb;
+		unsigned short childBeginIndex;
+		unsigned short childCount;
+	};
+
+	struct XSurfaceCollisionLeaf
+	{
+		unsigned short triangleBeginIndex;
+	};
+
+	struct XSurfaceCollisionTree
+	{
+		float trans[3];
+		float scale[3];
+		unsigned int nodeCount;
+		XSurfaceCollisionNode* nodes;
+		unsigned int leafCount;
+		XSurfaceCollisionLeaf* leafs;
+	};
+
+	struct XRigidVertList
+	{
+		unsigned short boneOffset;
+		unsigned short vertCount;
+		unsigned short triOffset;
+		unsigned short triCount;
+		XSurfaceCollisionTree* collisionTree;
+	};
+
+	struct UnknownXSurface0
+	{
+		float a[3];
+		union
+		{
+			float b0;
+			unsigned int b1;
+		};
+	};
+
+	struct XSubdivRigidVertList
+	{
+		unsigned int firstFace;
+		unsigned int faceCount;
+		unsigned int firstRegularPatch;
+		unsigned int regularPatchCount;
+	};
+
+	struct XSurfaceSubdivLevel
+	{
+		XSubdivRigidVertList* rigidVertLists;
+		unsigned int faceCount;
+		unsigned int regularPatchCount;
+		unsigned int regularPatchOffset;
+		unsigned int facePointCount;
+		unsigned int facePointValence4Count;
+		unsigned int facePointBufferSize;
+		unsigned int edgePointCount;
+		unsigned int edgePointSmoothEnd;
+		unsigned int edgePointUVBorderEnd;
+		unsigned int vertexPointCount;
+		unsigned int vertexPointValence4Count;
+		unsigned int vertexPointBufferSize;
+		unsigned int normalCount;
+		unsigned int normalBufferSize;
+		unsigned int transitionPointCount;
+		unsigned int vertCount;
+		unsigned int vertOffset;
+		unsigned short* faceIndices;
+		unsigned short* regularPatchIndices;
+		unsigned int* regularPatchFlags;
+		unsigned int* facePoints;
+		unsigned int* edgePoints;
+		unsigned int* vertexPoints;
+		unsigned int* normals;
+		unsigned int* transitionPoints;
+		float* regularPatchCones;
+		ID3D11Buffer* regularPatchIndexBuffer;
+		ID3D11Buffer* faceIndexBuffer;
+		ID3D11ShaderResourceView* regularPatchIndexBufferView;
+		ID3D11ShaderResourceView* regularPatchFlagsView;
+		ID3D11ShaderResourceView* facePointsView;
+		ID3D11ShaderResourceView* edgePointsView;
+		ID3D11ShaderResourceView* vertexPointsView;
+		ID3D11ShaderResourceView* normalsView;
+		ID3D11ShaderResourceView* transitionPointsView;
+		ID3D11ShaderResourceView* regularPatchConesView;
+	}; static_assert(sizeof(XSurfaceSubdivLevel) == 0xE8);
+
+	struct GfxSubdivCache
+	{
+		unsigned int size;
+		ID3D11Buffer* subdivCacheBuffer;
+		ID3D11ShaderResourceView* subdivCacheView;
+	}; static_assert(sizeof(GfxSubdivCache) == 0x18);
+
+	struct XSurfaceSubdivInfo
+	{
+		XSurfaceSubdivLevel* levels;
+		char __pad0[24];
+		GfxSubdivCache cache;
+	}; static_assert(sizeof(XSurfaceSubdivInfo) == 0x38);
+
+	struct BlendShapeVerts
+	{
+		unsigned int count;
+		unsigned short* blendShapeVertsTable;
+		ID3D11Buffer* blendShapeVertsBuffer;
+		ID3D11ShaderResourceView* blendShapeVertsView;
+	};
+
+	typedef unsigned short XBlendInfo;
+
+	struct XSurface
+	{
+		unsigned short flags;
+		unsigned short vertCount;
+		unsigned short triCount;
+		unsigned char rigidVertListCount;
+		unsigned char subdivLevelCount;
+		short blendVertCounts[8];
+		GfxVertexUnion0 verts0;
+		Face* triIndices;
+		Face* triIndices2;
+		ID3D11Buffer* vb0;
+		ID3D11ShaderResourceView* vb0View;
+		ID3D11Buffer* indexBuffer;
+		XRigidVertList* rigidVertLists;
+		UnknownXSurface0* unknown0;
+		XBlendInfo* blendVerts;
+		float(*lmapUnwrap)[8];
+		unsigned short* blendVertsTable;
+		ID3D11Buffer* blendVertsBuffer;
+		ID3D11ShaderResourceView* blendVertsView;
+		ID3D11Buffer* vblmapBuffer;
+		ID3D11ShaderResourceView* vblmapView;
+		XSurfaceSubdivInfo* subdiv;
+		float* tensionData;
+		unsigned short* tensionAccumTable;
+		ID3D11Buffer* tensionAccumTableBuffer;
+		ID3D11ShaderResourceView* tensionAccumTableView;
+		ID3D11Buffer* tensionDataBuffer;
+		ID3D11ShaderResourceView* tensionDataView;
+		ID3D11ShaderResourceView* indexBufferView;
+		BlendShapeVerts* blendShapeVerts;
+		unsigned int blendShapeVertsCount;
+		unsigned int vertexLightingIndex;
+		char __pad0[4];
+		int partBits[8];
+		char __pad1[4];
+	}; static_assert(sizeof(XSurface) == 0x108);
+
+	struct XModelSurfs
+	{
+		const char* name;
+		XSurface* surfs;
+		unsigned short numsurfs;
+		int partBits[8];
+	}; static_assert(sizeof(XModelSurfs) == 0x38);
+
+	struct XModelLodInfo
+	{
+		float dist;
+		unsigned short numsurfs;
+		unsigned short surfIndex;
+		XModelSurfs* modelSurfs;
+		int partBits[8];
+		XSurface* surfs;
+		char unknown[8];
+	};
+
+	struct XModelAngle
+	{
+		short x;
+		short y;
+		short z;
+		short base;
+	};
+
+	struct XModelTagPos
+	{
+		float x;
+		float y;
+		float z;
+	};
+
+	struct DObjAnimMat
+	{
+		float quat[4];
+		float trans[3];
+		float transWeight;
+	};
+
+	struct ReactiveMotionModelPart
+	{
+		float center[3];
+		float stiffness;
+	};
+
+	struct UnknownModel0
+	{
+		float a[4];
+	};
+
+	struct XModelCollSurf_s
+	{
+		Bounds bounds;
+		int boneIdx;
+		int contents;
+		int surfFlags;
+	};
+
+	struct XBoneInfo
+	{
+		Bounds bounds;
+		union
+		{
+			float radiusSquared;
+			unsigned int radiusSquaredAsInt;
+		};
+	};
+
+	struct UnknownModel1
+	{
+		char __pad0[8];
+	};
+
+	struct UnknownModel2
+	{
+		char __pad0[32];
+		GfxImage* img;
+	};
+
+	struct XModelPhysics
+	{
+		PhysPreset* physPreset;
+		PhysConstraint* physContraint;
+		PhysCollmap* physCollmap;
+		char __pad0[8];
+	}; static_assert(sizeof(XModelPhysics) == 0x20);
+
+	struct XModel
+	{
+		const char* name; // 0
+		unsigned char numBones; // 8
+		unsigned char numRootBones; // 9
+		unsigned char numsurfs; // 10
+		unsigned char numReactiveMotionParts; // 11
+		unsigned char lodRampType; // 12
+		unsigned char physicsCount; // 13
+		char __pad0[2]; // 14-16
+		float scale; // 16
+		unsigned int noScalePartBits[8]; // 20
+		scr_string_t* boneNames; // 56
+		unsigned char* parentList; // 64
+		XModelAngle* tagAngles; // 72
+		XModelTagPos* tagPositions; // 80
+		unsigned char* partClassification; // 88
+		DObjAnimMat* baseMat; // 96
+		ReactiveMotionModelPart* reactiveMotionParts; // 104
+		UnknownModel0* unknown0; // 112
+		Material** materialHandles; // 120
+		XModelLodInfo lodInfo[6]; // 128
+		char numLods; // 512
+		char collLod; // 513
+		char numSubModels; // 514
+		char u1; // 515
+		short flags; // 516
+		short numCollSurfs; // 518
+		XModelCollSurf_s* collSurfs; // 520
+		int contents; // 528
+		XBoneInfo* boneInfo; // 536
+		float radius; // 544
+		Bounds bounds; // 548
+		unsigned short* invHighMipRadius; // 576
+		int memUsage; // 584
+		bool bad; // 588
+		char __pad1[3]; // 589-592
+		short numAimAssistBones; // 592
+		short numUnknown1; // 594
+		int u2; // 596
+		scr_string_t* aimAssistBones; // 600
+		UnknownModel1* unknown1; // 608
+		PhysPreset* physPreset; // 616
+		PhysCollmap* physCollmap; // 624
+		short numUnknown2; // 632
+		short u3; // 634
+		float quantization; // 636
+		UnknownModel2* unknown2; // 640
+		int u4; // 648
+		int u5; // 652
+		SkeletonScript* skeletonScript; // 656
+		XModel* subModels; // 664
+		XModelPhysics* xmodelPhysics; // 672
+	}; static_assert(sizeof(XModel) == 0x2A8);
+
 	union XAssetHeader
 	{
 		void* data;
+		PhysPreset* physPreset;
+		PhysCollmap* physCollmap;
+		PhysWaterPreset* physWaterPreset;
+		PhysWorldMap* physWorldMap;
+		PhysConstraint* physConstraint;
+		XAnimParts* parts;
+		XModelSurfs* modelSurfs;
+		XModel* model;
 		Material* material;
 		ComputeShader* computeShader;
 		MaterialVertexShader* vertexShader;
