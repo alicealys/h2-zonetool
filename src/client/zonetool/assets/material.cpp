@@ -128,7 +128,7 @@ namespace zonetool
 	{
 		auto c_name = clean_name(name);
 
-		auto path = "materials\\"s + c_name;
+		auto path = "materials\\"s + c_name + ".json"s;
 		auto file = filesystem::file(path);
 		file.open("rb");
 		if (!file.get_fp())
@@ -490,7 +490,7 @@ namespace zonetool
 		{
 			auto c_name = clean_name(asset->name);
 
-			const auto path = "materials\\"s + c_name;
+			const auto path = "materials\\"s + c_name + ".json"s;
 			auto file = filesystem::file(path);
 			file.open("wb");
 

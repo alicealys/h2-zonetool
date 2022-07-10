@@ -10,7 +10,7 @@ namespace zonetool
 			return nullptr;
 		}
 
-		const auto path = type + "\\"s + name;
+		const auto path = type + "\\"s + name + ".json"s;
 		auto file = filesystem::file(path);
 		if (file.exists())
 		{
@@ -108,7 +108,7 @@ namespace zonetool
 
 	void ISoundCurve::dump(SndCurve* asset, const std::string& type)
 	{
-		const auto path = type + "\\"s + asset->name;
+		const auto path = type + "\\"s + asset->name + ".json";
 		auto file = filesystem::file(path);
 		file.open("wb");
 

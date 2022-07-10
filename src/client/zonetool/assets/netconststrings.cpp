@@ -5,7 +5,7 @@ namespace zonetool
 {
 	NetConstStrings* INetConstStrings::parse(std::string name, ZoneMemory* mem)
 	{
-		const auto path = "netconststrings\\"s + name;
+		const auto path = "netconststrings\\"s + name + ".json"s;
 		filesystem::file file(path);
 		file.open("rb");
 
@@ -97,7 +97,7 @@ namespace zonetool
 
 	void INetConstStrings::dump(NetConstStrings* asset)
 	{
-		const auto path = "netconststrings\\"s + asset->name;
+		const auto path = "netconststrings\\"s + asset->name + ".json"s;
 		auto file = filesystem::file(path);
 		file.open("wb");
 

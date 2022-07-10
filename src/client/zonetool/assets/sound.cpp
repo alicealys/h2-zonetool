@@ -180,7 +180,7 @@ namespace zonetool
 
 	snd_alias_list_t* ISound::json_parse(const std::string& name, ZoneMemory* mem)
 	{
-		const auto path = "sounds\\"s + name;
+		const auto path = "sounds\\"s + name + ".json"s;
 		auto file = filesystem::file(path);
 		file.open("rb");
 
@@ -629,7 +629,7 @@ namespace zonetool
 
 	void ISound::json_dump(snd_alias_list_t* asset)
 	{
-		const auto path = "sounds\\"s + asset->name;
+		const auto path = "sounds\\"s + asset->name + ".json"s;
 
 		ordered_json sound;
 		ordered_json aliases;

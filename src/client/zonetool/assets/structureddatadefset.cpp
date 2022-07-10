@@ -27,7 +27,8 @@ namespace zonetool
 
 	void IStructuredDataDefSet::dump(StructuredDataDefSet* asset)
 	{
-		auto file = filesystem::file(asset->name);
+		const auto path = asset->name;
+		auto file = filesystem::file(path);
 		file.open("wb");
 
 		StructuredDataDef* current_def = nullptr;
