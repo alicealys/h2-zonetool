@@ -85,8 +85,7 @@ namespace zonetool
 	{
 		std::uint16_t isLocalized;
 		std::uint16_t fileIndex;
-		std::uint16_t unk;
-		char pad[2];
+		char pad[4];
 		std::uint64_t offset;
 		std::uint64_t offsetEnd;
 	};

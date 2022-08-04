@@ -25,16 +25,23 @@ namespace zonetool
 	void IVertexDecl::init(const std::string& name, ZoneMemory* mem)
 	{
 		this->name_ = name;
-		this->asset_ = this->parse(name, mem);
 
+		if (this->referenced())
+		{
+			this->asset_ = mem->Alloc<typename std::remove_reference<decltype(*this->asset_)>::type>();
+			this->asset_->name = mem->StrDup(name);
+			return;
+		}
+
+		this->asset_ = this->parse(name, mem);
 		if (!this->asset_)
 		{
 			this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name().data()).vertexDecl;
 
-			//if (DB_IsXAssetDefault(XAssetType(this->type()), this->name().data()))
-			//{
-			//	ZONETOOL_FATAL("vertexdecl \"%s\" not found.", name.data());
-			//}
+			if (DB_IsXAssetDefault(XAssetType(this->type()), this->name().data()))
+			{
+				ZONETOOL_FATAL("vertexdecl \"%s\" not found.", name.data());
+			}
 		}
 	}
 

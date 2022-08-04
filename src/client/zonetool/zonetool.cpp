@@ -28,6 +28,11 @@ namespace zonetool
 		return DB_GetXAssetName(asset);
 	}
 
+	void set_asset_name(XAsset* asset, const char* name)
+	{
+		DB_SetXAssetName(asset, name);
+	}
+
 	const char* type_to_string(XAssetType type)
 	{
 		return g_assetNames[type];
@@ -115,7 +120,7 @@ namespace zonetool
 			// dump referenced later
 			if (is_referenced_asset(asset))
 			{
-				//referencedAssets.push_back({ asset->type, get_asset_name(asset) });
+				//referenced_assets.push_back({ asset->type, get_asset_name(asset) });
 			}
 			else
 			{
@@ -129,7 +134,10 @@ namespace zonetool
 				{
 					// dump assets
 					DUMP_ASSET(ASSET_TYPE_DOPPLER_PRESET, IDopplerPreset, DopplerPreset);
+					DUMP_ASSET(ASSET_TYPE_FX, IFxEffectDef, FxEffectDef);
+					DUMP_ASSET(ASSET_TYPE_PARTICLE_SIM_ANIMATION, IFxParticleSimAnimation, FxParticleSimAnimation);
 					DUMP_ASSET(ASSET_TYPE_IMAGE, IGfxImage, GfxImage);
+					DUMP_ASSET(ASSET_TYPE_LIGHT_DEF, IGfxLightDef, GfxLightDef);
 					DUMP_ASSET(ASSET_TYPE_LOADED_SOUND, ILoadedSound, LoadedSound);
 					DUMP_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize, LocalizeEntry);
 					DUMP_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve, SndCurve);
@@ -140,6 +148,7 @@ namespace zonetool
 					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
 					DUMP_ASSET(ASSET_TYPE_REVERB_CURVE, IReverbCurve, SndCurve);
 					DUMP_ASSET(ASSET_TYPE_SCRIPTFILE, IScriptFile, ScriptFile);
+					DUMP_ASSET(ASSET_TYPE_SKELETONSCRIPT, ISkeletonScript, SkeletonScript);
 					DUMP_ASSET(ASSET_TYPE_SOUND, ISound, snd_alias_list_t);
 					DUMP_ASSET(ASSET_TYPE_SOUND_CONTEXT, ISoundContext, SndContext);
 					DUMP_ASSET(ASSET_TYPE_SOUND_CURVE, ISoundCurve, SndCurve);
@@ -148,6 +157,15 @@ namespace zonetool
 					DUMP_ASSET(ASSET_TYPE_STRUCTUREDDATADEF, IStructuredDataDefSet, StructuredDataDefSet);
 					DUMP_ASSET(ASSET_TYPE_TECHNIQUE_SET, ITechset, MaterialTechniqueSet);
 					DUMP_ASSET(ASSET_TYPE_TTF, IFont, TTFDef);
+					DUMP_ASSET(ASSET_TYPE_XANIM, IXAnimParts, XAnimParts);
+					DUMP_ASSET(ASSET_TYPE_XMODEL, IXModel, XModel);
+					DUMP_ASSET(ASSET_TYPE_XMODEL_SURFS, IXSurface, XModelSurfs);
+
+					DUMP_ASSET(ASSET_TYPE_PHYSCOLLMAP, IPhysCollmap, PhysCollmap);
+					DUMP_ASSET(ASSET_TYPE_PHYSCONSTRAINT, IPhysConstraint, PhysConstraint);
+					DUMP_ASSET(ASSET_TYPE_PHYSPRESET, IPhysPreset, PhysPreset);
+					DUMP_ASSET(ASSET_TYPE_PHYSWATERPRESET, IPhysWaterPreset, PhysWaterPreset);
+					DUMP_ASSET(ASSET_TYPE_PHYSWORLDMAP, IPhysWorld, PhysWorld);
 
 					DUMP_ASSET(ASSET_TYPE_COMPUTESHADER, IComputeShader, ComputeShader);
 					DUMP_ASSET(ASSET_TYPE_DOMAINSHADER, IDomainShader, MaterialDomainShader);

@@ -18,14 +18,14 @@ namespace zonetool
 			file.read_string(&m_name);
 			asset->name = mem->StrDup(m_name);
 
-			file.read(&asset->compressedLen, sizeof(asset->compressedLen), 1);
-			file.read(&asset->len, sizeof(asset->len), 1);
-			file.read(&asset->bytecodeLen, sizeof(asset->bytecodeLen), 1);
+			file.read(&asset->compressedLen);
+			file.read(&asset->len);
+			file.read(&asset->bytecodeLen);
 
 			asset->buffer = mem->Alloc<char>(asset->compressedLen);
 			asset->bytecode = mem->Alloc<char>(asset->bytecodeLen);
-			file.read(const_cast<char*>(asset->buffer), sizeof(char), asset->compressedLen);
-			file.read(const_cast<char*>(asset->bytecode), sizeof(char), asset->bytecodeLen);
+			file.read(asset->buffer, asset->compressedLen);
+			file.read(asset->bytecode, asset->bytecodeLen);
 
 			return asset;
 		}
@@ -36,8 +36,15 @@ namespace zonetool
 	void IScriptFile::init(const std::string& name, ZoneMemory* mem)
 	{
 		this->name_ = name;
-		this->asset_ = this->parse(name, mem);
 
+		if (this->referenced())
+		{
+			this->asset_ = mem->Alloc<typename std::remove_reference<decltype(*this->asset_)>::type>();
+			this->asset_->name = mem->StrDup(name);
+			return;
+		}
+
+		this->asset_ = this->parse(name, mem);
 		if (!this->asset_)
 		{
 			this->asset_ = DB_FindXAssetHeader(XAssetType(this->type()), this->name_.data(), 1).scriptfile;
@@ -99,11 +106,11 @@ namespace zonetool
 		if (fp)
 		{
 			file.write_string(asset->name);
-			file.write(&asset->compressedLen, sizeof(asset->compressedLen), 1);
-			file.write(&asset->len, sizeof(asset->len), 1);
-			file.write(&asset->bytecodeLen, sizeof(asset->bytecodeLen), 1);
-			file.write(asset->buffer, asset->compressedLen, 1);
-			file.write(asset->bytecode, asset->bytecodeLen , 1);
+			file.write(&asset->compressedLen);
+			file.write(&asset->len);
+			file.write(&asset->bytecodeLen);
+			file.write(asset->buffer, asset->compressedLen);
+			file.write(asset->bytecode, asset->bytecodeLen);
 
 			file.close();
 		}

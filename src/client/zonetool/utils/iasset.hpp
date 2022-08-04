@@ -18,9 +18,10 @@ namespace zonetool
 		{
 		}
 
+		virtual void* pointer() { return nullptr; }
+		virtual bool referenced() { return false; }
 		virtual std::string name() { return ""; }
 		virtual std::int32_t type() { return -1; }
-		virtual void* pointer() { return nullptr; }
 
 		virtual void write(IZone* zone, ZoneBuffer* buffer)
 		{

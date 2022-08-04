@@ -38,9 +38,11 @@ namespace zonetool
 			return nullptr;
 		}
 
+		std::string ref_name = "," + name;
+
 		for (std::size_t idx = 0; idx < m_assets.size(); idx++)
 		{
-			if (m_assets[idx]->type() == type && m_assets[idx]->name() == name)
+			if (m_assets[idx]->type() == type && (m_assets[idx]->name() == name || m_assets[idx]->name() == ref_name))
 			{
 				auto ptr = reinterpret_cast<void*>(0xFDFDFDF300000000 + (this->m_assetbase + ((16 * idx) + 8) + 1));
 				return ptr;
@@ -115,7 +117,10 @@ namespace zonetool
 		{
 			// declare asset interfaces
 			ADD_ASSET(ASSET_TYPE_DOPPLER_PRESET, IDopplerPreset);
+			ADD_ASSET(ASSET_TYPE_FX, IFxEffectDef);
+			ADD_ASSET(ASSET_TYPE_PARTICLE_SIM_ANIMATION, IFxParticleSimAnimation);
 			ADD_ASSET(ASSET_TYPE_IMAGE, IGfxImage);
+			ADD_ASSET(ASSET_TYPE_LIGHT_DEF, IGfxLightDef);
 			ADD_ASSET(ASSET_TYPE_LOADED_SOUND, ILoadedSound);
 			ADD_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize);
 			ADD_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve);
@@ -126,12 +131,22 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_RAWFILE, IRawFile);
 			ADD_ASSET(ASSET_TYPE_REVERB_CURVE, IReverbCurve);
 			ADD_ASSET(ASSET_TYPE_SCRIPTFILE, IScriptFile);
+			ADD_ASSET(ASSET_TYPE_SKELETONSCRIPT, ISkeletonScript);
 			ADD_ASSET(ASSET_TYPE_SOUND, ISound);
 			ADD_ASSET(ASSET_TYPE_SOUND_CONTEXT, ISoundContext);
 			ADD_ASSET(ASSET_TYPE_SOUND_CURVE, ISoundCurve);
 			ADD_ASSET(ASSET_TYPE_STRINGTABLE, IStringTable);
 			ADD_ASSET(ASSET_TYPE_TECHNIQUE_SET, ITechset);
 			ADD_ASSET(ASSET_TYPE_TTF, IFont);
+			ADD_ASSET(ASSET_TYPE_XANIM, IXAnimParts);
+			ADD_ASSET(ASSET_TYPE_XMODEL, IXModel);
+			ADD_ASSET(ASSET_TYPE_XMODEL_SURFS, IXSurface);
+
+			ADD_ASSET(ASSET_TYPE_PHYSCOLLMAP, IPhysCollmap);
+			ADD_ASSET(ASSET_TYPE_PHYSCONSTRAINT, IPhysConstraint);
+			ADD_ASSET(ASSET_TYPE_PHYSPRESET, IPhysPreset);
+			ADD_ASSET(ASSET_TYPE_PHYSWATERPRESET, IPhysWaterPreset);
+			ADD_ASSET(ASSET_TYPE_PHYSWORLDMAP, IPhysWorld);
 
 			ADD_ASSET(ASSET_TYPE_COMPUTESHADER, IComputeShader);
 			ADD_ASSET(ASSET_TYPE_DOMAINSHADER, IDomainShader);
@@ -517,7 +532,7 @@ namespace zonetool
 		fastfile.save(path);
 
 		ZONETOOL_INFO("Successfully compiled fastfile \"%s\"!", this->name_.data());
-		ZONETOOL_INFO("Compiling took %u msec.", static_cast<std::uint32_t>(GetTickCount64() - startTime));
+		ZONETOOL_INFO("Compiling took %llu msec.", (GetTickCount64() - startTime));
 	}
 
 	Zone::Zone(std::string name)

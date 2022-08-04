@@ -132,8 +132,15 @@ namespace zonetool
 	void IStringTable::init(const std::string& name, ZoneMemory* mem)
 	{
 		this->name_ = name;
-		this->asset_ = DB_FindXAssetHeader_Safe(static_cast<XAssetType>(this->type()), this->name().data()).stringTable;
 
+		if (this->referenced())
+		{
+			this->asset_ = mem->Alloc<typename std::remove_reference<decltype(*this->asset_)>::type>();
+			this->asset_->name = mem->StrDup(name);
+			return;
+		}
+
+		this->asset_ = DB_FindXAssetHeader_Safe(static_cast<XAssetType>(this->type()), this->name().data()).stringTable;
 		if (filesystem::file(name).exists())
 		{
 			ZONETOOL_INFO("Parsing stringtable \"%s\"...", name.data());

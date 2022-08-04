@@ -25,9 +25,9 @@ namespace zonetool
 	enum XAssetType
 	{
 		ASSET_TYPE_PHYSPRESET,
-		ASSET_TYPE_PHYS_COLLMAP,
+		ASSET_TYPE_PHYSCOLLMAP,
 		ASSET_TYPE_PHYSWATERPRESET,
-		ASSET_TYPE_PHYS_WORLDMAP,
+		ASSET_TYPE_PHYSWORLDMAP,
 		ASSET_TYPE_PHYSCONSTRAINT,
 		ASSET_TYPE_XANIM,
 		ASSET_TYPE_XMODEL_SURFS,
@@ -56,7 +56,7 @@ namespace zonetool
 		ASSET_TYPE_MAP_ENTS,
 		ASSET_TYPE_FX_MAP,
 		ASSET_TYPE_GFX_MAP,
-		ASSET_TYPE_LIGHTDEF,
+		ASSET_TYPE_LIGHT_DEF,
 		ASSET_TYPE_UI_MAP,
 		ASSET_TYPE_MENUFILE,
 		ASSET_TYPE_MENU,
@@ -98,41 +98,130 @@ namespace zonetool
 		ASSET_TYPE_COUNT
 	};
 
-	struct PhysPreset
-	{
-		const char* name;
-		char __pad0[88];
-	}; static_assert(sizeof(PhysPreset) == 0x60);
-
-	struct PhysCollmap
-	{
-		const char* name;
-		char __pad0[80];
-	}; static_assert(sizeof(PhysCollmap) == 0x58);
-
-	struct PhysWaterPreset
-	{
-		const char* name;
-		char __pad0[120];
-	}; static_assert(sizeof(PhysWaterPreset) == 0x80);
-
-	struct PhysWorldMap
-	{
-		const char* name;
-		char __pad0[48];
-	}; static_assert(sizeof(PhysWorldMap) == 0x38);
-
-	struct PhysConstraint
-	{
-		const char* name;
-		char __pad0[32];
-	}; static_assert(sizeof(PhysConstraint) == 0x28);
+	struct FxEffectDef;
 
 	struct Bounds
 	{
 		vec3_t midPoint;
 		vec3_t halfSize;
 	};
+
+	struct PhysPreset
+	{
+		const char* name;
+		char __pad0[32];
+		const char* sndAliasPrefix;
+		char __pad1[48];
+	}; static_assert(sizeof(PhysPreset) == 0x60);
+
+	struct dmMeshNode_array_t
+	{
+		char __pad0[16];
+	};
+
+	struct dmMeshTriangle
+	{
+		char __pad0[32];
+	};
+
+	struct dmMeshData
+	{
+		dmMeshNode_array_t* meshNodes;
+		vec4_t* vec4_array0;
+		dmMeshTriangle* meshTriangles;
+		char __pad0[36];
+		unsigned int count0;
+		unsigned int count1;
+		unsigned int count2;
+		char __pad1[8];
+	}; static_assert(sizeof(dmMeshData) == 0x50);
+
+	struct dmSubEdge
+	{
+		int value;
+	};
+
+	struct dmPolytopeData
+	{
+		vec4_t* vec4_array0;
+		vec4_t* vec4_array1;
+		unsigned short* uint16_array0;
+		unsigned short* uint16_array1;
+		dmSubEdge* edges;
+		unsigned char* uint8_array0;
+		char __pad0[12];
+		unsigned int count0;
+		unsigned int count1;
+		unsigned int count2;
+		char __pad1[40];
+	}; static_assert(sizeof(dmPolytopeData) == 0x70);
+
+	struct PhysGeomInfo
+	{
+		dmPolytopeData* data;
+	};
+
+	struct PhysMass
+	{
+		float centerOfMass[3];
+		float momentsOfInertia[3];
+		float productsOfInertia[3];
+	};
+
+	struct PhysCollmap
+	{
+		const char* name;
+		unsigned int count;
+		PhysGeomInfo* geoms;
+		PhysMass mass;
+		Bounds bounds;
+	}; static_assert(sizeof(PhysCollmap) == 0x58);
+
+	struct PhysWaterPreset
+	{
+		const char* name;
+		char __pad0[64];
+		FxEffectDef* fx0;
+		FxEffectDef* fx1;
+		FxEffectDef* fx2;
+		FxEffectDef* fx3;
+		FxEffectDef* fx4;
+		FxEffectDef* fx5;
+		FxEffectDef* fx6;
+	}; static_assert(sizeof(PhysWaterPreset) == 0x80);
+
+	struct PhysWaterVolumeDef
+	{
+		PhysWaterPreset* physWaterPreset;
+		char __pad0[12];
+		scr_string_t string;
+		char __pad1[8];
+	}; static_assert(sizeof(PhysWaterVolumeDef) == 0x20);
+	static_assert(offsetof(PhysWaterVolumeDef, string) == 20);
+
+	struct PhysBrushModel
+	{
+		char __pad0[8];
+	};
+
+	struct PhysWorld
+	{
+		const char* name;
+		PhysBrushModel* models;
+		dmPolytopeData* polytopeDatas;
+		dmMeshData* meshDatas;
+		PhysWaterVolumeDef* waterVolumes;
+		unsigned int modelsCount;
+		unsigned int polytopeDatasCount;
+		unsigned int meshDatasCount;
+		unsigned int waterVolumesCount;
+	}; static_assert(sizeof(PhysWorld) == 0x38);
+
+	struct PhysConstraint
+	{
+		const char* name;
+		char __pad0[32];
+	}; static_assert(sizeof(PhysConstraint) == 0x28);
 
 	struct Packed128
 	{
@@ -531,6 +620,25 @@ namespace zonetool
 		const char* name;
 	}; static_assert(sizeof(GfxImage) == 0x68);
 
+	struct GfxLightImage
+	{
+		GfxImage* image;
+		unsigned char samplerState;
+	};
+
+	struct GfxLightDef
+	{
+		const char* name;
+		GfxLightImage attenuation;
+		GfxLightImage cucoloris;
+		int lmapLookupStart;
+	}; static_assert(sizeof(GfxLightDef) == 0x30);
+
+	struct GfxColorFloat
+	{
+		float array[4];
+	};
+
 	enum snd_alias_type_t : std::int8_t
 	{
 		SAT_UNKNOWN = 0x0,
@@ -663,7 +771,6 @@ namespace zonetool
 		float smoothing;
 	}; static_assert(sizeof(DopplerPreset) == 0x20);
 
-	// TODO:
 	struct snd_alias_t
 	{
 		const char* aliasName;
@@ -672,13 +779,17 @@ namespace zonetool
 		const char* chainAliasName;
 		SoundFile* soundFile;
 		const char* mixerGroup;
-		char __pad0[8];
-		int sequence;
-		int u4;
-		int u5;
+		short poly;
+		short polyGlobal;
+		char polyEntityType;
+		char polyGlobalType;
+		char dspBusIndex;
+		char priority;
+		char __pad0[12]; // unknown
 		float volMin;
 		float volMax;
-		int volModIndex;
+		short volModIndex;
+		//char __pad[1]; // padding
 		float pitchMin;
 		float pitchMax;
 		float distMin;
@@ -688,21 +799,34 @@ namespace zonetool
 		char masterPriority;
 		float masterPercentage;
 		float slavePercentage;
-		char u18;
+		char playbackPercentage;
+		//char __pad[3]; // padding
 		float probability;
-		char u20; // value: 0-4
+		char u1; // value: 0-4
+		//char __pad[3]; // padding
 		SndContext* sndContext;
-		char __pad1[12];
+		unsigned char sequence;
+		//char __pad[3]; // padding
+		float lfePercentage;
+		float centerPercentage;
 		int startDelay;
 		SndCurve* sndCurve;
-		char __pad2[8];
+		char __pad1[8]; // unknown
 		SndCurve* lpfCurve;
 		SndCurve* reverbSendCurve;
 		SpeakerMap* speakerMap;
-		char __pad3[39];
+		float reverbWetMixOverride;
+		char __pad2[4]; // unknown
+		float smartPanDistance2d;
+		float smartPanDistance3d;
+		float smartPanAttenuation3d;
+		char __pad3[4]; // unknown
+		float stereo3dAngle;
+		float stereo3dStart;
+		float stereo3dEnd;
 		unsigned char allowDoppler;
 		DopplerPreset* dopplerPreset;
-		char __pad4[8];
+		char __pad4[8]; // unknown
 	}; static_assert(sizeof(snd_alias_t) == 0xF8);
 	static_assert(offsetof(snd_alias_t, soundFile) == 32);
 	static_assert(offsetof(snd_alias_t, sndContext) == 128);
@@ -1028,10 +1152,362 @@ namespace zonetool
 		void* ftFace;
 	}; static_assert(sizeof(TTFDef) == 0x20);
 
+	struct FxParticleSimAnimationHeader
+	{
+		float playbackRate;
+		float duration;
+		unsigned int frameCount;
+		float minX;
+		float minY;
+		float minZ;
+		float boundsXDelta;
+		float boundsYDelta;
+		float boundsZDelta;
+		float maxWidth;
+		float maxHeight;
+		unsigned int colorTableSize;
+		unsigned int particleDataCount;
+		bool evalVisStatePerParticle;
+		bool sortParticlesAtRuntime;
+	};
+
+	struct FxParticleSimAnimationParticleData
+	{
+		unsigned short xNormalizedPos;
+		unsigned short yNormalizedPos;
+		unsigned short zNormalizedPos;
+		unsigned short xNormalizedWidth;
+		unsigned short yNormalizedHeight;
+		unsigned short orientation;
+		unsigned short lifetime;
+		unsigned short particleID;
+		unsigned short xNormalizedPosNextFrame;
+		unsigned short yNormalizedPosNextFrame;
+		unsigned short zNormalizedPosNextFrame;
+		unsigned short xNormalizedWidthNextFrame;
+		unsigned short yNormalizedHeightNextFrame;
+		short orientationDelta;
+		unsigned short colorTableIndex;
+		unsigned short nextColorTableIndex;
+	};
+
+	struct FxParticleSimAnimationFrame
+	{
+		unsigned int particleDataOffset;
+		unsigned int numActiveParticles;
+	};
+
+	struct FxParticleSimAnimation
+	{
+		const char* name;
+		Material* material;
+		FxParticleSimAnimationHeader header;
+		FxParticleSimAnimationParticleData* particleData;
+		FxParticleSimAnimationFrame* frames;
+		GfxColorFloat* colorTable;
+	};
+
+	enum FxElemType : std::uint8_t
+	{
+		FX_ELEM_TYPE_SPRITE_BILLBOARD = 0,
+		FX_ELEM_TYPE_SPRITE_ORIENTED = 1,
+		FX_ELEM_TYPE_SPRITE_ROTATED = 2,
+		FX_ELEM_TYPE_TAIL = 3,
+		FX_ELEM_TYPE_LINE = 4,
+		FX_ELEM_TYPE_TRAIL = 5,
+		FX_ELEM_TYPE_FLARE = 6,
+		FX_ELEM_TYPE_PARTICLE_SIM_ANIMATION = 7,
+		FX_ELEM_TYPE_CLOUD = 8,
+		FX_ELEM_TYPE_SPARK_CLOUD = 9,
+		FX_ELEM_TYPE_SPARK_FOUNTAIN = 10,
+		FX_ELEM_TYPE_MODEL = 11,
+		FX_ELEM_TYPE_OMNI_LIGHT = 12,
+		FX_ELEM_TYPE_SPOT_LIGHT = 13,
+		FX_ELEM_TYPE_SOUND = 14,
+		FX_ELEM_TYPE_DECAL = 15,
+		FX_ELEM_TYPE_RUNNER = 16,
+		FX_ELEM_TYPE_VECTORFIELD = 17,
+	};
+
+	struct FxFloatRange
+	{
+		float base;
+		float amplitude;
+	};
+
+	struct FxSpawnDefLooping
+	{
+		int intervalMsec;
+		int count;
+	};
+
+	struct FxIntRange
+	{
+		int base;
+		int amplitude;
+	};
+
+	struct FxSpawnDefOneShot
+	{
+		FxIntRange count;
+	};
+
+	union FxSpawnDef
+	{
+		FxSpawnDefLooping looping;
+		FxSpawnDefOneShot oneShot;
+	};
+
+	struct FxElemAtlas
+	{
+		unsigned char behavior;
+		unsigned char index;
+		unsigned char fps;
+		unsigned char loopCount;
+		unsigned char colIndexBits;
+		unsigned char rowIndexBits;
+		short entryCount;
+	};
+
+	struct FxEffectDef;
+	union FxEffectDefRef
+	{
+		FxEffectDef* handle;
+		const char* name;
+	};
+
+	struct FxElemVec3Range
+	{
+		float base[3];
+		float amplitude[3];
+	};
+
+	struct FxElemVelStateInFrame
+	{
+		FxElemVec3Range velocity;
+		FxElemVec3Range totalDelta;
+	};
+
+	struct FxElemVelStateSample
+	{
+		FxElemVelStateInFrame local;
+		FxElemVelStateInFrame world;
+	}; static_assert(sizeof(FxElemVelStateSample) == 96);
+
+	struct FxElemVisualState
+	{
+		float color[4];
+		float unlitHDRScale;
+		float rotationDelta;
+		float rotationTotal;
+		float size[2];
+		float scale;
+		char __pad0[16];
+	};
+
+	struct FxElemVisStateSample
+	{
+		FxElemVisualState base;
+		FxElemVisualState amplitude;
+	}; static_assert(sizeof(FxElemVisStateSample) == 112);
+
+	struct FxElemMarkVisuals
+	{
+		Material* materials[3];
+	};
+
+	struct XModel;
+	union FxElemVisuals
+	{
+		const void* anonymous;
+		Material* material;
+		XModel* model;
+		FxEffectDefRef effectDef;
+		const char* soundName;
+		const char* vectorFieldName;
+		GfxLightDef* lightDef;
+		FxParticleSimAnimation* particleSimAnimation;
+	};
+
+	union FxElemDefVisuals
+	{
+		FxElemMarkVisuals* markArray;
+		FxElemVisuals* array;
+		FxElemVisuals instance;
+	};
+
+	struct FxTrailVertex
+	{
+		float pos[2];
+		float normal[2];
+		float texCoord[2];
+		char __pad0[8];
+	}; static_assert(sizeof(FxTrailVertex) == 32);
+
+	struct FxTrailDef
+	{
+		int scrollTimeMsec;
+		int repeatDist;
+		float invSplitDist;
+		float invSplitArcDist;
+		float invSplitTime;
+		char __pad0[8];
+		int vertCount;
+		FxTrailVertex* verts;
+		int indCount;
+		unsigned short* inds;
+	}; static_assert(sizeof(FxTrailDef) == 0x38);
+	static_assert(offsetof(FxTrailDef, vertCount) == 28);
+
+	struct FxSparkFountainDef
+	{
+		float gravity;
+		float bounceFrac;
+		float bounceRand;
+		float sparkSpacing;
+		float sparkLength;
+		int sparkCount;
+		float loopTime;
+		float velMin;
+		float velMax;
+		float velConeFrac;
+		float restSpeed;
+		float boostTime;
+		float boostFactor;
+	}; static_assert(sizeof(FxSparkFountainDef) == 0x34);
+
+	struct FxSpotLightDef
+	{
+		float fovInnerFraction;
+		float startRadius;
+		float endRadius;
+		float brightness;
+		float maxLength;
+		int exponent;
+		char __pad0[24];
+	}; static_assert(sizeof(FxSpotLightDef) == 0x30);
+
+	struct FxOmniLightDef
+	{
+		char __pad0[16];
+	}; static_assert(sizeof(FxOmniLightDef) == 0x10);
+
+	struct FxFlareDef
+	{
+		float position;
+		int angularRotCount;
+		int flags;
+		FxFloatRange depthScaleRange;
+		FxFloatRange depthScaleValue;
+		FxFloatRange radialRot;
+		FxFloatRange radialScaleX;
+		FxFloatRange radialScaleY;
+		float dir[3];
+		int intensityXIntervalCount;
+		int intensityYIntervalCount;
+		int srcCosIntensityIntervalCount;
+		int srcCosScaleIntervalCount;
+		float* intensityX;
+		float* intensityY;
+		float* srcCosIntensity;
+		float* srcCosScale;
+	}; static_assert(sizeof(FxFlareDef) == 0x70);
+
+	union FxElemExtendedDefPtr
+	{
+		char* unknownDef;
+		FxTrailDef* trailDef;
+		FxSparkFountainDef* sparkFountainDef;
+		FxSpotLightDef* spotLightDef;
+		FxOmniLightDef* omniLightDef;
+		FxFlareDef* flareDef;
+	};
+
+	struct FxElemDef
+	{
+		int flags;
+		int flags2;
+		FxSpawnDef spawn;
+		FxFloatRange spawnRange;
+		FxFloatRange fadeInRange;
+		FxFloatRange fadeOutRange;
+		float spawnFrustumCullRadius;
+		FxIntRange spawnDelayMsec;
+		FxIntRange lifeSpanMsec;
+		FxFloatRange spawnOrigin[3];
+		FxFloatRange spawnOffsetRadius;
+		FxFloatRange spawnOffsetHeight;
+		FxFloatRange spawnAngles[3];
+		FxFloatRange angularVelocity[3];
+		FxFloatRange initialRotation;
+		FxFloatRange gravity;
+		FxFloatRange reflectionFactor;
+		FxElemAtlas atlas;
+		FxElemType elemType;
+		unsigned char elemLitType;
+		unsigned char visualCount;
+		unsigned char velIntervalCount;
+		unsigned char visStateIntervalCount;
+		FxElemVelStateSample* velSamples;
+		FxElemVisStateSample* visSamples;
+		FxElemDefVisuals visuals;
+		Bounds collBounds;
+		FxEffectDefRef effectOnImpact;
+		FxEffectDefRef effectOnDeath;
+		FxEffectDefRef effectEmitted;
+		FxFloatRange emitDist;
+		FxFloatRange emitDistVariance;
+		FxElemExtendedDefPtr extended;
+		unsigned char sortOrder;
+		unsigned char lightingFrac;
+		unsigned char useItemClip;
+		unsigned char fadeInfo;
+		int randomSeed;
+		char __pad0[24];
+	}; static_assert(sizeof(FxElemDef) == 0x140);
+
+	struct FxEffectDef
+	{
+		const char* name;
+		int flags;
+		int totalSize;
+		int msecLoopingLife;
+		int elemDefCountLooping;
+		int elemDefCountOneShot;
+		int elemDefCountEmission;
+		float elemMaxRadius;
+		float occlusionQueryDepthBias;
+		int occlusionQueryFadeIn;
+		int occlusionQueryFadeOut;
+		FxFloatRange occlusionQueryScaleRange;
+		FxElemDef* elemDefs;
+	}; static_assert(sizeof(FxEffectDef) == 0x40);
+
+	struct XModelIKData
+	{
+		unsigned char charDataLen;
+		unsigned char floatDataLen;
+		unsigned char int32DataLen;
+		unsigned char stringsCount;
+		char* charData;
+		float* floatData;
+		int* int32Data;
+		scr_string_t* strings;
+	}; static_assert(sizeof(XModelIKData) == 0x28);
+
+	struct SkeletonScriptCode
+	{
+		char __pad0[4];
+	};
+
 	struct SkeletonScript
 	{
 		const char* name;
-		char __pad0[56];
+		XModelIKData* ikData;
+		char __pad0[32];
+		unsigned short codeLen;
+		char __pad1[6];
+		SkeletonScriptCode* code;
 	}; static_assert(sizeof(SkeletonScript) == 0x40);
 
 	union XAnimDynamicFrames
@@ -1132,7 +1608,8 @@ namespace zonetool
 		ANIM_DEFAULT = 0x8,
 	};
 
-	typedef char XAnimPartsUnknown;
+	typedef float BlendShapeWeight;
+	typedef char XAnimScriptedViewmodelAnimData;
 
 	struct XAnimParts
 	{
@@ -1173,9 +1650,9 @@ namespace zonetool
 		unsigned short* blendShapeWeightUnknown2; // 168
 		unsigned short* blendShapeWeightUnknown3; // 176
 		unsigned short* blendShapeWeightUnknown4; // 184
-		float* blendShapeWeights; // 192
-		std::uint64_t unknown5;
-		XAnimPartsUnknown* unknown6; // 208 // count = 8
+		BlendShapeWeight* blendShapeWeights; // 192
+		std::uint64_t u5; // unused?
+		XAnimScriptedViewmodelAnimData* scriptedViewmodelAnimData; // 208 // count = 8
 	}; static_assert(sizeof(XAnimParts) == 0xD8);
 
 	union PackedUnitVec
@@ -1338,10 +1815,15 @@ namespace zonetool
 		GfxSubdivCache cache;
 	}; static_assert(sizeof(XSurfaceSubdivInfo) == 0x38);
 
-	struct BlendShapeVerts
+	struct BlendShapeVert
 	{
-		unsigned int count;
-		unsigned short* blendShapeVertsTable;
+		char __pad0[32];
+	};
+
+	struct BlendShape
+	{
+		unsigned int vertCount;
+		BlendShapeVert* verts;
 		ID3D11Buffer* blendShapeVertsBuffer;
 		ID3D11ShaderResourceView* blendShapeVertsView;
 	};
@@ -1365,10 +1847,10 @@ namespace zonetool
 		XRigidVertList* rigidVertLists;
 		UnknownXSurface0* unknown0;
 		XBlendInfo* blendVerts;
-		float(*lmapUnwrap)[8];
 		unsigned short* blendVertsTable;
 		ID3D11Buffer* blendVertsBuffer;
 		ID3D11ShaderResourceView* blendVertsView;
+		std::uint16_t(*lmapUnwrap)[2];
 		ID3D11Buffer* vblmapBuffer;
 		ID3D11ShaderResourceView* vblmapView;
 		XSurfaceSubdivInfo* subdiv;
@@ -1379,8 +1861,8 @@ namespace zonetool
 		ID3D11Buffer* tensionDataBuffer;
 		ID3D11ShaderResourceView* tensionDataView;
 		ID3D11ShaderResourceView* indexBufferView;
-		BlendShapeVerts* blendShapeVerts;
-		unsigned int blendShapeVertsCount;
+		BlendShape* blendShapes;
+		unsigned int blendShapesCount;
 		unsigned int vertexLightingIndex;
 		char __pad0[4];
 		int partBits[8];
@@ -1434,9 +1916,9 @@ namespace zonetool
 		float stiffness;
 	};
 
-	struct UnknownModel0
+	struct ReactiveMotionModelTweaks
 	{
-		float a[4];
+		float scale[4];
 	};
 
 	struct XModelCollSurf_s
@@ -1457,24 +1939,39 @@ namespace zonetool
 		};
 	};
 
-	struct UnknownModel1
+	struct BlendShapeWeightMap
 	{
-		char __pad0[8];
+		unsigned short weightIndex;
+		unsigned short targetIndex;
+		float fullWeight;
 	};
 
-	struct UnknownModel2
+	struct ExtentBounds
 	{
-		char __pad0[32];
-		GfxImage* img;
+		vec3_t mins;
+		vec3_t maxs;
 	};
 
-	struct XModelPhysics
+	struct MdaoVolume
+	{
+		ExtentBounds bounds;
+		unsigned __int16 cellCount[3];
+		unsigned __int16 parentBoneIndex;
+		GfxImage* volumeData;
+	}; static_assert(sizeof(MdaoVolume) == 0x28);
+
+	struct XPhysBoneInfo
 	{
 		PhysPreset* physPreset;
 		PhysConstraint* physContraint;
 		PhysCollmap* physCollmap;
 		char __pad0[8];
-	}; static_assert(sizeof(XModelPhysics) == 0x20);
+	}; static_assert(sizeof(XPhysBoneInfo) == 0x20);
+
+	enum XModelFlags : std::uint16_t
+	{
+		XMODEL_FLAG_COMPOSITE = 0x400,
+	};
 
 	struct XModel
 	{
@@ -1484,7 +1981,7 @@ namespace zonetool
 		unsigned char numsurfs; // 10
 		unsigned char numReactiveMotionParts; // 11
 		unsigned char lodRampType; // 12
-		unsigned char physicsCount; // 13
+		unsigned char numBonePhysics; // 13
 		char __pad0[2]; // 14-16
 		float scale; // 16
 		unsigned int noScalePartBits[8]; // 20
@@ -1495,12 +1992,12 @@ namespace zonetool
 		unsigned char* partClassification; // 88
 		DObjAnimMat* baseMat; // 96
 		ReactiveMotionModelPart* reactiveMotionParts; // 104
-		UnknownModel0* unknown0; // 112
+		ReactiveMotionModelTweaks* reactiveMotionTweaks; // 112
 		Material** materialHandles; // 120
 		XModelLodInfo lodInfo[6]; // 128
 		char numLods; // 512
 		char collLod; // 513
-		char numSubModels; // 514
+		char numCompositeModels; // 514
 		char u1; // 515
 		short flags; // 516
 		short numCollSurfs; // 518
@@ -1512,23 +2009,24 @@ namespace zonetool
 		unsigned short* invHighMipRadius; // 576
 		int memUsage; // 584
 		bool bad; // 588
-		char __pad1[3]; // 589-592
-		short numAimAssistBones; // 592
-		short numUnknown1; // 594
-		int u2; // 596
-		scr_string_t* aimAssistBones; // 600
-		UnknownModel1* unknown1; // 608
+		char pad; // 589
+		unsigned short targetCount; // 590
+		unsigned short numberOfWeights; // 592
+		unsigned short numberOfWeightMaps; // 594
+		char __pad2[4]; // 596-600
+		scr_string_t* weightNames; // 600
+		BlendShapeWeightMap* blendShapeWeightMap; // 608
 		PhysPreset* physPreset; // 616
 		PhysCollmap* physCollmap; // 624
-		short numUnknown2; // 632
+		unsigned short mdaoVolumeCount; // 632
 		short u3; // 634
 		float quantization; // 636
-		UnknownModel2* unknown2; // 640
+		MdaoVolume* mdaoVolumes; // 640
 		int u4; // 648
 		int u5; // 652
 		SkeletonScript* skeletonScript; // 656
-		XModel* subModels; // 664
-		XModelPhysics* xmodelPhysics; // 672
+		XModel** compositeModels; // 664
+		XPhysBoneInfo* bonePhysics; // 672
 	}; static_assert(sizeof(XModel) == 0x2A8);
 
 	union XAssetHeader
@@ -1537,7 +2035,7 @@ namespace zonetool
 		PhysPreset* physPreset;
 		PhysCollmap* physCollmap;
 		PhysWaterPreset* physWaterPreset;
-		PhysWorldMap* physWorldMap;
+		PhysWorld* physWorld;
 		PhysConstraint* physConstraint;
 		XAnimParts* parts;
 		XModelSurfs* modelSurfs;
@@ -1559,14 +2057,18 @@ namespace zonetool
 		LoadedSound* loadSnd;
 		LocalizeEntry* localize;
 		MapEnts* mapEnts;
+		GfxLightDef* lightDef;
+		FxEffectDef* fx;
 		RawFile* rawfile;
 		ScriptFile* scriptfile;
 		StringTable* stringTable;
 		StructuredDataDefSet* structuredDataDefSet;
 		NetConstStrings* netConstStrings;
 		LuaFile* luaFile;
-		TTFDef* ttfDef;
 		DopplerPreset* doppler;
+		FxParticleSimAnimation* particleSimAnimation;
+		SkeletonScript* skeletonScript;
+		TTFDef* ttfDef;
 	};
 
 	struct XAsset

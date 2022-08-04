@@ -206,15 +206,22 @@ namespace zonetool
 	void ITechset::init(const std::string& name, ZoneMemory* mem)
 	{
 		this->name_ = name;
-		this->asset_ = this->parse(name, mem);
 
+		if (this->referenced())
+		{
+			this->asset_ = mem->Alloc<typename std::remove_reference<decltype(*this->asset_)>::type>();
+			this->asset_->name = mem->StrDup(name);
+			return;
+		}
+
+		this->asset_ = this->parse(name, mem);
 		if (!this->asset_)
 		{
 			this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name().data()).techniqueSet;
-			//if (DB_IsXAssetDefault(XAssetType(this->type()), this->name().data()))
-			//{
-			//	ZONETOOL_FATAL("techset \"%s\" not found.", name.data());
-			//}
+			if (DB_IsXAssetDefault(XAssetType(this->type()), this->name().data()))
+			{
+				ZONETOOL_FATAL("techset \"%s\" not found.", name.data());
+			}
 		}
 	}
 
@@ -448,11 +455,11 @@ namespace zonetool
 			entry["loadBits"][5] = map[i].loadBits[5];
 			for (int j = 0; j < 11; j++)
 			{
-				entry["depthStencilStateBits"][j] = varXGfxGlobals->depthStencilStateBits[map[i].depthStencilState[j]];
+				entry["depthStencilStateBits"][j] = varXGfxGlobals ? varXGfxGlobals->depthStencilStateBits[map[i].depthStencilState[j]] : 0;
 			}
 			for (int j = 0; j < 3; j++)
 			{
-				entry["blendStateBits"][j] = varXGfxGlobals->blendStateBits[map[i].blendState][j];
+				entry["blendStateBits"][j] = varXGfxGlobals ? varXGfxGlobals->blendStateBits[map[i].blendState][j] : 0;
 			}
 			entry["rasterizerState"] = map[i].rasterizerState;
 			json_data[i] = entry;
@@ -494,7 +501,7 @@ namespace zonetool
 			if (asset->passArray[i].vertexDecl)
 			{
 				dumper.dump_asset(asset->passArray[i].vertexDecl);
-				//IVertexDecl::dump(asset->passArray[i].vertexDecl);
+				IVertexDecl::dump(asset->passArray[i].vertexDecl);
 			}
 
 			if (asset->passArray[i].hullShader)
