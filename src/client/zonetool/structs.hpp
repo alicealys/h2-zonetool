@@ -2943,47 +2943,47 @@ namespace zonetool
 		OffhandClass offhandClass; // 1392
 		weapStance_t stance; // 1396
 		int reticleCenterSize; // 1400
-		int iReticleSideSize; // 1404
-		int iReticleMinOfs; // 1408
+		int reticleSideSize; // 1404
+		int reticleMinOfs; // 1408
 		activeReticleType_t activeReticleType; // 1412
-		float vStandMove[3]; // 1416 1420 1424
-		float vStandRot[3]; // 1428 1432 1436
+		float standMove[3]; // 1416 1420 1424
+		float standRot[3]; // 1428 1432 1436
 		float strafeMove[3]; // 1440 1444 1448
 		float strafeRot[3]; // 1452 1456 1460
-		float vDuckedOfs[3]; // 1464 1468 1472
-		float vDuckedMove[3]; // 1476 1480 1484
-		float vDuckedRot[3]; // 1488 1492 1496
-		float vProneOfs[3]; // 1500 1504 1508
-		float vProneMove[3]; // 1512 1516 1520
-		float vProneRot[3]; // 1524 1528 1532
-		float fPosMoveRate; // 1536
-		float fPosProneMoveRate; // 1540
-		float fStandMoveMinSpeed; // 1544
-		float fDuckedMoveMinSpeed; // 1548
-		float fProneMoveMinSpeed; // 1552
-		float fPosRotRate; // 1556
-		float fPosProneRotRate; // 1560
+		float duckedOfs[3]; // 1464 1468 1472
+		float duckedMove[3]; // 1476 1480 1484
+		float duckedRot[3]; // 1488 1492 1496
+		float proneOfs[3]; // 1500 1504 1508
+		float proneMove[3]; // 1512 1516 1520
+		float proneRot[3]; // 1524 1528 1532
+		float posMoveRate; // 1536
+		float posProneMoveRate; // 1540
+		float standMoveMinSpeed; // 1544
+		float duckedMoveMinSpeed; // 1548
+		float proneMoveMinSpeed; // 1552
+		float posRotRate; // 1556
+		float posProneRotRate; // 1560
 		weaponIconRatioType_t hudIconRatio; // 1564
 		weaponIconRatioType_t pickupIconRatio; // 1568
 		weaponIconRatioType_t ammoCounterIconRatio; // 1572
-		int iAmmoCounterClip; // 1576
-		int iStartAmmo; // 1580
-		int iAmmoIndex; // 1584 (runtime variable)
-		char iAmmoIndexUnknown; // 1588 (runtime variable)
+		int ammoCounterClip; // 1576
+		int startAmmo; // 1580
+		int ammoIndex; // 1584 (runtime variable)
+		char ammoIndexUnknown; // 1588 (runtime variable)
 		char __pad002[3]; // padding?
-		int iClipIndex; // 1592 (runtime variable)
-		char iClipIndexUnknown; // 1596 (runtime variable)
+		int clipIndex; // 1592 (runtime variable)
+		char clipIndexUnknown; // 1596 (runtime variable)
 		char __pad003[3]; // padding?
-		int iMaxAmmo; // 1600
-		int iMinAmmoReq; // 1604
-		int iClipSize; // 1608
+		int maxAmmo; // 1600
+		int minAmmoReq; // 1604
+		int clipSize; // 1608
 		int shotCount; // 1612
-		int iSharedAmmoCapIndex; // 1616
-		int iSharedAmmoCap; // 1620
+		int sharedAmmoCapIndex; // 1616
+		int sharedAmmoCap; // 1620
 		int damage; // 1624
 		int playerDamage; // 1628
-		int iMeleeDamage; // 1632
-		int iDamageType; // 1636
+		int meleeDamage; // 1632
+		int damageType; // 1636
 		StateTimers stateTimers; // 1640
 		StateTimers akimboStateTimers; // 1940
 		float autoAimRange; // 2240
@@ -2994,39 +2994,39 @@ namespace zonetool
 		float moveSpeedScale; // 2260
 		float adsMoveSpeedScale; // 2264
 		float sprintDurationScale; // 2268
-		float fAdsZoomFov; // 2272
-		float fAdsZoomInFrac; // 2276
-		float fAdsZoomOutFrac; // 2280
-		float fAdsSceneBlur; // 2284 (1401FC630) : float
+		float adsZoomFov; // 2272
+		float adsZoomInFrac; // 2276
+		float adsZoomOutFrac; // 2280
+		float adsSceneBlur; // 2284 (1401FC630) : float
 		float fU_007; // 2288 (1400CF870) : float (related to scene blur)
 		float xU_008; // 2292 X
 		ADSOverlay overlay; // 2296
 		WeapOverlayInteface_t overlayInterface; // 2352
-		float fAdsBobFactor; // 2356
-		float fAdsViewBobMult; // 2360
-		float fHipSpreadStandMin; // 2364
-		float fHipSpreadDuckedMin; // 2368
-		float fHipSpreadProneMin; // 2372
-		float fHipSpreadStandMax; // 2376
+		float adsBobFactor; // 2356
+		float adsViewBobMult; // 2360
+		float hipSpreadStandMin; // 2364
+		float hipSpreadDuckedMin; // 2368
+		float hipSpreadProneMin; // 2372
+		float hipSpreadStandMax; // 2376
 		float xU_009; // 2380 X
 		float xU_010; // 2384 X
-		float fHipSpreadDuckedMax; // 2388
-		float fHipSpreadProneMax; // 2392
-		float fHipSpreadDecayRate; // 2396
-		float fHipSpreadFireAdd; // 2400
-		float fHipSpreadTurnAdd; // 2404
-		float fHipSpreadMoveAdd; // 2408
-		float fHipSpreadDuckedDecay; // 2412
-		float fHipSpreadProneDecay; // 2416
-		float fHipReticleSidePos; // 2420
-		float fAdsIdleAmount; // 2424
-		float fHipIdleAmount; // 2428
-		float fAdsIdleSpeed; // 2432
-		float fHipIdleSpeed; // 2436f
-		float fIdleCrouchFactor; // 2440
-		float fIdleProneFactor; // 2444
-		float fGunMaxPitch; // 2448
-		float fGunMaxYaw; // 2452
+		float hipSpreadDuckedMax; // 2388
+		float hipSpreadProneMax; // 2392
+		float hipSpreadDecayRate; // 2396
+		float hipSpreadFireAdd; // 2400
+		float hipSpreadTurnAdd; // 2404
+		float hipSpreadMoveAdd; // 2408
+		float hipSpreadDuckedDecay; // 2412
+		float hipSpreadProneDecay; // 2416
+		float hipReticleSidePos; // 2420
+		float adsIdleAmount; // 2424
+		float hipIdleAmount; // 2428
+		float adsIdleSpeed; // 2432
+		float hipIdleSpeed; // 2436f
+		float idleCrouchFactor; // 2440
+		float idleProneFactor; // 2444
+		float gunMaxPitch; // 2448
+		float gunMaxYaw; // 2452
 		float adsIdleLerpStartTime; // 2456
 		float adsIdleLerpTime; // 2460
 		int adsTransInTime; // 2464
@@ -3050,12 +3050,12 @@ namespace zonetool
 		float adsViewErrorMax; // 2536
 		float adsFireAnimFrac; // 2540
 		float dualWieldViewModelOffset; // 2544
-		float fScopeDriftDelay; // 2548
-		float fScopeDriftLerpInTime; // 2552
-		float fScopeDriftSteadyTime; // 2556
-		float fScopeDriftLerpOutTime; // 2560
-		float fScopeDriftSteadyFactor; // 2564
-		float fScopeDriftUnsteadyFactor; // 2568
+		float scopeDriftDelay; // 2548
+		float scopeDriftLerpInTime; // 2552
+		float scopeDriftSteadyTime; // 2556
+		float scopeDriftLerpOutTime; // 2560
+		float scopeDriftSteadyFactor; // 2564
+		float scopeDriftUnsteadyFactor; // 2568
 		float bobVerticalFactor; // 2572
 		float bobHorizontalFactor; // 2576
 		float bobViewVerticalFactor; // 2580
@@ -3075,23 +3075,23 @@ namespace zonetool
 		int fireAnimLength; // 2648
 		int fireAnimLengthAkimbo; // 2652
 		int inspectAnimTime; // 2656
-		int iReloadAmmoAdd; // 2660
-		int iReloadStartAdd; // 2664
+		int reloadAmmoAdd; // 2660
+		int reloadStartAdd; // 2664
 		int ammoDropStockMin; // 2668
 		int ammoDropStockMax; // 2672
 		int ammoDropClipPercentMin; // 2676
 		int ammoDropClipPercentMax; // 2680
-		int iExplosionRadius; // 2684
-		int iExplosionRadiusMin; // 2688
-		int iExplosionInnerDamage; // 2692
-		int iExplosionOuterDamage; // 2696
+		int explosionRadius; // 2684
+		int explosionRadiusMin; // 2688
+		int explosionInnerDamage; // 2692
+		int explosionOuterDamage; // 2696
 		float damageConeAngle; // 2700
 		float bulletExplDmgMult; // 2704
 		float bulletExplRadiusMult; // 2708
-		int iProjectileSpeed; // 2712
-		int iProjectileSpeedUp; // 2716
-		int iProjectileSpeedForward; // 2720
-		int iProjectileActivateDist; // 2724
+		int projectileSpeed; // 2712
+		int projectileSpeedUp; // 2716
+		int projectileSpeedForward; // 2720
+		int projectileActivateDist; // 2724
 		float projLifetime; // 2728
 		float timeToAccelerate; // 2732
 		float projectileCurvature; // 2736
@@ -3112,63 +3112,63 @@ namespace zonetool
 		float* perpendicularBounce; // 2824 (53 floats)
 		FxEffectDef* projTrailEffect; // 2832
 		FxEffectDef* projBeaconEffect; // 2840
-		float vProjectileColor[3]; // 2848 2852 2856
+		float projectileColor[3]; // 2848 2852 2856
 		guidedMissileType_t guidedMissileType; // 2860
 		float maxSteeringAccel; // 2864
 		int projIgnitionDelay; // 2868
 		FxEffectDef* projIgnitionEffect; // 2872
 		snd_alias_list_t* projIgnitionSound; // 2880
-		float fAdsAimPitch; // 2888
-		float fAdsCrosshairInFrac; // 2892
-		float fAdsCrosshairOutFrac; // 2896
+		float adsAimPitch; // 2888
+		float adsCrosshairInFrac; // 2892
+		float adsCrosshairOutFrac; // 2896
 		int adsGunKickReducedKickBullets; // 2900
 		float adsGunKickReducedKickPercent; // 2904
-		float fAdsGunKickPitchMin; // 2908 (BG_WeaponFireRecoil) : float
-		float fAdsGunKickPitchMax; // 2912 (BG_WeaponFireRecoil) : float
-		float fAdsGunKickYawMin; // 2916 (BG_WeaponFireRecoil) : float
-		float fAdsGunKickYawMax; // 2920 (BG_WeaponFireRecoil) : float
-		float fAdsGunKickMagMin; // 2924 (BG_WeaponFireRecoil) : float
-		float fAdsGunKickAccel; // 2928 (BG_CalculateWeaponMovement_Recoil) : float
-		float fAdsGunKickSpeedMax; // 2932 (BG_CalculateWeaponMovement_Recoil) : float
-		float fAdsGunKickSpeedDecay; // 2936 (BG_CalculateWeaponMovement_Recoil) : float
-		float fAdsGunKickStaticDecay; // 2940 (BG_CalculateWeaponMovement_Recoil) : float
-		float fAdsViewKickPitchMin; // 2944 (BG_WeaponFireRecoil) : float
-		float fAdsViewKickPitchMax; // 2948 (BG_WeaponFireRecoil) : float
-		float fAdsViewKickYawMin; // 2952 (BG_WeaponFireRecoil) : float
-		float fAdsViewKickYawMax; // 2956 (BG_WeaponFireRecoil) : float
-		float fAdsViewKickMagMin; // 2960 (BG_WeaponFireRecoil) : float
-		float fAdsViewKickCenterSpeed; // 2964
-		float fAdsViewScatterMin; // 2968 X
-		float fAdsViewScatterMax; // 2972 X
-		float fAdsSpread; // 2976
+		float adsGunKickPitchMin; // 2908
+		float adsGunKickPitchMax; // 2912
+		float adsGunKickYawMin; // 2916
+		float adsGunKickYawMax; // 2920
+		float adsGunKickMagMin; // 2924
+		float adsGunKickAccel; // 2928
+		float adsGunKickSpeedMax; // 2932
+		float adsGunKickSpeedDecay; // 2936
+		float adsGunKickStaticDecay; // 2940
+		float adsViewKickPitchMin; // 2944
+		float adsViewKickPitchMax; // 2948
+		float adsViewKickYawMin; // 2952
+		float adsViewKickYawMax; // 2956
+		float adsViewKickMagMin; // 2960
+		float adsViewKickCenterSpeed; // 2964
+		float adsViewScatterMin; // 2968 X
+		float adsViewScatterMax; // 2972 X
+		float adsSpread; // 2976
 		int hipGunKickReducedKickBullets; // 2980
-		float hipGunKickReducedKickPercent; // 2984 (BG_WeaponFireRecoil) : float
-		float fHipGunKickPitchMin; // 2988 (BG_WeaponFireRecoil) : float
-		float fHipGunKickPitchMax; // 2992 (BG_WeaponFireRecoil) : float
-		float fHipGunKickYawMin; // 2996 (BG_WeaponFireRecoil) : float
-		float fHipGunKickYawMax; // 3000 (BG_WeaponFireRecoil) : float
-		float fHipGunKickMagMin; // 3004 (BG_WeaponFireRecoil) : float
-		float fHipGunKickAccel; // 3008 (BG_CalculateWeaponMovement_Recoil) : float
-		float fHipGunKickSpeedMax; // 3012 (BG_CalculateWeaponMovement_Recoil) : float
-		float fHipGunKickSpeedDecay; // 3016 (BG_CalculateWeaponMovement_Recoil) : float
-		float fHipGunKickStaticDecay; // 3020 (BG_CalculateWeaponMovement_Recoil) : float
-		float fHipViewKickPitchMin; // 3024 (BG_WeaponFireRecoil) : float
-		float fHipViewKickPitchMax; // 3028 (BG_WeaponFireRecoil) : float
-		float fHipViewKickYawMin; // 3032 (BG_WeaponFireRecoil) : float
-		float fHipViewKickYawMax; // 3036 (BG_WeaponFireRecoil) : float
-		float fHipViewKickMagMin; // 3040 (BG_WeaponFireRecoil) : float
-		float fHipViewKickCenterSpeed; // 3044
-		float fHipViewScatterMin; // 3048 //*
-		float fHipViewScatterMax; // 3052 //*
+		float hipGunKickReducedKickPercent; // 2984
+		float hipGunKickPitchMin; // 2988
+		float hipGunKickPitchMax; // 2992
+		float hipGunKickYawMin; // 2996
+		float hipGunKickYawMax; // 3000
+		float hipGunKickMagMin; // 3004
+		float hipGunKickAccel; // 3008
+		float hipGunKickSpeedMax; // 3012
+		float hipGunKickSpeedDecay; // 3016
+		float hipGunKickStaticDecay; // 3020
+		float hipViewKickPitchMin; // 3024
+		float hipViewKickPitchMax; // 3028
+		float hipViewKickYawMin; // 3032
+		float hipViewKickYawMax; // 3036
+		float hipViewKickMagMin; // 3040
+		float hipViewKickCenterSpeed; // 3044
+		float hipViewScatterMin; // 3048 //*
+		float hipViewScatterMax; // 3052 //*
 		float xU_043; // 3056 //*
 		int adsReloadTransTime; // 3060
 		float fightDist; // 3064
-		float maxDist; // 3068 (Bot_GetAdjustedMaxRange)(Bot_Weap_IsRanged)
+		float maxDist; // 3068
 		const char* accuracyGraphName[2]; // 3072
 		vec2_t* accuracyGraphKnots[2]; // 3088
 		vec2_t* originalAccuracyGraphKnots[2]; // 3104
 		short accuracyGraphKnotCount[2]; // 3120
-		int iPositionReloadTransTime; // 3124 X
+		int positionReloadTransTime; // 3124 X
 		float leftArc; // 3128
 		float rightArc; // 3132
 		float topArc; // 3136
@@ -3182,9 +3182,9 @@ namespace zonetool
 		float yawConvergenceTime; // 3176
 		float suppressTime; // 3180
 		float maxRange; // 3184
-		float fAnimHorRotateInc; // 3188
-		float fPlayerPositionDist; // 3192
-		unsigned int iUseHintStringIndex; // 3196 (runtime variable)
+		float animHorRotateInc; // 3188
+		float playerPositionDist; // 3192
+		unsigned int useHintStringIndex; // 3196 (runtime variable)
 		unsigned int dropHintStringIndex; // 3200 (runtime variable)
 		float horizViewJitter; // 3204
 		float vertViewJitter; // 3208
@@ -3196,8 +3196,8 @@ namespace zonetool
 		int midDamage; // 3236
 		int minPlayerDamage; // 3240
 		int midPlayerDamage; // 3244
-		float fMaxDamageRange; // 3248
-		float fMinDamageRange; // 3252
+		float maxDamageRange; // 3248
+		float minDamageRange; // 3252
 		int iU_045; // 3256 X
 		int iU_046; // 3260 X
 		int iU_047; // 3264 X
@@ -3244,7 +3244,7 @@ namespace zonetool
 		int signatureNumBullets; // 3428
 		weapFireTimeInterpolation_t fireTimeInterpolationType; // 3432
 		int xU_075; // 3436 X
-		int iAmmoUsedPerShot; // 3440 (Bot_Weap_WeaponUsesAmmo)
+		int ammoUsedPerShot; // 3440
 		int xU_076; // 3444 X
 		int xU_077; // 3448 X
 		int xU_078; // 3452 X
@@ -3269,21 +3269,21 @@ namespace zonetool
 		bool avoidDropCleanup; // 3483
 		bool inheritsPerks; // 3484
 		bool crosshairColorChange; // 3485
-		bool bRifleBullet; // 3486
+		bool rifleBullet; // 3486
 		bool armorPiercing; // 3487
-		bool bBoltAction; // 3488
+		bool boltAction; // 3488
 		bool aimDownSight; // 3489
 		bool canHoldBreath; // 3490
 		bool meleeOnly; // 3491
 		bool bU_085; // 3492 bool isMeleeAnimDelayed;? (0x14009FDC0)(1401F2BC0)
 		bool bU_086; // 3493 X bool oldWeaponBot;?
 		bool canVariableZoom; // 3494
-		bool bRechamberWhileAds; // 3495
-		bool bBulletExplosiveDamage; // 3496
-		bool bCookOffHold; // 3497
+		bool rechamberWhileAds; // 3495
+		bool bulletExplosiveDamage; // 3496
+		bool cookOffHold; // 3497
 		bool reticleSpin45; // 3498 X
 		bool reticleSideEnabled; // 3499
-		bool bClipOnly; // 3500
+		bool clipOnly; // 3500
 		bool noAmmoPickup; // 3501
 		bool disableSwitchToWhenEmpty; // 3502
 		bool bU_088; // 3503 (14017E520) bool hiddenAmmo;?
@@ -3292,17 +3292,17 @@ namespace zonetool
 		bool noDualWield; // 3506
 		bool flipKillIcon; // 3507
 		bool actionSlotShowAmmo; // 3508
-		bool bNoPartialReload; // 3509
-		bool bSegmentedReload; // 3510
-		bool bMultipleReload; // 3511
+		bool noPartialReload; // 3509
+		bool segmentedReload; // 3510
+		bool multipleReload; // 3511
 		bool blocksProne; // 3512
 		bool silenced; // 3513
 		bool isRollingGrenade; // 3514
 		bool projExplosionEffectForceNormalUp; // 3515
 		bool projExplosionEffectInheritParentDirection; // 3516
-		bool bProjImpactExplode; // 3517
-		bool bProjTrajectoryEvents; // 3518 X
-		bool bProjWhizByEnabled; // 3519 X
+		bool projImpactExplode; // 3517
+		bool projTrajectoryEvents; // 3518 X
+		bool projWhizByEnabled; // 3519 X
 		bool stickToPlayers; // 3520 X
 		bool stickToVehicles; // 3521 X
 		bool stickToTurrets; // 3522 X
@@ -3338,7 +3338,7 @@ namespace zonetool
 		bool hasCounterSilencer; // 3552 (BG_HasCounterSilencer)
 		bool xU_097; // 3553 X
 		bool xU_098; // 3554 X
-		bool disableVariableAutosimRate; // 3555 (BG_GetDisableVariableAutosimRate)
+		bool disableVariableAutosimRate; // 3555
 		bool bU_100; // 3556 (CG_Missile)
 		bool bU_101; // 3557 (CG_Missile)
 		bool bU_102; // 3558 (CG_Missile)
