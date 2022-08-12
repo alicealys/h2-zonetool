@@ -20,7 +20,7 @@ namespace zonetool
 		MaterialTechniqueSet* parse(const std::string& name, ZoneMemory* mem);
 		static void parse_statebits(const std::string& techset, unsigned char* statebits, ZoneMemory* mem);
 		static void parse_statebitsmap(const std::string& techset, GfxStateBits** map, unsigned char* count,
-			std::vector<std::array<std::uint64_t, 11>>*,
+			std::vector<std::array<std::uint64_t, 10>>*,
 			std::vector<std::array<std::uint32_t, 3>>*,
 			ZoneMemory* mem);
 

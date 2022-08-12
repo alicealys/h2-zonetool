@@ -211,7 +211,7 @@ namespace zonetool
 		this->asset_ = this->parse(name, mem);
 		if (!this->asset_)
 		{
-			this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), name.data()).mapEnts;
+			ZONETOOL_FATAL("Could not find mapents: \"%s\"", this->name_.data());
 		}
 	}
 

@@ -40,7 +40,9 @@
 #include "assets/stringtable.hpp"
 #include "assets/structureddatadefset.hpp"
 #include "assets/techset.hpp"
+#include "assets/tracerdef.hpp"
 #include "assets/ttf.hpp"
+#include "assets/weapondef.hpp"
 #include "assets/xanim.hpp"
 #include "assets/xmodel.hpp"
 #include "assets/xsurface.hpp"
@@ -56,6 +58,19 @@
 
 namespace zonetool
 {
+	template <typename T>
+	XAssetHeader DB_FindXAssetHeader_Copy(XAssetType type, const std::string& name, ZoneMemory* mem)
+	{
+		auto header = DB_FindXAssetHeader_Safe(type, name);
+		if (header.data)
+		{
+			T* newData = mem->Alloc<T>();
+			memcpy(newData, header.data, sizeof(T));
+			header.data = reinterpret_cast<void*>(newData);
+		}
+		return header;
+	}
+
 	void initialize();
 	void start();
 }

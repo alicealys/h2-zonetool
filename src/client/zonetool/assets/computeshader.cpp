@@ -70,12 +70,14 @@ namespace zonetool
 		auto dest = buf->write(data);
 
 		buf->push_stream(3);
-
 		dest->name = buf->write_str(this->name());
+
+		buf->push_stream(0);
 		if (data->prog.loadDef.program)
 		{
 			dest->prog.loadDef.program = buf->write_s(3, data->prog.loadDef.program, data->prog.loadDef.programSize);
 		}
+		buf->pop_stream();
 
 		buf->pop_stream();
 	}

@@ -56,7 +56,7 @@ namespace zonetool
 		T* get_zone_pointer()
 		{
 			return reinterpret_cast<T*>
-				(0xFDFDFDF000000000 | (3ull & 0x0F) << 32 | ((m_zonestreams[m_stream] + 1) & 0x0FFFFFFF));
+				(0xFDFDFDF000000000 | (static_cast<std::uint64_t>(this->m_stream) & 0x0F) << 32 | ((m_zonestreams[m_stream] + 1) & 0x0FFFFFFF));
 		}
 
 		template <typename T = char>
@@ -96,7 +96,7 @@ namespace zonetool
 
 		// T is return type, should be a pointer always.
 		template <typename T>
-		T* write_s(uint32_t alignment, T* _data, std::size_t _count = 1, std::size_t _size = sizeof(T),
+		T* write_s(std::uint64_t alignment, T* _data, std::size_t _count = 1, std::size_t _size = sizeof(T),
 		           T** outPointer = nullptr)
 		{
 			if (m_stream != 2)
@@ -126,7 +126,7 @@ namespace zonetool
 				if (alignment % 2 == 0)
 				{
 					printf(
-						"[WARNING]: You might have an alignment issue somewhere fella! Alignment is an even number (%i)!\n",
+						"[WARNING]: You might have an alignment issue somewhere fella! Alignment is an even number (%llu)!\n",
 						alignment);
 				}
 			}
@@ -178,7 +178,7 @@ namespace zonetool
 		void init_streams(std::size_t num_streams);
 
 		void write_stream(const void* _data, std::size_t size, std::size_t count);
-		void write_stream(const void* _data, size_t size);
+		void write_stream(const void* _data, std::size_t size);
 
 		char* write_str(const std::string& _str);
 		void write_str_raw(const std::string& _str);
@@ -194,9 +194,9 @@ namespace zonetool
 		std::uint8_t* buffer();
 		std::size_t size();
 
-		void align(std::uint32_t alignment);
-		void inc_stream(const std::uint32_t stream, const std::size_t size);
-		void push_stream(std::uint32_t stream);
+		void align(std::uint64_t alignment);
+		void inc_stream(const std::uint8_t stream, const std::size_t size);
+		void push_stream(std::uint8_t stream);
 		void pop_stream();
 
 		std::uint8_t current_stream();

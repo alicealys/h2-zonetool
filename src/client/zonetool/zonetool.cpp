@@ -156,7 +156,9 @@ namespace zonetool
 					DUMP_ASSET(ASSET_TYPE_RAWFILE, IRawFile, RawFile);
 					DUMP_ASSET(ASSET_TYPE_STRUCTUREDDATADEF, IStructuredDataDefSet, StructuredDataDefSet);
 					DUMP_ASSET(ASSET_TYPE_TECHNIQUE_SET, ITechset, MaterialTechniqueSet);
+					DUMP_ASSET(ASSET_TYPE_TRACER, ITracerDef, TracerDef);
 					DUMP_ASSET(ASSET_TYPE_TTF, IFont, TTFDef);
+					DUMP_ASSET(ASSET_TYPE_WEAPON, IWeaponDef, WeaponDef);
 					DUMP_ASSET(ASSET_TYPE_XANIM, IXAnimParts, XAnimParts);
 					DUMP_ASSET(ASSET_TYPE_XMODEL, IXModel, XModel);
 					DUMP_ASSET(ASSET_TYPE_XMODEL_SURFS, IXSurface, XModelSurfs);
@@ -298,7 +300,7 @@ namespace zonetool
 		reallocate_asset_pool(type, multiplier * g_poolSize[type]);
 	}
 
-	bool load_zone(const std::string& name, DBSyncMode mode = DB_LOAD_ASYNC, bool inform = true)
+	bool load_zone(const std::string& name, DBSyncMode mode = DB_LOAD_SYNC, bool inform = true)
 	{
 		if (!zone_exists(name.data()))
 		{
@@ -668,14 +670,19 @@ namespace zonetool
 			{
 				if (i < args.size() - 1 && i + 1 < args.size())
 				{
-					if (args[i] == "-buildzone")
+					if (args[i] == "-loadzone")
+					{
+						load_zone(args[i + 1]);
+						i++;
+					}
+					else if (args[i] == "-buildzone")
 					{
 						build_zone(args[i + 1]);
 						i++;
 					}
-					else if (args[i] == "-loadzone")
+					else if (args[i] == "-verifyzone")
 					{
-						load_zone(args[i + 1]);
+						verify_zone(args[i + 1]);
 						i++;
 					}
 					else if (args[i] == "-dumpzone")

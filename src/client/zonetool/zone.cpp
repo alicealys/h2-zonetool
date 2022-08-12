@@ -137,7 +137,9 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_SOUND_CURVE, ISoundCurve);
 			ADD_ASSET(ASSET_TYPE_STRINGTABLE, IStringTable);
 			ADD_ASSET(ASSET_TYPE_TECHNIQUE_SET, ITechset);
+			ADD_ASSET(ASSET_TYPE_TRACER, ITracerDef);
 			ADD_ASSET(ASSET_TYPE_TTF, IFont);
+			ADD_ASSET(ASSET_TYPE_WEAPON, IWeaponDef);
 			ADD_ASSET(ASSET_TYPE_XANIM, IXAnimParts);
 			ADD_ASSET(ASSET_TYPE_XMODEL, IXModel);
 			ADD_ASSET(ASSET_TYPE_XMODEL_SURFS, IXSurface);
@@ -196,7 +198,7 @@ namespace zonetool
 		std::uintptr_t zero = 0;
 
 		// write asset types to header
-		for (auto i = 0u; i < m_assets.size(); i++)
+		for (std::size_t i = 0; i < m_assets.size(); i++)
 		{
 			m_assets[i]->prepare(buf, this->m_zonemem.get());
 		}
@@ -253,7 +255,7 @@ namespace zonetool
 			}
 
 			globals->blendStateCount = static_cast<unsigned int>(buf->blendstatebits_count());
-			globals->blendStateBits = mem_->Alloc<std::uint32_t[3]>(globals->blendStateCount);
+			globals->blendStateBits = mem_->Alloc<GfxBlendStateBits>(globals->blendStateCount);
 			globals->blendStates = mem_->Alloc<GfxZoneTableEntry>(globals->blendStateCount);
 
 			for (unsigned int i = 0; i < globals->blendStateCount; i++)
@@ -263,7 +265,7 @@ namespace zonetool
 					globals->blendStateBits[i][j] = buf->get_blendstatebits(i)[j];
 				}
 			}
-
+			
 			globals->perPrimConstantBufferCount = static_cast<unsigned int>(buf->ppas_count());
 			globals->perPrimConstantBufferSizes = mem_->Alloc<unsigned int>(globals->perPrimConstantBufferCount);
 			globals->perPrimConstantBuffers = mem_->Alloc<GfxZoneTableEntry>(globals->perPrimConstantBufferCount);
@@ -421,10 +423,11 @@ namespace zonetool
 		ZONETOOL_INFO("m_assetbase: %llu", this->m_assetbase);
 
 		// write asset types to header
-		for (auto i = 0u; i < asset_count; i++)
+		for (std::size_t i = 0; i < asset_count; i++)
 		{
 			// write asset data to zone
 			auto type = static_cast<uintptr_t>(m_assets[i]->type());
+
 			buf->write(&type);
 			buf->write(&pad);
 		}
@@ -432,6 +435,10 @@ namespace zonetool
 		// write assets
 		for (auto& asset : m_assets)
 		{
+#ifdef DEBUG
+			ZONETOOL_INFO("writing asset \"%s\" of type %s...", asset->name().data(), type_to_string(XAssetType(asset->type())));
+#endif
+
 			// push stream
 			buf->push_stream(0);
 			buf->align(3);
@@ -447,7 +454,7 @@ namespace zonetool
 		buf->pop_stream();
 
 		// update zone header
-		zone->size = static_cast<std::uint32_t>(buf->size() - headersize);
+		zone->size = static_cast<std::uint64_t>(buf->size() - headersize);
 		zone->externalsize = 0;
 
 		// Update stream data

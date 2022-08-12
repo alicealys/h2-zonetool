@@ -156,8 +156,8 @@ namespace zonetool
 		mat->info.textureAtlasFrameBlend = matdata["textureAtlasFrameBlend"].get<unsigned char>();
 		mat->info.textureAtlasAsArray = matdata["textureAtlasAsArray"].get<unsigned char>();
 
-		mat->info.surfaceTypeBits = matdata["surfaceTypeBits"].get<unsigned int>();
-		mat->info.hashIndex = matdata["hashIndex"].get<unsigned short>();
+		mat->info.surfaceTypeBits = matdata["surfaceTypeBits"].get<SurfaceTypeBits>();
+		//mat->info.hashIndex = matdata["hashIndex"].get<unsigned int>();
 
 		mat->stateFlags = matdata["stateFlags"].get<unsigned char>();
 		mat->cameraRegion = matdata["cameraRegion"].get<unsigned char>();
@@ -258,13 +258,18 @@ namespace zonetool
 		{
 			this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name_.data()).material;
 
+			if (DB_IsXAssetDefault(XAssetType(this->type()), this->name_.data()))
+			{
+				ZONETOOL_WARNING("Missing material \"%s\", using default...", this->name_.data());
+			}
+
 			auto material = this->asset_;
 			for (auto i = 0; i < material->stateBitsCount; i++)
 			{
 				XGfxGlobals* varXGfxGlobals = GetXGfxGlobalsForZone(material->stateBitsTable[i].zone);
 
-				std::array<std::uint64_t, 11> temp_bits;
-				for (auto j = 0; j < 11; j++)
+				std::array<std::uint64_t, 10> temp_bits;
+				for (auto j = 0; j < 10; j++)
 				{
 					temp_bits[j] = varXGfxGlobals->depthStencilStateBits[material->stateBitsTable[i].depthStencilState[j]];
 				}
@@ -286,7 +291,7 @@ namespace zonetool
 
 		for (auto i = 0; i < material->stateBitsCount; i++)
 		{
-			for (auto j = 0; j < 11; j++)
+			for (auto j = 0; j < 10; j++)
 			{
 				material->stateBitsTable[i].depthStencilState[j] = buf->write_depthstencilstatebit(this->depth_stenchil_state_bits[i][j]);
 			}
@@ -526,7 +531,7 @@ namespace zonetool
 			MATERIAL_DUMP_INFO(textureAtlasAsArray);
 
 			MATERIAL_DUMP_INFO(surfaceTypeBits);
-			MATERIAL_DUMP_INFO(hashIndex);
+			//MATERIAL_DUMP_INFO(hashIndex);
 
 			MATERIAL_DUMP(stateFlags);
 			MATERIAL_DUMP(cameraRegion);

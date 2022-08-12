@@ -115,7 +115,7 @@ namespace zonetool
 			auto i = ftell(fp);
 			char c;
 			size_t size = 0;
-			while (fread(&c, sizeof(byte), 1, fp) == 1)
+			while (fread(&c, sizeof(char), 1, fp) == 1)
 			{
 				if (c == '\0') // null terminator
 				{

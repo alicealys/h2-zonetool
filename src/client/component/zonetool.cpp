@@ -230,16 +230,16 @@ namespace zonetool
 
 		utils::hook::set<uint8_t>(0x140176D2D, 0xEB); // LUI: Unable to start the LUI system due to errors in main.lua
 
-		//utils::hook::nop(0x140506ECE, 5); // Disable sound pak file loading
-		//utils::hook::nop(0x140506ED6, 2); // ^
-		//utils::hook::set<uint8_t>(0x1402C5910, 0xC3); // Disable image pak file loading
+		utils::hook::set<uint8_t>(0x1402C5F90, 0xC3); // disable load/read of alwaysloaded assets ( streamed images )
+		utils::hook::set<uint8_t>(0x1402C6340, 0xC3); // ^
+
+		utils::hook::set<uint8_t>(0x1402C6590, 0xC3); // DB_ReadPackedLoadedSounds
+
+		utils::hook::set(0x1402BF7F0, 0xC3); // some loop
+		utils::hook::set(0x14007E150, 0xC3); // related to shader caching / techsets / fastfiles
 
 		// Reduce min required memory
 		utils::hook::set<uint64_t>(0x14050C717, 0x80000000);
-
-		//utils::hook::set(0x1402BF7F0, 0xC3); // some loop
-		//utils::hook::set(0x14007E150, 0xC3); // related to shader caching / techsets / fastfiles
-		//utils::hook::set<uint8_t>(0x1402C6590, 0xC3); // DB_ReadPackedLoadedSounds
 	}
 
 	void load_common_zones()
@@ -248,7 +248,7 @@ namespace zonetool
 		{
 			"code_post_gfx_mp",
 			//"ui_mp",
-			//"common_mp",
+			"common_mp",
 		};
 
 		XZoneInfo zones[8]{ 0 };
@@ -296,6 +296,9 @@ namespace zonetool
 
 			// disable demonware
 			utils::hook::set<uint8_t>(0x140543730, 0xC3); // dwNetStart
+
+			// stuck in a loop
+			utils::hook::set<uint8_t>(0x1402C5C00, 0xC3); // DB_EnterStreamingTabulate
 
 			zonetool::initialize();
 		}

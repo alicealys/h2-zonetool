@@ -48,7 +48,7 @@ namespace zonetool
 		{
 			buf->align(3);
 			auto* data_geoms = data->geoms;
-			auto* dest_geoms = data->geoms = buf->write(data_geoms, data->count);
+			auto* dest_geoms = buf->write(data_geoms, data->count);
 			for (unsigned int i = 0; i < data->count; i++)
 			{
 				if (data_geoms[i].data)

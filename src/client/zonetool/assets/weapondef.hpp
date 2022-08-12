@@ -3,19 +3,18 @@
 
 namespace zonetool
 {
-	class IMaterial : public IAsset
+	class IWeaponDef : public IAsset
 	{
 	private:
 		std::string name_;
-		Material* asset_ = nullptr;
+		WeaponDef* asset_ = nullptr;
 
-		std::vector<std::array<std::uint64_t, 10>> depth_stenchil_state_bits;
-		std::vector<std::array<std::uint32_t, 3>> blend_state_bits;
-
-		MaterialTextureDef* prase_texture_table(json& matdata, ZoneMemory* mem);
+		std::vector<std::pair<scr_string_t*, std::string>> script_strings;
+		void add_script_string(scr_string_t* ptr, std::string str);
+		std::string get_script_string(scr_string_t* ptr);
 
 	public:
-		Material* parse(std::string name, ZoneMemory* mem);
+		WeaponDef* parse(const std::string& name, ZoneMemory* mem);
 
 		void init(const std::string& name, ZoneMemory* mem) override;
 		void prepare(ZoneBuffer* buf, ZoneMemory* mem) override;
@@ -27,6 +26,6 @@ namespace zonetool
 		std::int32_t type() override;
 		void write(IZone* zone, ZoneBuffer* buffer) override;
 
-		static void dump(Material* asset);
+		static void dump(WeaponDef* asset);
 	};
 }

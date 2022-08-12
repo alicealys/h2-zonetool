@@ -167,7 +167,7 @@ namespace zonetool
 		}
 	}
 
-	void ZoneBuffer::write_stream(const void* _data, size_t size)
+	void ZoneBuffer::write_stream(const void* _data, std::size_t size)
 	{
 		return write_stream(_data, size, 1);
 	}
@@ -193,23 +193,23 @@ namespace zonetool
 		return m_pos;
 	}
 
-	void ZoneBuffer::align(std::uint32_t alignment)
+	void ZoneBuffer::align(std::uint64_t alignment)
 	{
 		// if (m_numstreams > 0)
 		{
-			m_zonestreams[m_stream] = (~alignment & (alignment + static_cast<std::uint32_t>(m_zonestreams[m_stream])));
+			m_zonestreams[m_stream] = (~alignment & (alignment + m_zonestreams[m_stream]));
 		}
 	}
 
-	void ZoneBuffer::inc_stream(const std::uint32_t stream, const std::size_t size)
+	void ZoneBuffer::inc_stream(const std::uint8_t stream, const std::size_t size)
 	{
 		m_zonestreams[stream] += size;
 	}
 
-	void ZoneBuffer::push_stream(std::uint32_t stream)
+	void ZoneBuffer::push_stream(std::uint8_t stream)
 	{
 		m_streamstack.push(m_stream);
-		m_stream = static_cast<std::uint8_t>(stream);
+		m_stream = stream;
 	}
 
 	void ZoneBuffer::pop_stream()

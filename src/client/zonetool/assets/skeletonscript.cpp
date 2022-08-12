@@ -38,10 +38,12 @@ namespace zonetool
 			return;
 		}
 
-		this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name().data()).skeletonScript;
+		this->asset_ = DB_FindXAssetHeader_Copy<SkeletonScript>(XAssetType(this->type()), this->name().data(), mem).skeletonScript;
+		auto* original_strings = this->asset_->ikData->strings;
+		this->asset_->ikData->strings = mem->Alloc<scr_string_t>(this->asset_->ikData->stringsCount);
 		for (unsigned char i = 0; i < this->asset_->ikData->stringsCount; i++)
 		{
-			this->add_script_string(&this->asset_->ikData->strings[i], SL_ConvertToString(this->asset_->ikData->strings[i]));
+			this->add_script_string(&this->asset_->ikData->strings[i], SL_ConvertToString(original_strings[i]));
 		}
 	}
 

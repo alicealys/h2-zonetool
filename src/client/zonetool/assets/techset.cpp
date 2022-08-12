@@ -149,7 +149,7 @@ namespace zonetool
 	}
 
 	void ITechset::parse_statebitsmap(const std::string& techset, GfxStateBits** map, unsigned char* count,
-		std::vector<std::array<std::uint64_t, 11>>* dssb,
+		std::vector<std::array<std::uint64_t, 10>>* dssb,
 		std::vector<std::array<std::uint32_t, 3>>* bsb,
 		ZoneMemory* mem)
 	{
@@ -175,8 +175,8 @@ namespace zonetool
 					stateBits[i].loadBits[4] = stateMap[i]["loadBits"][4].get<unsigned int>();
 					stateBits[i].loadBits[5] = stateMap[i]["loadBits"][5].get<unsigned int>();
 
-					std::array<std::uint64_t, 11> temp_bits = { 0 };
-					for (int j = 0; j < 11; j++)
+					std::array<std::uint64_t, 10> temp_bits = { 0 };
+					for (int j = 0; j < 10; j++)
 					{
 						temp_bits[j] = stateMap[i]["depthStencilStateBits"][j].get<std::uint64_t>();
 					}

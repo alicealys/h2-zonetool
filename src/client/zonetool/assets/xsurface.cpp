@@ -31,7 +31,6 @@ namespace zonetool
 			}
 
 			asset->surfs[i].triIndices = read.read_array<Face>();
-			asset->surfs[i].triIndices2 = asset->surfs[i].triIndices;
 
 			asset->surfs[i].rigidVertLists = read.read_array<XRigidVertList>();
 			for (unsigned char vert = 0; vert < asset->surfs[i].rigidVertListCount; vert++)
@@ -132,13 +131,13 @@ namespace zonetool
 			ZoneBuffer::clear_pointer(&dest->triIndices);
 		}
 
-		if (data->triIndices2)
+		/*if (data->triIndices2)
 		{
 			buf->align(15);
 			buf->write(data->triIndices2, data->triCount);
 			ZoneBuffer::clear_pointer(&dest->triIndices2);
-		}
-		//dest->triIndices2 = nullptr;
+		}*/
+		dest->triIndices2 = nullptr;
 
 		if (data->rigidVertLists)
 		{

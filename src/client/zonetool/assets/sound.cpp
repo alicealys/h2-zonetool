@@ -353,9 +353,10 @@ namespace zonetool
 
 		SOUND_INT(flags);
 		SOUND_CHAR(priority);
+		asset->dspBusIndex = get_dsp_bus_index_from_name(snddata["dspBus"].get<std::string>().data()); //SOUND_CHAR(dspBusIndex);
+		asset->volModIndex = get_vol_mod_index_from_name(snddata["volMod"].get<std::string>().data()); //SOUND_SHORT(volModIndex);
 		SOUND_FLOAT(volMin);
 		SOUND_FLOAT(volMax);
-		asset->volModIndex = get_vol_mod_index_from_name(snddata["volMod"].get<std::string>().data()); //SOUND_SHORT(volModIndex);
 		SOUND_FLOAT(pitchMin);
 		SOUND_FLOAT(pitchMax);
 		SOUND_FLOAT(distMin);
@@ -378,15 +379,13 @@ namespace zonetool
 		SOUND_CHAR(polyEntityType);
 		SOUND_CHAR(polyGlobalType);
 
-		asset->dspBusIndex = get_dsp_bus_index_from_name(snddata["dspBus"].get<std::string>().data()); //SOUND_CHAR(dspBusIndex);
-
 		SOUND_FLOAT(reverbWetMixOverride);
 
 		SOUND_FLOAT(smartPanDistance2d);
 		SOUND_FLOAT(smartPanDistance3d);
 		SOUND_FLOAT(smartPanAttenuation3d);
 
-		SOUND_FLOAT(stereo3dAngle);
+		SOUND_SHORT(stereo3dAngle);
 		SOUND_FLOAT(stereo3dStart);
 		SOUND_FLOAT(stereo3dEnd);
 
@@ -452,14 +451,12 @@ namespace zonetool
 			auto pad0 = nlohmann::get_object_bytes(snd_unknown["pad"][0]);
 			auto pad1 = nlohmann::get_object_bytes(snd_unknown["pad"][1]);
 			auto pad2 = nlohmann::get_object_bytes(snd_unknown["pad"][2]);
-			auto pad3 = nlohmann::get_object_bytes(snd_unknown["pad"][3]);
-			auto pad4 = nlohmann::get_object_bytes(snd_unknown["pad"][4]);
 			memcpy(asset->__pad0, pad0.data(), pad0.size());
 			memcpy(asset->__pad1, pad1.data(), pad1.size());
 			memcpy(asset->__pad2, pad2.data(), pad2.size());
-			memcpy(asset->__pad3, pad3.data(), pad3.size());
-			memcpy(asset->__pad4, pad4.data(), pad4.size());
 			asset->u1 = snd_unknown["u1"].get<char>();
+			asset->u4 = snd_unknown["u4"].get<float>();
+			asset->u6 = snd_unknown["u6"].get<float>();
 		}
 	}
 
@@ -816,9 +813,10 @@ namespace zonetool
 
 		SOUND_DUMP_INT(flags);
 		SOUND_DUMP_CHAR(priority);
+		sound["dspBus"] = get_dsp_bus_name(asset->dspBusIndex); //SOUND_DUMP_CHAR(dspBusIndex);
+		sound["volMod"] = get_vol_nod_name(asset->volModIndex); //SOUND_DUMP_SHORT(volModIndex);
 		SOUND_DUMP_FLOAT(volMin);
 		SOUND_DUMP_FLOAT(volMax);
-		sound["volMod"] = get_vol_nod_name(asset->volModIndex); //SOUND_DUMP_SHORT(volModIndex);
 		SOUND_DUMP_FLOAT(pitchMin);
 		SOUND_DUMP_FLOAT(pitchMax);
 		SOUND_DUMP_FLOAT(distMin);
@@ -841,15 +839,13 @@ namespace zonetool
 		SOUND_DUMP_CHAR(polyEntityType);
 		SOUND_DUMP_CHAR(polyGlobalType);
 
-		sound["dspBus"] = get_dsp_bus_name(asset->dspBusIndex); //SOUND_DUMP_CHAR(dspBusIndex);
-
 		SOUND_DUMP_FLOAT(reverbWetMixOverride);
 
 		SOUND_DUMP_FLOAT(smartPanDistance2d);
 		SOUND_DUMP_FLOAT(smartPanDistance3d);
 		SOUND_DUMP_FLOAT(smartPanAttenuation3d);
 
-		SOUND_DUMP_FLOAT(stereo3dAngle);
+		SOUND_DUMP_SHORT(stereo3dAngle);
 		SOUND_DUMP_FLOAT(stereo3dStart);
 		SOUND_DUMP_FLOAT(stereo3dEnd);
 
@@ -904,9 +900,9 @@ namespace zonetool
 		sound["unknown"]["pad"][0] = json::binary(std::vector<std::uint8_t>(asset->__pad0, asset->__pad0 + sizeof(asset->__pad0)));
 		sound["unknown"]["pad"][1] = json::binary(std::vector<std::uint8_t>(asset->__pad1, asset->__pad1 + sizeof(asset->__pad1)));
 		sound["unknown"]["pad"][2] = json::binary(std::vector<std::uint8_t>(asset->__pad2, asset->__pad2 + sizeof(asset->__pad2)));
-		sound["unknown"]["pad"][3] = json::binary(std::vector<std::uint8_t>(asset->__pad3, asset->__pad3 + sizeof(asset->__pad3)));
-		sound["unknown"]["pad"][4] = json::binary(std::vector<std::uint8_t>(asset->__pad4, asset->__pad4 + sizeof(asset->__pad4)));
 		sound["unknown"]["u1"] = asset->u1;
+		sound["unknown"]["u4"] = asset->u4;
+		sound["unknown"]["u6"] = asset->u6;
 	}
 
 	void ISound::json_dump(snd_alias_list_t* asset)

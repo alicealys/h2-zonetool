@@ -228,19 +228,35 @@ namespace zonetool
 		this->asset_ = IXAnimParts::parse(name, mem);
 		if (!this->asset_)
 		{
-			this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name().data()).parts;
+			this->asset_ = DB_FindXAssetHeader_Copy<XAnimParts>(XAssetType(this->type()), this->name().data(), mem).parts;
 
 			auto* asset = this->asset_;
+
+			auto* original_names = asset->names;
+			asset->names = mem->Alloc<scr_string_t>(asset->boneCount[9]);
 			for (auto bone = 0; bone < asset->boneCount[9]; bone++)
 			{
-				this->add_script_string(&asset->names[bone], SL_ConvertToString(asset->names[bone]));
+				this->add_script_string(&asset->names[bone], SL_ConvertToString(original_names[bone]));
 			}
 
+			auto* original_notifies = asset->notify;
+			asset->notify = mem->Alloc<XAnimNotifyInfo>(asset->notifyCount);
 			if (asset->notify)
 			{
 				for (auto i = 0; i < asset->notifyCount; i++)
 				{
-					this->add_script_string(&asset->notify[i].name, SL_ConvertToString(asset->notify[i].name));
+					asset->notify[i].time = original_notifies[i].time;
+					this->add_script_string(&asset->notify[i].name, SL_ConvertToString(original_notifies[i].name));
+				}
+			}
+
+			auto* original_blends = asset->blendShapeWeightNames;
+			asset->blendShapeWeightNames = mem->Alloc<scr_string_t>(asset->blendShapeWeightCount);
+			if (asset->blendShapeWeightNames)
+			{
+				for (auto i = 0; i < asset->blendShapeWeightCount; i++)
+				{
+					this->add_script_string(&asset->blendShapeWeightNames[i], SL_ConvertToString(original_blends[i]));
 				}
 			}
 		}

@@ -532,7 +532,7 @@ namespace zonetool
 			int x;
 			char m_name[128];
 
-			x = 1024;
+			x = 2048;
 			result = true;
 			if (!load_image(name, &image))
 			{
@@ -645,13 +645,27 @@ namespace zonetool
 			this->asset_ = parse_custom(name.data(), mem);
 			if (!this->asset_)
 			{
-				this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name_.data()).image;
+				ZONETOOL_WARNING("Image \"%s\" not found, it will probably look messed up ingame!", name.data());
 
-				if (this->asset_->streamed || (this->asset_->width == 1 && this->asset_->height == 1))
-				{
-					//ZONETOOL_WARNING("Image '%s' not found, it will probably look messed up ingame!", name.data());
-					this->asset_->streamed = 0;
-				}
+				static unsigned char default_pixel_data[4] = { 255, 0, 0, 255 };
+				auto* image = mem->Alloc<GfxImage>();
+				image->imageFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+				image->mapType = MAPTYPE_2D;
+				image->sematic = 0;
+				image->category = 1;
+				image->flags = 0;
+				image->dataLen1 = sizeof(default_pixel_data);
+				image->dataLen2 = sizeof(default_pixel_data);
+				image->width = 1;
+				image->height = 1;
+				image->pixelData = default_pixel_data;
+				image->depth = 1;
+				image->numElements = 1;
+				image->levelCount = 1;
+				image->streamed = 0;
+				image->name = mem->StrDup(this->name_);
+
+				this->asset_ = image;
 			}
 		}
 	}
@@ -701,9 +715,7 @@ namespace zonetool
 			if (data->pixelData)
 			{
 				buf->align(3);
-
 				buf->write_stream(data->pixelData, data->dataLen1);
-
 				ZoneBuffer::clear_pointer(&dest->pixelData);
 			}
 			buf->pop_stream();

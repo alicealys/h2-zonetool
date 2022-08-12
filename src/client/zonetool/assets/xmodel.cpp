@@ -134,12 +134,22 @@ namespace zonetool
 		this->asset_ = this->parse(name, mem);
 		if (!this->asset_)
 		{
-			this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name_.data()).model;
+			this->asset_ = DB_FindXAssetHeader_Copy<XModel>(XAssetType(this->type()), this->name_.data(), mem).model;
 
 			auto* asset = this->asset_;
+
+			auto* original_scriptstrings = asset->boneNames;
+			asset->boneNames = mem->Alloc<scr_string_t>(asset->numBones);
 			for (unsigned char i = 0; i < asset->numBones; i++)
 			{
-				this->add_script_string(&asset->boneNames[i], SL_ConvertToString(asset->boneNames[i]));
+				this->add_script_string(&asset->boneNames[i], SL_ConvertToString(original_scriptstrings[i]));
+			}
+
+			auto* original_weights = asset->weightNames;
+			asset->weightNames = mem->Alloc<scr_string_t>(asset->numberOfWeights);
+			for (unsigned char i = 0; i < asset->numberOfWeights; i++)
+			{
+				this->add_script_string(&asset->weightNames[i], SL_ConvertToString(original_weights[i]));
 			}
 		}
 	}
@@ -164,8 +174,8 @@ namespace zonetool
 		{
 			for (unsigned short i = 0; i < xmodel->numberOfWeights; i++)
 			{
-				auto bone = buf->write_scriptstring(this->get_script_string(&xmodel->weightNames[i]));
-				xmodel->weightNames[i] = static_cast<scr_string_t>(bone);
+				auto weight = buf->write_scriptstring(this->get_script_string(&xmodel->weightNames[i]));
+				xmodel->weightNames[i] = static_cast<scr_string_t>(weight);
 			}
 		}
 	}

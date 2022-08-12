@@ -38,11 +38,16 @@ namespace zonetool
 			return;
 		}
 
-		this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name().data()).physWorld;
-
-		for (unsigned int i = 0; i < this->asset_->waterVolumesCount; i++)
+		this->asset_ = DB_FindXAssetHeader_Copy<PhysWorld>(XAssetType(this->type()), this->name().data(), mem).physWorld;
+		if (this->asset_->waterVolumes)
 		{
-			this->add_script_string(&this->asset_->waterVolumes[i].string, SL_ConvertToString(this->asset_->waterVolumes[i].string));
+			auto* original_water_volumes = this->asset_->waterVolumes;
+			this->asset_->waterVolumes = mem->Alloc<PhysWaterVolumeDef>(this->asset_->waterVolumesCount);
+			memcpy(this->asset_->waterVolumes, original_water_volumes, sizeof(PhysWaterVolumeDef) * this->asset_->waterVolumesCount);
+			for (unsigned int i = 0; i < this->asset_->waterVolumesCount; i++)
+			{
+				this->add_script_string(&this->asset_->waterVolumes[i].string, SL_ConvertToString(original_water_volumes[i].string));
+			}
 		}
 	}
 
@@ -50,10 +55,13 @@ namespace zonetool
 	{
 		auto* data = this->asset_;
 
-		for (unsigned int i = 0; i < data->waterVolumesCount; i++)
+		if (data->waterVolumes)
 		{
-			auto str = this->get_script_string(&data->waterVolumes[i].string);
-			data->waterVolumes[i].string = static_cast<scr_string_t>(buf->write_scriptstring(str));
+			for (unsigned int i = 0; i < data->waterVolumesCount; i++)
+			{
+				auto str = this->get_script_string(&data->waterVolumes[i].string);
+				data->waterVolumes[i].string = static_cast<scr_string_t>(buf->write_scriptstring(str));
+			}
 		}
 	}
 
