@@ -113,15 +113,9 @@ namespace zonetool
 			}
 
 			template <typename T>
-			void write_internal(const T& value)
+			void write_internal(const T* data, std::size_t size = sizeof(T), std::size_t count = 1)
 			{
-				file.write(&value, sizeof(T), 1);
-			}
-
-			template <typename T>
-			void write_internal(const T& value, std::size_t size)
-			{
-				file.write(&value, size, 1);
+				file.write(data, size, count);
 			}
 
 			template <typename T>
@@ -215,7 +209,8 @@ namespace zonetool
 					if (is_entry_dumped(reinterpret_cast<std::uintptr_t>(str)))
 					{
 						write_type(DUMP_TYPE_OFFSET);
-						write_internal(get_entry_dumped_index(reinterpret_cast<std::uintptr_t>(str)));
+						std::uint32_t index = get_entry_dumped_index(reinterpret_cast<std::uintptr_t>(str));
+						write_internal(&index);
 						return;
 					}
 
@@ -246,7 +241,8 @@ namespace zonetool
 					if (is_entry_dumped(reinterpret_cast<std::uintptr_t>(asset)))
 					{
 						write_type(DUMP_TYPE_OFFSET);
-						write_internal(get_entry_dumped_index(reinterpret_cast<std::uintptr_t>(asset)));
+						std::uint32_t index = get_entry_dumped_index(reinterpret_cast<std::uintptr_t>(asset));
+						write_internal(&index);
 						return;
 					}
 
@@ -272,7 +268,8 @@ namespace zonetool
 					if (is_entry_dumped(reinterpret_cast<std::uintptr_t>(data)))
 					{
 						write_type(DUMP_TYPE_OFFSET);
-						write_internal(get_entry_dumped_index(reinterpret_cast<std::uintptr_t>(data)));
+						std::uint32_t index = get_entry_dumped_index(reinterpret_cast<std::uintptr_t>(data));
+						write_internal(&index);
 						return;
 					}
 
@@ -281,7 +278,7 @@ namespace zonetool
 					write_type(DUMP_TYPE_ARRAY);
 					write_existing(DUMP_EXISTING);
 
-					write_internal(array_size);
+					write_internal(&array_size);
 					write_array_internal(data, array_size);
 				}
 				else
@@ -311,7 +308,8 @@ namespace zonetool
 					if (is_entry_dumped(reinterpret_cast<std::uintptr_t>(data)))
 					{
 						write_type(DUMP_TYPE_OFFSET);
-						write_internal(get_entry_dumped_index(reinterpret_cast<std::uintptr_t>(data)));
+						std::uint32_t index = get_entry_dumped_index(reinterpret_cast<std::uintptr_t>(data));
+						write_internal(&index);
 						return;
 					}
 
@@ -320,8 +318,8 @@ namespace zonetool
 					write_type(DUMP_TYPE_RAW);
 					write_existing(DUMP_EXISTING);
 
-					write_internal(size);
-					write_internal(data, size);
+					write_internal(&size);
+					write_internal(data, size, 1);
 				}
 				else
 				{
@@ -430,15 +428,9 @@ namespace zonetool
 			}
 
 			template <typename T>
-			void read_internal(T* value)
+			void read_internal(T* value, std::size_t size = sizeof(T), std::size_t count = 1)
 			{
-				file.read(value, sizeof(T), 1);
-			}
-
-			template <typename T>
-			void read_internal(T* value, std::size_t size)
-			{
-				file.read(value, size, 1);
+				file.read(value, size, count);
 			}
 
 			template <typename T>
@@ -600,7 +592,7 @@ namespace zonetool
 					char* name = memory->Alloc<char>(str.size() + 1);
 					strcpy(name, str.c_str());
 
-					auto asset = memory->Alloc<T>();
+					T* asset = memory->Alloc<T>();
 					memset(asset, 0, sizeof(T));
 					asset->name = const_cast<char*>(name);
 
@@ -649,7 +641,7 @@ namespace zonetool
 						return nullptr;
 					}
 
-					auto array_ = memory->Alloc<T>(array_size);
+					T* array_ = memory->Alloc<T>(array_size);
 					read_array_internal(array_, array_size);
 
 					add_entry_read(reinterpret_cast<std::uintptr_t>(array_));
@@ -703,8 +695,8 @@ namespace zonetool
 						return nullptr;
 					}
 
-					auto data = memory->Alloc<T>(size);
-					read_internal(data, size);
+					T* data = memory->Alloc<T>(size);
+					read_internal(data, size, 1);
 
 					add_entry_read(reinterpret_cast<std::uintptr_t>(data));
 

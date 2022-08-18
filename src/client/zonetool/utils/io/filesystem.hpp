@@ -19,19 +19,19 @@ namespace zonetool
 			size_t write_string(const char* str);
 			size_t write(const std::string& str);
 			size_t write(const void* buffer, size_t size, size_t count);
-			template <typename T> size_t write(const T* val, size_t count = 1)
+			template <typename T> size_t write(const T* val, size_t size = sizeof(T), size_t count = 1)
 			{
-				return this->write(reinterpret_cast<const void*>(val), sizeof(T), count);
+				return this->write(reinterpret_cast<const void*>(val), size, count);
 			}
 			size_t read_string(std::string* str);
 			size_t read(void* buffer, size_t size, size_t count);
-			template <typename T> size_t read(T* val, size_t count = 1)
+			template <typename T> size_t read(T* val, size_t size = sizeof(T), size_t count = 1)
 			{
-				return this->read(reinterpret_cast<void*>(val), sizeof(T), count);
+				return this->read(reinterpret_cast<void*>(val), size, count);
 			}
-			template <typename T> size_t read(const T* val, size_t count = 1)
+			template <typename T> size_t read(const T* val, size_t size = sizeof(T), size_t count = 1)
 			{
-				return this->read(const_cast<T*>(val), count);
+				return this->read(const_cast<T*>(val), size, count);
 			}
 			int close();
 
