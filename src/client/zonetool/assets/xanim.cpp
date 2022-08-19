@@ -539,18 +539,18 @@ namespace zonetool
 			ZoneBuffer::clear_pointer(&dest->scriptedViewmodelAnimData);
 		}*/
 
-		data->secondaryName = nullptr;
-		data->blendShapeWeightNames = nullptr;
-		data->blendShapeWeightCount = 0;
-		data->blendShapeWeightUnknown1 = nullptr;
-		data->blendShapeWeightUnknown2 = nullptr;
-		data->blendShapeWeightUnknown3 = nullptr;
-		data->blendShapeWeightUnknown4 = nullptr;
-		data->blendShapeWeights = nullptr;
-		data->scriptedViewmodelAnimData = nullptr;
-		data->u3 = 0;
-		data->u4 = 0;
-		data->u5 = 0;
+		dest->secondaryName = nullptr;
+		dest->blendShapeWeightNames = nullptr;
+		dest->blendShapeWeightCount = 0;
+		dest->blendShapeWeightUnknown1 = nullptr;
+		dest->blendShapeWeightUnknown2 = nullptr;
+		dest->blendShapeWeightUnknown3 = nullptr;
+		dest->blendShapeWeightUnknown4 = nullptr;
+		dest->blendShapeWeights = nullptr;
+		dest->scriptedViewmodelAnimData = nullptr;
+		dest->u3 = 0;
+		dest->u4 = 0;
+		dest->u5 = 0;
 
 		buf->pop_stream();
 	}

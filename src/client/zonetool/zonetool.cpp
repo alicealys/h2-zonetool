@@ -158,6 +158,7 @@ namespace zonetool
 					DUMP_ASSET(ASSET_TYPE_TECHNIQUE_SET, ITechset, MaterialTechniqueSet);
 					DUMP_ASSET(ASSET_TYPE_TRACER, ITracerDef, TracerDef);
 					DUMP_ASSET(ASSET_TYPE_TTF, IFont, TTFDef);
+					DUMP_ASSET(ASSET_TYPE_ATTACHMENT, IWeaponAttachment, WeaponAttachment);
 					DUMP_ASSET(ASSET_TYPE_WEAPON, IWeaponDef, WeaponDef);
 					DUMP_ASSET(ASSET_TYPE_XANIM, IXAnimParts, XAnimParts);
 					DUMP_ASSET(ASSET_TYPE_XMODEL, IXModel, XModel);
@@ -307,6 +308,13 @@ namespace zonetool
 			ZONETOOL_INFO("Zone \"%s\" could not be found!", name.data());
 			return false;
 		}
+
+		// wait for database to be ready
+		while (!WaitForSingleObject(*reinterpret_cast<HANDLE*>(0x149811020), 0) == 0)
+		{
+			Sleep(5);
+		}
+
 		if (!dump && !verify)
 		{
 			for (unsigned int i = 0; i < *g_zoneCount; i++)

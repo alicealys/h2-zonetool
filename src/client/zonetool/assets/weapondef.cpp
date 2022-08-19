@@ -549,10 +549,19 @@ namespace zonetool
 			this->add_script_string(&weapon->hideTags[i], data["hideTags"][i].get<std::string>());
 		}
 
-		// add attachments:
-		weapon->attachments = nullptr;
-		weapon->numWeaponAttachments = 0;
-		//
+		weapon->numWeaponAttachments = static_cast<unsigned char>(data["attachments"].size());
+		if (weapon->numWeaponAttachments)
+		{
+			weapon->attachments = mem->Alloc<WeaponAttachment*>(weapon->numWeaponAttachments);
+			for (auto i = 0; i < weapon->numWeaponAttachments; i++)
+			{
+				if (!data["attachments"][i].is_null())
+				{
+					weapon->attachments[i] = mem->Alloc<WeaponAttachment>();
+					weapon->attachments[i]->name = mem->StrDup(data["attachments"][i].get<std::string>());
+				}
+			}
+		}
 
 		weapon->numAnimOverrides = static_cast<unsigned char>(data["animOverrides"].size());
 		if (weapon->numAnimOverrides)

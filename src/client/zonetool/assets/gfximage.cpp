@@ -529,24 +529,34 @@ namespace zonetool
 		{
 			DirectX::ScratchImage image;
 			bool result;
-			int x;
-			char m_name[128];
+			int w;
+			int h;
+			char m_name[128]{0};
 
-			x = 2048;
 			result = true;
 			if (!load_image(name, &image))
 			{
+				w = 4096;
 				result = false;
 				do
 				{
-					snprintf(m_name, sizeof(m_name), "%s_%dx%d", name.data(), x, x);
-					if (load_image(m_name, &image))
+					h = 4096;
+					do
 					{
-						result = true;
+						snprintf(m_name, sizeof(m_name), "%s_%dx%d", name.data(), w, h);
+						if (load_image(m_name, &image))
+						{
+							result = true;
+							break;
+						}
+						h = h / 2;
+					} while (h > 0);
+					if (result)
+					{
 						break;
 					}
-					x = x / 2;
-				} while (x > 0);
+					w = w / 2;
+				} while (w > 0);
 			}
 
 			if (result)

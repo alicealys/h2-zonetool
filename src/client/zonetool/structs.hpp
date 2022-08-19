@@ -1818,13 +1818,15 @@ namespace zonetool
 
 	struct UnknownXSurface0
 	{
-		float a[3];
-		union
-		{
-			float b0;
-			unsigned int b1;
-		};
+		float xyz[3];
+		PackedUnitVec normal;
 	};
+
+	struct BlendVertsUnknown
+	{
+		unsigned short b[15];
+		unsigned short blendVertCountIndex; // 30
+	}; static_assert(sizeof(BlendVertsUnknown) == 32);
 
 	struct XSubdivRigidVertList
 	{
@@ -1902,6 +1904,10 @@ namespace zonetool
 		ID3D11ShaderResourceView* blendShapeVertsView;
 	};
 
+	typedef char alignCompBufByte_t;
+	typedef unsigned short alignVertBufFloat16Vec2_t[2];
+	typedef unsigned short alignCompBufUShort_t;
+	typedef float alignCompBufFloat_t;
 	typedef unsigned short XBlendInfo;
 
 	struct XSurface
@@ -1921,15 +1927,15 @@ namespace zonetool
 		XRigidVertList* rigidVertLists;
 		UnknownXSurface0* unknown0;
 		XBlendInfo* blendVerts;
-		unsigned short* blendVertsTable;
+		BlendVertsUnknown* blendVertsTable;
 		ID3D11Buffer* blendVertsBuffer;
 		ID3D11ShaderResourceView* blendVertsView;
-		std::uint16_t(*lmapUnwrap)[2];
+		alignVertBufFloat16Vec2_t* lmapUnwrap;
 		ID3D11Buffer* vblmapBuffer;
 		ID3D11ShaderResourceView* vblmapView;
 		XSurfaceSubdivInfo* subdiv;
-		float* tensionData;
-		unsigned short* tensionAccumTable;
+		alignCompBufFloat_t* tensionData;
+		alignCompBufUShort_t* tensionAccumTable;
 		ID3D11Buffer* tensionAccumTableBuffer;
 		ID3D11ShaderResourceView* tensionAccumTableView;
 		ID3D11Buffer* tensionDataBuffer;
@@ -2302,13 +2308,44 @@ namespace zonetool
 
 	union WAFieldParm
 	{
-		const char* a;
+		char p_char;
+		bool p_bool;
+		int p_int;
+		float p_float;
+		const char* string;
+	};
+
+	enum WAFieldType : std::uint8_t
+	{
+		WAFIELD_TYPE_STRING = 0,
+		WAFIELD_TYPE_INT = 4,
+		WAFIELD_TYPE_BOOL = 6,
+		WAFIELD_TYPE_FLOAT = 7,
+		WAFIELD_TYPE_FLOAT32 = 9,
+		WAFIELD_TYPE_FX = 10,
+		WAFIELD_TYPE_MODEL = 11,
+		WAFIELD_TYPE_ANIM = 12,
+		WAFIELD_TYPE_MATERIAL = 13,
+		WAFIELD_TYPE_SOUND = 15,
+		WAFIELD_TYPE_TRACER = 16,
+	};
+
+	enum WAFieldCode : std::uint8_t
+	{
+		FIELD_OP_STRING_SET = 0,
+		FIELD_OP_STRING_REPLACE = 1,
+		FIELD_OP_STRING_APPEND = 2,
+		FIELD_OP_NUMBER_BEGIN = 3,
+		FIELD_OP_NUMBER_SET = 3,
+		FIELD_OP_NUMBER_END = 6,
+		FIELD_OP_COUNT = 7,
 	};
 
 	struct WAField
 	{
-		char unknown;
-		char fieldType;
+		unsigned char index;
+		unsigned char fieldType; //WAFieldType fieldType;
+		unsigned char code; // WAFieldCode code;
 		WAFieldParm parm;
 	}; static_assert(sizeof(WAField) == 16);
 
@@ -2319,25 +2356,28 @@ namespace zonetool
 			const char* szInternalName;
 			const char* name;
 		};
-		const char* szDisplayName;
-		AttachmentType type;
-		weapType_t weaponType;
-		weapClass_t weapClass;
-		XModel** worldModels; // (2 xmodels)
-		XModel** viewModels; // (2 xmodels)
-		XModel** reticleViewModels; // (64 xmodels)
-		snd_alias_list_t** unknownSounds1; /// (53 sounds)
-		snd_alias_list_t** unknownSounds2; /// (53 sounds)
-		AttChargeInfo* chargeInfo;
-		AttHybridSettings* hybridSettings;
-		scr_string_t* stringArray1; // (4 strings)
-		scr_string_t* stringArray2; // (4 strings)
-		unsigned short* unknownArray;
-		WAField* waFields;
-		unsigned int unknownCount;
-		char __pad0[20];
-		// TODO:
+		const char* szDisplayName; // 8
+		AttachmentType type; // 16
+		weapType_t weaponType; // 20
+		weapClass_t weapClass; // 24
+		XModel** worldModels; // 32 (2 xmodels)
+		XModel** viewModels; // 40 (2 xmodels)
+		XModel** reticleViewModels; // 48 (64 xmodels)
+		snd_alias_list_t** bounceSounds; // 56 (53 sounds)
+		snd_alias_list_t** rollingSounds; // 64 (53 sounds)
+		AttChargeInfo* chargeInfo; // 72
+		AttHybridSettings* hybridSettings; // 80
+		scr_string_t* stringArray1; // 88 (4 strings) (hideTags?)
+		scr_string_t* stringArray2; // 96 (4 strings) (showTags?)
+		unsigned short* waFieldOffsets; // 104
+		WAField* waFields; // 112
+		unsigned int waFieldsCount; // 120 (MAX_ATTACH_FIELDS_PER_WEAPON = 256)
+		char __pad0[14];
+		bool riotShield; // 138
+		char __pad1[5];
+		// size: 144
 	}; static_assert(sizeof(WeaponAttachment) == 0x90);
+	static_assert(offsetof(WeaponAttachment, riotShield) == 138);
 
 	struct AnimOverrideEntry
 	{
@@ -3393,6 +3433,7 @@ namespace zonetool
 		LocalizeEntry* localize;
 		MapEnts* mapEnts;
 		GfxLightDef* lightDef;
+		WeaponAttachment* attachment;
 		WeaponDef* weapon;
 		FxEffectDef* fx;
 		RawFile* rawfile;

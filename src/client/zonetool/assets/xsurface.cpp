@@ -31,6 +31,7 @@ namespace zonetool
 			}
 
 			asset->surfs[i].triIndices = read.read_array<Face>();
+			asset->surfs[i].triIndices2 = read.read_array<Face>();
 
 			asset->surfs[i].rigidVertLists = read.read_array<XRigidVertList>();
 			for (unsigned char vert = 0; vert < asset->surfs[i].rigidVertListCount; vert++)
@@ -50,7 +51,15 @@ namespace zonetool
 				}
 			}
 
-			asset->surfs[i].blendVerts = read.read_array<unsigned short>();
+			asset->surfs[i].unknown0 = read.read_raw<UnknownXSurface0>();
+
+			asset->surfs[i].blendVerts = read.read_raw<XBlendInfo>();
+			asset->surfs[i].blendVertsTable = read.read_raw<BlendVertsUnknown>();
+
+			asset->surfs[i].lmapUnwrap = read.read_raw<alignVertBufFloat16Vec2_t>();
+
+			asset->surfs[i].tensionData = read.read_raw<alignCompBufFloat_t>();
+			asset->surfs[i].tensionAccumTable = read.read_raw<alignCompBufUShort_t>();
 		}
 
 		read.close();
@@ -131,13 +140,12 @@ namespace zonetool
 			ZoneBuffer::clear_pointer(&dest->triIndices);
 		}
 
-		/*if (data->triIndices2)
+		if (data->triIndices2)
 		{
 			buf->align(15);
 			buf->write(data->triIndices2, data->triCount);
 			ZoneBuffer::clear_pointer(&dest->triIndices2);
-		}*/
-		dest->triIndices2 = nullptr;
+		}
 
 		if (data->rigidVertLists)
 		{
@@ -167,42 +175,40 @@ namespace zonetool
 			ZoneBuffer::clear_pointer(&dest->rigidVertLists);
 		}
 
-		/*if (data->unknown0)
+		if (data->unknown0)
 		{
 			buf->align(15);
-			buf->write(data->unknown0, data->vertCount);
+			buf->write_stream(data->unknown0, 16, data->vertCount);
 			ZoneBuffer::clear_pointer(&dest->unknown0);
-		}*/
-		dest->unknown0 = nullptr;
+		}
 
 		if (data->blendVerts)
 		{
 			buf->align(1);
-			buf->write(data->blendVerts, (data->blendVertCounts[0]
+			buf->write_stream(data->blendVerts, 2, (data->blendVertCounts[0]
+				+ 3 * data->blendVertCounts[1]
+				+ 5 * data->blendVertCounts[2]
 				+ 7 * data->blendVertCounts[3]
+				+ 9 * data->blendVertCounts[4]
 				+ 11 * data->blendVertCounts[5]
 				+ 13 * data->blendVertCounts[6]
-				+ 3 * (data->blendVertCounts[1] + 3 * data->blendVertCounts[4])
-				+ 5 * (data->blendVertCounts[2] + 3 * data->blendVertCounts[7])));
+				+ 15 * data->blendVertCounts[7]));
 			ZoneBuffer::clear_pointer(&dest->blendVerts);
 		}
-		//dest->blendVerts = nullptr;
 
-		/*if (data->blendVertsTable)
+		if (data->blendVertsTable)
 		{
 			buf->align(0);
 			buf->write_stream(data->blendVertsTable, 32, data->vertCount);
 			ZoneBuffer::clear_pointer(&dest->blendVertsTable);
-		}*/
-		dest->blendVertsTable = nullptr;
-		
-		/*if (data->lmapUnwrap)
+		}
+
+		if (data->lmapUnwrap)
 		{
 			buf->align(3);
 			buf->write_stream(data->lmapUnwrap, 4, data->vertCount);
 			ZoneBuffer::clear_pointer(&dest->lmapUnwrap);
-		}*/
-		dest->lmapUnwrap = nullptr;
+		}
 
 		if (data->subdiv || data->subdivLevelCount)
 		{
@@ -210,10 +216,10 @@ namespace zonetool
 			dest->subdivLevelCount = 0;
 		}
 
-		/*if (data->tensionData)
+		if (data->tensionData)
 		{
 			buf->align(3);
-			buf->write(data->tensionData, (data->blendVertCounts[0]
+			buf->write_stream(data->tensionData, 4, (data->blendVertCounts[0]
 				+ data->blendVertCounts[1]
 				+ data->blendVertCounts[2]
 				+ data->blendVertCounts[3]
@@ -223,16 +229,14 @@ namespace zonetool
 				+ data->blendVertCounts[7]));
 
 			ZoneBuffer::clear_pointer(&dest->tensionData);
-		}*/
-		dest->tensionData = nullptr;
+		}
 
-		/*if (data->tensionAccumTable)
+		if (data->tensionAccumTable)
 		{
 			buf->align(1);
 			buf->write_stream(data->tensionAccumTable, 32, data->vertCount);
 			ZoneBuffer::clear_pointer(&dest->tensionAccumTable);
-		}*/
-		dest->tensionAccumTable = nullptr;
+		}
 
 		if (data->blendShapes)
 		{
@@ -289,6 +293,7 @@ namespace zonetool
 			}
 
 			dump.dump_array(asset->surfs[i].triIndices, asset->surfs[i].triCount);
+			dump.dump_array(asset->surfs[i].triIndices2, asset->surfs[i].triCount);
 
 			dump.dump_array(asset->surfs[i].rigidVertLists, asset->surfs[i].rigidVertListCount);
 			for (unsigned char vert = 0; vert < asset->surfs[i].rigidVertListCount; vert++)
@@ -313,12 +318,29 @@ namespace zonetool
 				}
 			}
 
-			dump.dump_array(asset->surfs[i].blendVerts, (asset->surfs[i].blendVertCounts[0]
+			dump.dump_raw(asset->surfs[i].unknown0, 16 * asset->surfs[i].vertCount);
+
+			dump.dump_raw(asset->surfs[i].blendVerts, 2 * (asset->surfs[i].blendVertCounts[0]
+				+ 3 * asset->surfs[i].blendVertCounts[1]
+				+ 5 * asset->surfs[i].blendVertCounts[2]
 				+ 7 * asset->surfs[i].blendVertCounts[3]
+				+ 9 * asset->surfs[i].blendVertCounts[4]
 				+ 11 * asset->surfs[i].blendVertCounts[5]
 				+ 13 * asset->surfs[i].blendVertCounts[6]
-				+ 3 * (asset->surfs[i].blendVertCounts[1] + 3 * asset->surfs[i].blendVertCounts[4])
-				+ 5 * (asset->surfs[i].blendVertCounts[2] + 3 * asset->surfs[i].blendVertCounts[7])));
+				+ 15 * asset->surfs[i].blendVertCounts[7]));
+			dump.dump_raw(asset->surfs[i].blendVertsTable, 32 * asset->surfs[i].vertCount);
+
+			dump.dump_raw(asset->surfs[i].lmapUnwrap, 4 * asset->surfs[i].vertCount);
+
+			dump.dump_raw(asset->surfs[i].tensionData, 4 * (asset->surfs[i].blendVertCounts[0]
+				+ asset->surfs[i].blendVertCounts[1]
+				+ asset->surfs[i].blendVertCounts[2]
+				+ asset->surfs[i].blendVertCounts[3]
+				+ asset->surfs[i].blendVertCounts[4]
+				+ asset->surfs[i].blendVertCounts[5]
+				+ asset->surfs[i].blendVertCounts[6]
+				+ asset->surfs[i].blendVertCounts[7]));
+			dump.dump_raw(asset->surfs[i].tensionAccumTable, 32 * asset->surfs[i].vertCount);
 		}
 
 		dump.close();

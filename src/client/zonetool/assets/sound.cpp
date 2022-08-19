@@ -541,6 +541,11 @@ namespace zonetool
 		{
 			auto* head = &data->head[i];
 
+			if (head->secondaryAliasName)
+			{
+				zone->add_asset_of_type(ASSET_TYPE_SOUND, head->secondaryAliasName);
+			}
+
 			if (head->sndContext)
 			{
 				zone->add_asset_of_type(ASSET_TYPE_SOUND_CONTEXT, head->sndContext->name);
