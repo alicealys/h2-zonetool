@@ -303,13 +303,19 @@ namespace zonetool
 		return ASSET_TYPE_ATTACHMENT;
 	}
 
-#define ATTACHMENT_SOUND_CUSTOM(__field__) \
+#define ATTACHMENT_SOUND_CUSTOM_ARRAY(__field__, __count__) \
 		if (data->__field__) \
 		{ \
-			auto ptr = 0xFDFDFDFFFFFFFFFF; \
 			buf->align(7); \
-			buf->write(&ptr); \
-			buf->write_str(data->__field__->name); \
+			auto* dest_sounds = buf->write(data->__field__, __count__); \
+			auto ptr = 0xFDFDFDFFFFFFFFFF; \
+			for (auto i = 0; i < __count__; i++) \
+			{ \
+				buf->align(7); \
+				buf->write(&ptr); \
+				buf->write_str(data->__field__[i]->name); \
+				ZoneBuffer::clear_pointer(&dest_sounds[i]); \
+			} \
 			ZoneBuffer::clear_pointer(&dest->__field__); \
 		}
 
@@ -389,31 +395,8 @@ namespace zonetool
 			ZoneBuffer::clear_pointer(&dest->reticleViewModels);
 		}
 
-		if (data->bounceSounds)
-		{
-			buf->align(7);
-			buf->write(data->bounceSounds, 53);
-
-			for (auto i = 0; i < 53; i++)
-			{
-				ATTACHMENT_SOUND_CUSTOM(bounceSounds[i]);
-			}
-
-			ZoneBuffer::clear_pointer(&dest->bounceSounds);
-		}
-
-		if (data->rollingSounds)
-		{
-			buf->align(7);
-			buf->write(data->rollingSounds, 53);
-
-			for (auto i = 0; i < 53; i++)
-			{
-				ATTACHMENT_SOUND_CUSTOM(rollingSounds[i]);
-			}
-
-			ZoneBuffer::clear_pointer(&dest->rollingSounds);
-		}
+		ATTACHMENT_SOUND_CUSTOM_ARRAY(bounceSounds, 53);
+		ATTACHMENT_SOUND_CUSTOM_ARRAY(rollingSounds, 53);
 
 		if (data->chargeInfo)
 		{

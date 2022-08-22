@@ -2074,7 +2074,7 @@ namespace zonetool
 		if (data->bounceSound)
 		{
 			buf->align(7);
-			buf->write(data->bounceSound, 53);
+			dest->bounceSound = buf->write(data->bounceSound, 53);
 
 			for (auto i = 0; i < 53; i++)
 			{
@@ -2087,7 +2087,7 @@ namespace zonetool
 		if (data->rollingSound)
 		{
 			buf->align(7);
-			buf->write(data->rollingSound, 53);
+			dest->rollingSound = buf->write(data->rollingSound, 53);
 
 			for (auto i = 0; i < 53; i++)
 			{
