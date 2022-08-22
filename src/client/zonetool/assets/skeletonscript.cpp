@@ -39,11 +39,11 @@ namespace zonetool
 		}
 
 		this->asset_ = DB_FindXAssetHeader_Copy<SkeletonScript>(XAssetType(this->type()), this->name().data(), mem).skeletonScript;
-		auto* original_strings = this->asset_->ikData->strings;
-		this->asset_->ikData->strings = mem->Alloc<scr_string_t>(this->asset_->ikData->stringsCount);
-		for (unsigned char i = 0; i < this->asset_->ikData->stringsCount; i++)
+		auto* original_strings = this->asset_->ikData.strings;
+		this->asset_->ikData.strings = mem->Alloc<scr_string_t>(this->asset_->ikData.stringsCount);
+		for (unsigned char i = 0; i < this->asset_->ikData.stringsCount; i++)
 		{
-			this->add_script_string(&this->asset_->ikData->strings[i], SL_ConvertToString(original_strings[i]));
+			this->add_script_string(&this->asset_->ikData.strings[i], SL_ConvertToString(original_strings[i]));
 		}
 	}
 
@@ -51,10 +51,10 @@ namespace zonetool
 	{
 		auto* data = this->asset_;
 
-		for (unsigned char i = 0; i < data->ikData->stringsCount; i++)
+		for (unsigned char i = 0; i < data->ikData.stringsCount; i++)
 		{
-			auto str = this->get_script_string(&data->ikData->strings[i]);
-			data->ikData->strings[i] = static_cast<scr_string_t>(buf->write_scriptstring(str));
+			auto str = this->get_script_string(&data->ikData.strings[i]);
+			data->ikData.strings[i] = static_cast<scr_string_t>(buf->write_scriptstring(str));
 		}
 	}
 
@@ -81,39 +81,39 @@ namespace zonetool
 
 		dest->name = buf->write_str(this->name());
 
-		if (data->ikData->charData)
+		if (data->ikData.charData)
 		{
 			buf->align(0);
-			buf->write(data->ikData->charData, data->ikData->charDataLen);
-			ZoneBuffer::clear_pointer(&dest->ikData->charData);
+			buf->write(data->ikData.charData, data->ikData.charDataLen);
+			ZoneBuffer::clear_pointer(&dest->ikData.charData);
 		}
 
-		if (data->ikData->charData)
+		if (data->ikData.charData)
 		{
 			buf->align(0);
-			buf->write(data->ikData->charData, data->ikData->charDataLen);
-			ZoneBuffer::clear_pointer(&dest->ikData->charData);
+			buf->write(data->ikData.charData, data->ikData.charDataLen);
+			ZoneBuffer::clear_pointer(&dest->ikData.charData);
 		}
 
-		if (data->ikData->floatData)
+		if (data->ikData.floatData)
 		{
 			buf->align(3);
-			buf->write(data->ikData->floatData, data->ikData->floatDataLen);
-			ZoneBuffer::clear_pointer(&dest->ikData->floatData);
+			buf->write(data->ikData.floatData, data->ikData.floatDataLen);
+			ZoneBuffer::clear_pointer(&dest->ikData.floatData);
 		}
 
-		if (data->ikData->int32Data)
+		if (data->ikData.int32Data)
 		{
 			buf->align(3);
-			buf->write(data->ikData->int32Data, data->ikData->int32DataLen);
-			ZoneBuffer::clear_pointer(&dest->ikData->int32Data);
+			buf->write(data->ikData.int32Data, data->ikData.int32DataLen);
+			ZoneBuffer::clear_pointer(&dest->ikData.int32Data);
 		}
 
-		if (data->ikData->strings)
+		if (data->ikData.strings)
 		{
 			buf->align(3);
-			buf->write(data->ikData->strings, data->ikData->stringsCount);
-			ZoneBuffer::clear_pointer(&dest->ikData->strings);
+			buf->write(data->ikData.strings, data->ikData.stringsCount);
+			ZoneBuffer::clear_pointer(&dest->ikData.strings);
 		}
 
 		buf->pop_stream();

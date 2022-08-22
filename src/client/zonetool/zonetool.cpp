@@ -176,6 +176,9 @@ namespace zonetool
 					DUMP_ASSET(ASSET_TYPE_PIXELSHADER, IPixelShader, MaterialPixelShader);
 					DUMP_ASSET(ASSET_TYPE_VERTEXDECL, IVertexDecl, MaterialVertexDeclaration);
 					DUMP_ASSET(ASSET_TYPE_VERTEXSHADER, IVertexShader, MaterialVertexShader);
+
+					DUMP_ASSET(ASSET_TYPE_MENU, IMenuDef, menuDef_t);
+					DUMP_ASSET(ASSET_TYPE_MENULIST, IMenuList, MenuList);
 				}
 				catch (std::exception& ex)
 				{

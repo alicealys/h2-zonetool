@@ -55,6 +55,9 @@
 #include "assets/vertexdecl.hpp"
 #include "assets/vertexshader.hpp"
 
+#include "assets/menudef.hpp"
+#include "assets/menulist.hpp"
+
 #include "zone.hpp"
 
 namespace zonetool

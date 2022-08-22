@@ -82,6 +82,7 @@ namespace zonetool
 		try
 		{
 			// declare asset interfaces
+			ADD_ASSET_PTR(ASSET_TYPE_MENU, IMenuDef);
 			ADD_ASSET_PTR(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize);
 		}
 		catch (std::exception& ex)
@@ -102,6 +103,11 @@ namespace zonetool
 		if (get_asset_pointer(type, name))
 		{
 			return;
+		}
+
+		// if common asset: add as referenced?
+		{
+
 		}
 
 #define ADD_ASSET(__type__, __interface__) \
@@ -157,6 +163,9 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_PIXELSHADER, IPixelShader);
 			ADD_ASSET(ASSET_TYPE_VERTEXDECL, IVertexDecl);
 			ADD_ASSET(ASSET_TYPE_VERTEXSHADER, IVertexShader);
+
+			ADD_ASSET(ASSET_TYPE_MENU, IMenuDef);
+			ADD_ASSET(ASSET_TYPE_MENULIST, IMenuList);
 		}
 		catch (std::exception& ex)
 		{
