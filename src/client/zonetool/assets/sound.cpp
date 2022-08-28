@@ -489,15 +489,15 @@ namespace zonetool
 				json_parse_snd_alias(&asset->head[i], heads[i], mem);
 			}
 
-			auto unk = snddata["unknownArray"];
-			if (unk.is_array())
+			auto context_list = snddata["contextList"];
+			if (context_list.is_array())
 			{
-				asset->unkCount = static_cast<unsigned char>(unk.size());
-				asset->unk = mem->Alloc<short>(asset->unkCount);
+				asset->contextListCount = static_cast<unsigned char>(context_list.size());
+				asset->contextList = mem->Alloc<snd_alias_context_list>(asset->contextListCount);
 
-				for (unsigned char i = 0; i < asset->unkCount; i++)
+				for (unsigned char i = 0; i < asset->contextListCount; i++)
 				{
-					asset->unk[i] = unk[i].get<short>();
+					asset->contextList[i].unk = context_list[i].get<short>();
 				}
 			}
 
@@ -743,11 +743,11 @@ namespace zonetool
 			ZoneBuffer::clear_pointer(&dest->head);
 		}
 
-		if (data->unk)
+		if (data->contextList)
 		{
 			buf->align(1);
-			buf->write(data->unk, data->unkCount);
-			ZoneBuffer::clear_pointer(&dest->unk);
+			buf->write(data->contextList, data->contextListCount);
+			ZoneBuffer::clear_pointer(&dest->contextList);
 		}
 
 		buf->pop_stream();
@@ -928,9 +928,9 @@ namespace zonetool
 			sound["head"][i] = alias;
 		}
 
-		for (unsigned char i = 0; i < asset->unkCount; i++)
+		for (unsigned char i = 0; i < asset->contextListCount; i++)
 		{
-			sound["unknownArray"][i] = asset->unk[i];
+			sound["contextList"][i] = asset->contextList[i].unk;
 		}
 
 		std::string assetstr = sound.dump(4);
