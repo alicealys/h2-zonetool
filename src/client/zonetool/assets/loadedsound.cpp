@@ -127,6 +127,22 @@ namespace zonetool
 	LoadedSound* ILoadedSound::parse(const std::string& name, ZoneMemory* mem)
 	{
 		auto path = "loaded_sound\\"s + name;
+		if (filesystem::file(path).exists())
+		{
+			auto fpath = std::filesystem::path(path);
+			if (fpath.has_extension())
+			{
+				auto ext = fpath.extension();
+				if (ext == ".wav")
+				{
+					return parse_wav(name.substr(0, name.length() - 4), mem);
+				}
+				else if (ext == ".flac")
+				{
+					return parse_flac(name.substr(0, name.length() - 5), mem);
+				}
+			}
+		}
 		if (filesystem::file(path + ".wav").exists())
 		{
 			return parse_wav(name, mem);
