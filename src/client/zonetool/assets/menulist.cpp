@@ -7815,7 +7815,6 @@ namespace zonetool
 		}
 
 		fprintf(fp, "%s%s", get_tabs(), format_script(script).c_str());
-		printf("%s%s", get_tabs(), format_script(script).c_str());
 	}
 
 	void IMenuList::emit_conditional_script(ConditionalScript* script)
