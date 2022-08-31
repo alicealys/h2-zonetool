@@ -429,11 +429,18 @@ namespace zonetool
 			for (unsigned int i = 0; i < data->waFieldsCount; i++)
 			{
 				auto type = data->waFields[i].fieldType;
-				if (type != 7 && type != 8 && type != 4 && type != 9 && (type - 17) > 0x1C && (type - 5) > 1)
+				if (type == WAFIELD_TYPE_STRING ||
+					type == WAFIELD_TYPE_FX ||
+					type == WAFIELD_TYPE_MODEL ||
+					type == WAFIELD_TYPE_ANIM ||
+					type == WAFIELD_TYPE_MATERIAL ||
+					//type == 14 ||
+					type == WAFIELD_TYPE_SOUND ||
+					type == WAFIELD_TYPE_TRACER)
 				{
 					if (data->waFields[i].parm.string)
 					{
-						dest_waFields->parm.string = buf->write_str(data->waFields[i].parm.string);
+						dest_waFields[i].parm.string = buf->write_str(data->waFields[i].parm.string);
 					}
 				}
 			}
