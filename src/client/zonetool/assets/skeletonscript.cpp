@@ -80,14 +80,14 @@ namespace zonetool
 		buf->push_stream(3);
 
 		dest->name = buf->write_str(this->name());
-
+		/*
 		if (data->ikData.charData)
 		{
 			buf->align(0);
 			buf->write(data->ikData.charData, data->ikData.charDataLen);
 			ZoneBuffer::clear_pointer(&dest->ikData.charData);
 		}
-
+		*/
 		if (data->ikData.charData)
 		{
 			buf->align(0);

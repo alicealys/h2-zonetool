@@ -7,8 +7,6 @@
 #include <utils/flags.hpp>
 #include <utils/io.hpp>
 
-#define GAME_BINARY "h1_mp64_ship.exe"
-
 DECLSPEC_NORETURN void WINAPI exit_hook(const int code)
 {
 	component_loader::pre_destroy();
@@ -17,22 +15,68 @@ DECLSPEC_NORETURN void WINAPI exit_hook(const int code)
 
 BOOL WINAPI system_parameters_info_a(const UINT uiAction, const UINT uiParam, const PVOID pvParam, const UINT fWinIni)
 {
-	component_loader::post_unpack();
 	return SystemParametersInfoA(uiAction, uiParam, pvParam, fWinIni);
 }
 
-FARPROC load_binary(std::string binary)
+FARPROC WINAPI get_proc_address(const HMODULE hModule, const LPCSTR lpProcName)
+{
+	if (lpProcName == "InitializeCriticalSectionEx"s)
+	{
+		component_loader::post_unpack();
+	}
+
+	return GetProcAddress(hModule, lpProcName);
+}
+
+void apply_aslr_patch(std::string* data)
+{
+	// sp binary
+	if (data->size() != 0xE1E0C8)
+	{
+		throw std::runtime_error("File size mismatch, bad game files");
+	}
+
+	auto* dos_header = reinterpret_cast<PIMAGE_DOS_HEADER>(&data->at(0));
+	auto* nt_headers = reinterpret_cast<PIMAGE_NT_HEADERS>(&data->at(dos_header->e_lfanew));
+	auto* optional_header = &nt_headers->OptionalHeader;
+
+	if (optional_header->DllCharacteristics & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE)
+	{
+		optional_header->DllCharacteristics &= ~(IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE);
+	}
+}
+
+void get_aslr_patched_binary(std::string* binary, std::string* data)
+{
+	const auto patched_binary = "h2_sp_patched.exe"s;
+
+	try
+	{
+		apply_aslr_patch(data);
+		if (!utils::io::file_exists(patched_binary) && !utils::io::write_file(patched_binary, *data, false))
+		{
+			throw std::runtime_error("Could not write file");
+		}
+	}
+	catch (const std::exception& e)
+	{
+		throw std::runtime_error(
+			utils::string::va("Could not create aslr patched binary for %s! %s",
+			binary->data(), e.what())
+		);
+	}
+
+	*binary = patched_binary;
+}
+
+FARPROC load_binary()
 {
 	loader loader;
 	utils::nt::library self;
 
 	loader.set_import_resolver([self](const std::string& library, const std::string& function) -> void*
 	{
-		if (library == "steam_api64.dll")
-		{
-			return self.get_proc<FARPROC>(function);
-		}
-		else if (function == "ExitProcess")
+		if (function == "ExitProcess")
 		{
 			return exit_hook;
 		}
@@ -40,39 +84,88 @@ FARPROC load_binary(std::string binary)
 		{
 			return system_parameters_info_a;
 		}
+		else if (function == "GetProcAddress")
+		{
+			return get_proc_address;
+		}
 
 		return component_loader::load_import(library, function);
 	});
 
+	std::string binary = "MW2CR.exe";
+	if (!utils::io::file_exists(binary))
+	{
+		binary = "h2_sp64_bnet_ship.exe";
+	}
+
 	std::string data;
-#ifdef INJECT_HOST_AS_LIB
 	if (!utils::io::read_file(binary, &data))
 	{
 		throw std::runtime_error(utils::string::va(
-			"Failed to read game binary (%s)!\nPlease copy the h1-zonetool.exe into your Call of Duty: Modern Warfare Remastered installation folder and run it from there.",
+			"Failed to read game binary (%s)!\nPlease copy the h2-mod.exe into your Call of Duty: Modern Warfare 2 Campaign Remastered installation folder and run it from there.",
 			binary.data()));
 	}
+
+#ifdef INJECT_HOST_AS_LIB
+	get_aslr_patched_binary(&binary, &data);
 	return loader.load_library(binary);
 #else
-	data = utils::nt::load_resource(GAME_BINARY_EXE);
-	if (data.empty())
-	{
-		throw std::runtime_error("Something went terribly wrong while loading the game binary...");
-	}
 	return loader.load(self, data);
 #endif
 }
 
 void remove_crash_file()
 {
-	utils::io::remove_file("__h1Exe");
+	utils::io::remove_file("__h2Exe");
 }
+
+void enable_dpi_awareness()
+{
+	const utils::nt::library user32{"user32.dll"};
+	const auto set_dpi = user32
+		? user32.get_proc<BOOL(WINAPI*)(DPI_AWARENESS_CONTEXT)>("SetProcessDpiAwarenessContext")
+		: nullptr;
+	if (set_dpi)
+	{
+		set_dpi(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+	}
+}
+
+void limit_parallel_dll_loading()
+{
+	const utils::nt::library self;
+	const auto registry_path = R"(Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\)" + self.
+		get_name();
+
+	HKEY key = nullptr;
+	if (RegCreateKeyA(HKEY_LOCAL_MACHINE, registry_path.data(), &key) == ERROR_SUCCESS)
+	{
+		RegCloseKey(key);
+	}
+
+	key = nullptr;
+	if (RegOpenKeyExA(
+		HKEY_LOCAL_MACHINE, registry_path.data(), 0,
+		KEY_ALL_ACCESS, &key) != ERROR_SUCCESS)
+	{
+		return;
+	}
+
+	DWORD value = 1;
+	RegSetValueExA(key, "MaxLoaderThreads", 0, REG_DWORD, reinterpret_cast<const BYTE*>(&value), sizeof(value));
+
+	RegCloseKey(key);
+}
+
 
 int main()
 {
 	ShowWindow(GetConsoleWindow(), SW_HIDE);
 
 	FARPROC entry_point;
+	enable_dpi_awareness();
+
+	limit_parallel_dll_loading();
 
 	srand(uint32_t(time(nullptr)));
 	remove_crash_file();
@@ -91,7 +184,7 @@ int main()
 		{
 			if (!component_loader::post_start()) return 0;
 
-			entry_point = load_binary(GAME_BINARY);
+			entry_point = load_binary();
 			if (!entry_point)
 			{
 				throw std::runtime_error("Unable to load binary into memory");

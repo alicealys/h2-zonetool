@@ -71,14 +71,14 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "XLabs"
-            VALUE "FileDescription", "H1-ZoneTool"
+            VALUE "FileDescription", "H2-ZoneTool"
             VALUE "FileVersion", VERSION_FILE
-            VALUE "InternalName", "H1-ZoneTool"
+            VALUE "InternalName", "H2-ZoneTool"
             VALUE "LegalCopyright", "Copyright (C) 2022 X Labs Project. All rights reserved."
             VALUE "Licence", "GPLv3"
             VALUE "Info", "https://github.com/Joelrau/h1-zonetool/"
-            VALUE "OriginalFilename", "h1-zonetool.exe"
-            VALUE "ProductName", "h1-zonetool"
+            VALUE "OriginalFilename", "h2-zonetool.exe"
+            VALUE "ProductName", "h2-zonetool"
             VALUE "ProductVersion", VERSION_PRODUCT
         END
     END
@@ -92,8 +92,6 @@ END
 //
 // Binary Data
 //
-
-GAME_BINARY_EXE       RCDATA "resources/h1_mp64_ship.exe"
 
 #ifdef _DEBUG
 TLS_DLL               RCDATA "../../build/bin/x64/Debug/tlsdll.dll"

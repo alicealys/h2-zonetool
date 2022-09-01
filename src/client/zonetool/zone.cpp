@@ -3,7 +3,9 @@
 #include "zone.hpp"
 #include "utils/utils.hpp"
 
-#define FF_VERSION 66
+#include <utils/flags.hpp>
+
+#define FF_VERSION 130
 
 #define COMPRESS_TYPE_LZ4 4
 #define COMPRESS_TYPE_ZLIB 1
@@ -82,7 +84,6 @@ namespace zonetool
 		try
 		{
 			// declare asset interfaces
-			ADD_ASSET_PTR(ASSET_TYPE_MENU, IMenuDef);
 			ADD_ASSET_PTR(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize);
 		}
 		catch (std::exception& ex)
@@ -103,11 +104,6 @@ namespace zonetool
 		if (get_asset_pointer(type, name))
 		{
 			return;
-		}
-
-		// if common asset: add as referenced?
-		{
-
 		}
 
 #define ADD_ASSET(__type__, __interface__) \
@@ -132,6 +128,7 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve);
 			ADD_ASSET(ASSET_TYPE_LUA_FILE, ILuaFile);
 			ADD_ASSET(ASSET_TYPE_MAP_ENTS, IMapEnts);
+			ADD_ASSET(ASSET_TYPE_ADDON_MAP_ENTS, IAddonMapEnts);
 			ADD_ASSET(ASSET_TYPE_MATERIAL, IMaterial);
 			ADD_ASSET(ASSET_TYPE_NET_CONST_STRINGS, INetConstStrings);
 			ADD_ASSET(ASSET_TYPE_RAWFILE, IRawFile);
@@ -147,6 +144,7 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_TTF, IFont);
 			ADD_ASSET(ASSET_TYPE_ATTACHMENT, IWeaponAttachment);
 			ADD_ASSET(ASSET_TYPE_WEAPON, IWeaponDef);
+			ADD_ASSET(ASSET_TYPE_VEHICLE, IVehicleDef);
 			ADD_ASSET(ASSET_TYPE_XANIM, IXAnimParts);
 			ADD_ASSET(ASSET_TYPE_XMODEL, IXModel);
 			ADD_ASSET(ASSET_TYPE_XMODEL_SURFS, IXSurface);
@@ -163,9 +161,6 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_PIXELSHADER, IPixelShader);
 			ADD_ASSET(ASSET_TYPE_VERTEXDECL, IVertexDecl);
 			ADD_ASSET(ASSET_TYPE_VERTEXSHADER, IVertexShader);
-
-			ADD_ASSET(ASSET_TYPE_MENU, IMenuDef);
-			ADD_ASSET(ASSET_TYPE_MENULIST, IMenuList);
 		}
 		catch (std::exception& ex)
 		{
@@ -545,7 +540,8 @@ namespace zonetool
 
 		fastfile.write(buf_compressed.data(), buf_compressed.size());
 
-		std::string path = this->name_ + ".ff";
+		std::string output_folder = utils::flags::get_flag("-output", "o", ".");
+		std::string path = output_folder + "/" + this->name_ + ".ff";
 		fastfile.save(path);
 
 		ZONETOOL_INFO("Successfully compiled fastfile \"%s\"!", this->name_.data());

@@ -303,19 +303,13 @@ namespace zonetool
 		return ASSET_TYPE_ATTACHMENT;
 	}
 
-#define ATTACHMENT_SOUND_CUSTOM_ARRAY(__field__, __count__) \
+#define ATTACHMENT_SOUND_CUSTOM(__field__) \
 		if (data->__field__) \
 		{ \
-			buf->align(7); \
-			auto* dest_sounds = buf->write(data->__field__, __count__); \
 			auto ptr = 0xFDFDFDFFFFFFFFFF; \
-			for (auto i = 0; i < __count__; i++) \
-			{ \
-				buf->align(7); \
-				buf->write(&ptr); \
-				buf->write_str(data->__field__[i]->name); \
-				ZoneBuffer::clear_pointer(&dest_sounds[i]); \
-			} \
+			buf->align(7); \
+			buf->write(&ptr); \
+			buf->write_str(data->__field__->name); \
 			ZoneBuffer::clear_pointer(&dest->__field__); \
 		}
 
@@ -395,8 +389,31 @@ namespace zonetool
 			ZoneBuffer::clear_pointer(&dest->reticleViewModels);
 		}
 
-		ATTACHMENT_SOUND_CUSTOM_ARRAY(bounceSounds, 53);
-		ATTACHMENT_SOUND_CUSTOM_ARRAY(rollingSounds, 53);
+		if (data->bounceSounds)
+		{
+			buf->align(7);
+			buf->write(data->bounceSounds, 53);
+
+			for (auto i = 0; i < 53; i++)
+			{
+				ATTACHMENT_SOUND_CUSTOM(bounceSounds[i]);
+			}
+
+			ZoneBuffer::clear_pointer(&dest->bounceSounds);
+		}
+
+		if (data->rollingSounds)
+		{
+			buf->align(7);
+			buf->write(data->rollingSounds, 53);
+
+			for (auto i = 0; i < 53; i++)
+			{
+				ATTACHMENT_SOUND_CUSTOM(rollingSounds[i]);
+			}
+
+			ZoneBuffer::clear_pointer(&dest->rollingSounds);
+		}
 
 		if (data->chargeInfo)
 		{
@@ -429,18 +446,11 @@ namespace zonetool
 			for (unsigned int i = 0; i < data->waFieldsCount; i++)
 			{
 				auto type = data->waFields[i].fieldType;
-				if (type == WAFIELD_TYPE_STRING ||
-					type == WAFIELD_TYPE_FX ||
-					type == WAFIELD_TYPE_MODEL ||
-					type == WAFIELD_TYPE_ANIM ||
-					type == WAFIELD_TYPE_MATERIAL ||
-					//type == 14 ||
-					type == WAFIELD_TYPE_SOUND ||
-					type == WAFIELD_TYPE_TRACER)
+				if (type != 7 && type != 8 && type != 4 && type != 9 && (type - 17) > 0x1C && (type - 5) > 1)
 				{
 					if (data->waFields[i].parm.string)
 					{
-						dest_waFields[i].parm.string = buf->write_str(data->waFields[i].parm.string);
+						dest_waFields->parm.string = buf->write_str(data->waFields[i].parm.string);
 					}
 				}
 			}

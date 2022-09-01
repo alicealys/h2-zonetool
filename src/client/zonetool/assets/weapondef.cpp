@@ -30,7 +30,10 @@ namespace zonetool
 		"MELEE_ALT_PRONE_VICTIM_CROUCHING",
 		"MELEE_ALT_JUMPING_VICTIM_CROUCHING",
 		"RELOAD",
-		"RELOAD_EMPTY",
+		"UNK_26",
+		"RELOAD_EMPTY", // UNK_28 & UNK_29 after this
+		"UNK_28", // might not be in the right spot
+		"UNK_29", // ^
 		"RELOAD_START",
 		"RELOAD_END",
 		"FAST_RELOAD",
@@ -41,7 +44,7 @@ namespace zonetool
 		"DUALMAG_RELOAD_EMPTY",
 		"SPEED_RELOAD",
 		"RELOAD_FROM_ALT",
-		"RAISE",
+		"RAISE", // UNK_28 & UNK_29 before this
 		"FIRST_RAISE",
 		"BREACH_RAISE",
 		"DROP",
@@ -118,6 +121,11 @@ namespace zonetool
 		"OVERHEAT_OUT",
 		"SCRIPTED",
 		"INSPECTION",
+		"UNK_117",
+		"UNK_118",
+		"UNK_119",
+		"UNK_120",
+		"UNK_121",
 		"RELOAD_MULTIPLE_1",
 		"RELOAD_MULTIPLE_2",
 		"RELOAD_MULTIPLE_3",
@@ -162,6 +170,8 @@ namespace zonetool
 		"ADDITIVE_JUMP_LAND_HEAVY",
 		"ADDITIVE_WALK_ROOT",
 		"ADDITIVE_WALK",
+		"UNK_166",
+		"UNK_167",
 		"ADDITIVE_HEAT_COOLDOWN_LOOP_ROOT",
 		"ADDITIVE_HEAT_COOLDOWN_LOOP",
 		"ADDITIVE_OVERHEAT_IN_ROOT",
@@ -194,7 +204,9 @@ namespace zonetool
 		"ADDITIVE_SHOT_CHARGE_LOOP_ROOT",
 		"ADDITIVE_SHOT_CHARGE_LOOP",
 		"ADDITIVE_SCRIPTED_ROOT",
-		"ADDITIVE_SCRIPTED"
+		"ADDITIVE_SCRIPTED",
+		"UNK_201",
+		"UNK_202",
 	};
 
 	const char* get_anim_name_from_index(weapAnimFiles_t index)
@@ -378,6 +390,8 @@ namespace zonetool
 		WEAPON_READ_ASSET(ASSET_TYPE_MATERIAL, material, shaderEMP);
 		WEAPON_READ_ASSET(ASSET_TYPE_MATERIAL, material, shaderEMPLowRes);
 		WEAPON_READ_FIELD(int, reticle);
+		WEAPON_READ_FIELD(float, xU_01);
+		WEAPON_READ_FIELD(float, xU_02);
 		WEAPON_READ_FIELD(float, width);
 		WEAPON_READ_FIELD(float, height);
 		WEAPON_READ_FIELD(float, widthSplitscreen);
@@ -488,6 +502,7 @@ namespace zonetool
 	WeaponDef* IWeaponDef::parse(const std::string& name, ZoneMemory* mem)
 	{
 		const auto path = "weapons\\"s + name + ".json"s;
+		const auto base_asset_path = "weapons\\"s + name + ".base"s;
 
 		auto file = filesystem::file(path);
 		if (!file.exists())
@@ -506,17 +521,28 @@ namespace zonetool
 
 		auto* weapon = mem->Alloc<WeaponDef>();
 
+		std::vector<std::uint8_t> base_asset_bytes;
+
 		// base asset
 		auto base = data["baseAsset"].get<std::string>();
-		WeaponDef* baseAsset = nullptr;
+		char* baseAsset = nullptr;
 		if (!base.empty())
 		{
-			baseAsset = DB_FindXAssetHeader(ASSET_TYPE_WEAPON, base.data(), 0).weapon;
+			baseAsset = reinterpret_cast<char*>(DB_FindXAssetHeader(ASSET_TYPE_WEAPON, base.data(), 0).weapon);
 			if (baseAsset == nullptr || DB_IsXAssetDefault(ASSET_TYPE_WEAPON, base.data()))
 			{
-				ZONETOOL_FATAL("Could not load base asset \"%s\" into memory...", base.data());
+				auto base_asset_file = filesystem::file(base_asset_path);
+				if (!base_asset_file.exists())
+				{
+					ZONETOOL_FATAL("Could not load base asset \"%s\" into memory...", base.data());
+				}
+
+				base_asset_file.open("rb");
+				base_asset_bytes = base_asset_file.read_bytes(sizeof(WeaponDef));
+				baseAsset = reinterpret_cast<char*>(base_asset_bytes.data());
 			}
-			memcpy(weapon, baseAsset, sizeof(WeaponDef));
+
+			std::memcpy(weapon, baseAsset, sizeof(WeaponDef));
 		}
 		else
 		{
@@ -526,6 +552,8 @@ namespace zonetool
 		WEAPON_READ_STRING(szInternalName);
 		WEAPON_READ_STRING(szDisplayName);
 		WEAPON_READ_STRING(szOverlayName);
+		WEAPON_READ_STRING(szAttachmentName);
+		WEAPON_READ_STRING(szUnknownName);
 
 		WEAPON_READ_ASSET_ARR(ASSET_TYPE_XMODEL, model, gunModel, XModel, 2);
 		WEAPON_READ_ASSET_ARR(ASSET_TYPE_XMODEL, model, worldModel, XModel, 2);
@@ -539,9 +567,9 @@ namespace zonetool
 		WEAPON_READ_ASSET(ASSET_TYPE_XMODEL, model, knifeModel);
 		WEAPON_READ_ASSET(ASSET_TYPE_XMODEL, model, worldKnifeModel);
 
-		WEAPON_READ_ANIM_ARR(szXAnimsRightHanded, 190);
-		WEAPON_READ_ANIM_ARR(szXAnimsLeftHanded, 190);
-		WEAPON_READ_ANIM_ARR(szXAnims, 190);
+		WEAPON_READ_ANIM_ARR(szXAnimsRightHanded, NUM_WEAP_ANIMS);
+		WEAPON_READ_ANIM_ARR(szXAnimsLeftHanded, NUM_WEAP_ANIMS);
+		WEAPON_READ_ANIM_ARR(szXAnims, NUM_WEAP_ANIMS);
 
 		weapon->hideTags = mem->Alloc<scr_string_t>(32);
 		for (auto i = 0; i < 32; i++)
@@ -763,67 +791,82 @@ namespace zonetool
 		WEAPON_READ_SOUND(pullbackSoundQuickPlayer);
 		WEAPON_READ_SOUND(fireSound);
 		WEAPON_READ_SOUND(fireSoundPlayer);
-		WEAPON_READ_SOUND(fireSoundPlayerAkimbo);
-		WEAPON_READ_SOUND(sound13);
+		WEAPON_READ_SOUND(fireSoundPlayerLeft);
+		WEAPON_READ_SOUND(fireSoundPlayerRight);
 		WEAPON_READ_SOUND(sound14);
 		WEAPON_READ_SOUND(sound15);
 		WEAPON_READ_SOUND(sound16);
+		WEAPON_READ_SOUND(sound17);
+		WEAPON_READ_SOUND(sound18);
 		WEAPON_READ_SOUND(fireLoopSound);
 		WEAPON_READ_SOUND(fireLoopSoundPlayer);
-		WEAPON_READ_SOUND(sound19);
-		WEAPON_READ_SOUND(sound20);
 		WEAPON_READ_SOUND(sound21);
 		WEAPON_READ_SOUND(sound22);
-		WEAPON_READ_SOUND(fireLoopEndPointSound);
-		WEAPON_READ_SOUND(fireLoopEndPointSoundPlayer);
+		WEAPON_READ_SOUND(sound23);
+		WEAPON_READ_SOUND(sound24);
+		WEAPON_READ_SOUND(sound25);
+		WEAPON_READ_SOUND(sound26);
 		WEAPON_READ_SOUND(fireStopSound);
 		WEAPON_READ_SOUND(fireStopSoundPlayer);
-		WEAPON_READ_SOUND(sound27);
-		WEAPON_READ_SOUND(sound28);
 		WEAPON_READ_SOUND(sound29);
 		WEAPON_READ_SOUND(sound30);
-		WEAPON_READ_SOUND(fireLastShotSound);
-		WEAPON_READ_SOUND(fireLastShotSoundPlayer);
-		WEAPON_READ_SOUND(fireFirstSound);
+		WEAPON_READ_SOUND(sound31);
+		WEAPON_READ_SOUND(sound32);
+		WEAPON_READ_SOUND(sound33);
 		WEAPON_READ_SOUND(fireFirstSound);
 		WEAPON_READ_SOUND(fireFirstSoundPlayer);
-		WEAPON_READ_SOUND(fireLastSound);
-		WEAPON_READ_SOUND(fireLastSoundPlayer);
+		WEAPON_READ_SOUND(fireSound2);
+		WEAPON_READ_SOUND(fireSoundPlayer2);
+		WEAPON_READ_SOUND(fireSpecialSound);
+		WEAPON_READ_SOUND(fireSpecialSoundPlayer);
 		WEAPON_READ_SOUND(emptyFireSound);
 		WEAPON_READ_SOUND(emptyFireSoundPlayer);
-		WEAPON_READ_SOUND(sound39);
+		WEAPON_READ_SOUND(emptyFireSoundPlayerLeft);
+		WEAPON_READ_SOUND(emptyFireSoundPlayerRight);
+		WEAPON_READ_SOUND(emptyFireSoundReleasePlayer);
+		WEAPON_READ_SOUND(emptyFireSoundReleasePlayerLeft);
+		WEAPON_READ_SOUND(emptyFireSoundReleasePlayerRight);
+		WEAPON_READ_SOUND(sound47);
 		WEAPON_READ_SOUND(meleeSwipeSound);
 		WEAPON_READ_SOUND(meleeSwipeSoundPlayer);
 		WEAPON_READ_SOUND(meleeHitSound);
 		WEAPON_READ_SOUND(meleeHitSoundPlayer);
 		WEAPON_READ_SOUND(meleeMissSound);
 		WEAPON_READ_SOUND(meleeMissSoundPlayer);
-		WEAPON_READ_SOUND(rechamberSound);
-		WEAPON_READ_SOUND(rechamberSoundPlayer);
-		WEAPON_READ_SOUND(reloadSound);
-		WEAPON_READ_SOUND(reloadSoundPlayer);
-		WEAPON_READ_SOUND(reloadEmptySound);
-		WEAPON_READ_SOUND(reloadEmptySoundPlayer);
-		WEAPON_READ_SOUND(reloadStartSound);
-		WEAPON_READ_SOUND(reloadStartSoundPlayer);
-		WEAPON_READ_SOUND(reloadEndSound);
-		WEAPON_READ_SOUND(reloadEndSoundPlayer);
-		WEAPON_READ_SOUND(detonateSound);
-		WEAPON_READ_SOUND(detonateSoundPlayer);
+		WEAPON_READ_SOUND(sound54);
+		WEAPON_READ_SOUND(sound55);
+		WEAPON_READ_SOUND(sound56);
+		WEAPON_READ_SOUND(sound57);
+		WEAPON_READ_SOUND(sound58);
+		WEAPON_READ_SOUND(sound59);
+		WEAPON_READ_SOUND(sound60);
+		WEAPON_READ_SOUND(sound61);
+		WEAPON_READ_SOUND(sound62);
+		WEAPON_READ_SOUND(sound63);
+		WEAPON_READ_SOUND(sound64);
+		WEAPON_READ_SOUND(sound65);
 		WEAPON_READ_SOUND(nightVisionWearSound);
 		WEAPON_READ_SOUND(nightVisionWearSoundPlayer);
 		WEAPON_READ_SOUND(nightVisionRemoveSound);
 		WEAPON_READ_SOUND(nightVisionRemoveSoundPlayer);
 		WEAPON_READ_SOUND(raiseSound);
 		WEAPON_READ_SOUND(raiseSoundPlayer);
-		WEAPON_READ_SOUND(sound64);
-		WEAPON_READ_SOUND(sound65);
-		WEAPON_READ_SOUND(sound66);
-		WEAPON_READ_SOUND(sound67);
+		WEAPON_READ_SOUND(raiseSoundPlayerLeft);
+		WEAPON_READ_SOUND(raiseSoundPlayerRight);
+		WEAPON_READ_SOUND(sound74);
+		WEAPON_READ_SOUND(quickRaiseSoundPlayer);
+		WEAPON_READ_SOUND(quickRaiseSoundPlayerLeft);
+		WEAPON_READ_SOUND(quickRaiseSoundPlayerRight);
+		WEAPON_READ_SOUND(raiseSound2);
+		WEAPON_READ_SOUND(sound79);
+		WEAPON_READ_SOUND(sound80);
+		WEAPON_READ_SOUND(sound81);
 		WEAPON_READ_SOUND(putawaySound);
 		WEAPON_READ_SOUND(putawaySoundPlayer);
-		WEAPON_READ_SOUND(sound70);
-		WEAPON_READ_SOUND(sound71);
+		WEAPON_READ_SOUND(putawaySoundPlayerLeft);
+		WEAPON_READ_SOUND(putawaySoundPlayerRight);
+		WEAPON_READ_SOUND(sound86);
+		WEAPON_READ_SOUND(sound87);
 		WEAPON_READ_SOUND(adsEnterSoundPlayer);
 		WEAPON_READ_SOUND(adsLeaveSoundPlayer);
 		WEAPON_READ_SOUND(adsCrosshairEnemySound);
@@ -918,7 +961,7 @@ namespace zonetool
 
 		parse_overlay(&weapon->overlay, data["overlay"]);
 
-		parse_accuracy_graph(weapon, data["accuracy_graph"], mem);
+		//parse_accuracy_graph(weapon, data["accuracy_graph"], mem);
 
 		// parse stowtag
 		if (!data["stowTag"].is_null())
@@ -958,6 +1001,8 @@ namespace zonetool
 		WEAPON_READ_FIELD_ARR(float, proneOfs, 3);
 		WEAPON_READ_FIELD_ARR(float, proneMove, 3);
 		WEAPON_READ_FIELD_ARR(float, proneRot, 3);
+		WEAPON_READ_FIELD_ARR(float, unkVec1, 3);
+		WEAPON_READ_FIELD_ARR(float, unkVec2, 3);
 		WEAPON_READ_FIELD(float, posMoveRate);
 		WEAPON_READ_FIELD(float, posProneMoveRate);
 		WEAPON_READ_FIELD(float, standMoveMinSpeed);
@@ -1174,6 +1219,7 @@ namespace zonetool
 		WEAPON_READ_FIELD(int, midPlayerDamage);
 		WEAPON_READ_FIELD(float, maxDamageRange);
 		WEAPON_READ_FIELD(float, minDamageRange);
+		WEAPON_READ_FIELD_ARR(char, __pad, 12);
 		//WEAPON_READ_FIELD(int, iU_045);
 		//WEAPON_READ_FIELD(int, iU_046);
 		//WEAPON_READ_FIELD(int, iU_047);
@@ -1437,7 +1483,7 @@ namespace zonetool
 		WEAPON_SUBASSET_DEPENDING(knifeModel, ASSET_TYPE_XMODEL);
 		WEAPON_SUBASSET_DEPENDING(worldKnifeModel, ASSET_TYPE_XMODEL);
 
-		for (auto i = 0; i < 190; i++)
+		for (auto i = 0; i < NUM_WEAP_ANIMS; i++)
 		{
 			if (weapon->szXAnimsRightHanded)
 			{
@@ -1525,68 +1571,86 @@ namespace zonetool
 		WEAPON_SUBASSET_DEPENDING(projectileSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(pullbackSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(pullbackSoundPlayer, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(pullbackSoundQuick, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(pullbackSoundQuickPlayer, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(fireSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(fireSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(fireSoundPlayerAkimbo, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound13, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(fireSoundPlayerLeft, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(fireSoundPlayerRight, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(sound14, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(sound15, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(sound16, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound17, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound18, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(fireLoopSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(fireLoopSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound19, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound20, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(sound21, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(sound22, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(fireLoopEndPointSound, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(fireLoopEndPointSoundPlayer, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound23, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound24, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound25, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound26, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(fireStopSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(fireStopSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound27, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound28, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(sound29, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(sound30, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(fireLastShotSound, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(fireLastShotSoundPlayer, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound31, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound32, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound33, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(fireFirstSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(fireFirstSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(fireLastSound, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(fireLastSoundPlayer, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(fireSound2, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(fireSoundPlayer2, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(fireSpecialSound, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(fireSpecialSoundPlayer, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(emptyFireSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(emptyFireSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound39, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(emptyFireSoundPlayerLeft, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(emptyFireSoundPlayerRight, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(emptyFireSoundReleasePlayer, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(emptyFireSoundReleasePlayerLeft, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(emptyFireSoundReleasePlayerRight, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound47, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(meleeSwipeSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(meleeSwipeSoundPlayer, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(meleeHitSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(meleeHitSoundPlayer, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(meleeMissSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(meleeMissSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(rechamberSound, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(rechamberSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(reloadSound, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(reloadSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(reloadEmptySound, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(reloadEmptySoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(reloadStartSound, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(reloadStartSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(reloadEndSound, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(reloadEndSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(detonateSound, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(detonateSoundPlayer, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound54, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound55, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound56, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound57, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound58, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound59, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound60, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound61, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound62, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound63, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound64, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound65, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(nightVisionWearSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(nightVisionWearSoundPlayer, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(nightVisionRemoveSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(nightVisionRemoveSoundPlayer, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(raiseSound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(raiseSoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound64, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound65, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound66, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound67, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(raiseSoundPlayerLeft, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(raiseSoundPlayerRight, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound74, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(quickRaiseSoundPlayer, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(quickRaiseSoundPlayerLeft, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(quickRaiseSoundPlayerRight, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(raiseSound2, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound79, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound80, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound81, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(putawaySound, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(putawaySoundPlayer, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound70, ASSET_TYPE_SOUND);
-		WEAPON_SUBASSET_DEPENDING(sound71, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(putawaySoundPlayerLeft, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(putawaySoundPlayerRight, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound86, ASSET_TYPE_SOUND);
+		WEAPON_SUBASSET_DEPENDING(sound87, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(adsEnterSoundPlayer, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(adsLeaveSoundPlayer, ASSET_TYPE_SOUND);
 		WEAPON_SUBASSET_DEPENDING(adsCrosshairEnemySound, ASSET_TYPE_SOUND);
@@ -1712,6 +1776,8 @@ namespace zonetool
 
 		WEAPON_STRING(szDisplayName);
 		WEAPON_STRING(szOverlayName);
+		WEAPON_STRING(szAttachmentName);
+		WEAPON_STRING(szUnknownName);
 
 		if (data->gunModel)
 		{
@@ -1768,9 +1834,9 @@ namespace zonetool
 		if (data->szXAnimsRightHanded)
 		{
 			buf->align(7);
-			auto destAnims = buf->write(data->szXAnimsRightHanded, 190);
+			auto destAnims = buf->write(data->szXAnimsRightHanded, NUM_WEAP_ANIMS);
 
-			for (auto i = 0; i < 190; i++)
+			for (auto i = 0; i < NUM_WEAP_ANIMS; i++)
 			{
 				if (destAnims[i])
 				{
@@ -1786,9 +1852,9 @@ namespace zonetool
 		if (data->szXAnimsLeftHanded)
 		{
 			buf->align(7);
-			auto destAnims = buf->write(data->szXAnimsLeftHanded, 190);
+			auto destAnims = buf->write(data->szXAnimsLeftHanded, NUM_WEAP_ANIMS);
 
-			for (auto i = 0; i < 190; i++)
+			for (auto i = 0; i < NUM_WEAP_ANIMS; i++)
 			{
 				if (destAnims[i])
 				{
@@ -1829,9 +1895,9 @@ namespace zonetool
 		if (data->szXAnims)
 		{
 			buf->align(7);
-			auto destAnims = buf->write(data->szXAnims, 190);
+			auto destAnims = buf->write(data->szXAnims, NUM_WEAP_ANIMS);
 
-			for (auto i = 0; i < 190; i++)
+			for (auto i = 0; i < NUM_WEAP_ANIMS; i++)
 			{
 				if (destAnims[i])
 				{
@@ -1996,6 +2062,7 @@ namespace zonetool
 		WEAPON_SUBASSET(effect11, ASSET_TYPE_FX, FxEffectDef);
 		WEAPON_SUBASSET(effect12, ASSET_TYPE_FX, FxEffectDef);
 		
+
 		WEAPON_SOUND_CUSTOM(pickupSound);
 		WEAPON_SOUND_CUSTOM(pickupSoundPlayer);
 		WEAPON_SOUND_CUSTOM(ammoPickupSound);
@@ -2007,66 +2074,82 @@ namespace zonetool
 		WEAPON_SOUND_CUSTOM(pullbackSoundQuickPlayer);
 		WEAPON_SOUND_CUSTOM(fireSound);
 		WEAPON_SOUND_CUSTOM(fireSoundPlayer);
-		WEAPON_SOUND_CUSTOM(fireSoundPlayerAkimbo);
-		WEAPON_SOUND_CUSTOM(sound13);
+		WEAPON_SOUND_CUSTOM(fireSoundPlayerLeft);
+		WEAPON_SOUND_CUSTOM(fireSoundPlayerRight);
 		WEAPON_SOUND_CUSTOM(sound14);
 		WEAPON_SOUND_CUSTOM(sound15);
 		WEAPON_SOUND_CUSTOM(sound16);
+		WEAPON_SOUND_CUSTOM(sound17);
+		WEAPON_SOUND_CUSTOM(sound18);
 		WEAPON_SOUND_CUSTOM(fireLoopSound);
 		WEAPON_SOUND_CUSTOM(fireLoopSoundPlayer);
-		WEAPON_SOUND_CUSTOM(sound19);
-		WEAPON_SOUND_CUSTOM(sound20);
 		WEAPON_SOUND_CUSTOM(sound21);
 		WEAPON_SOUND_CUSTOM(sound22);
-		WEAPON_SOUND_CUSTOM(fireLoopEndPointSound);
-		WEAPON_SOUND_CUSTOM(fireLoopEndPointSoundPlayer);
+		WEAPON_SOUND_CUSTOM(sound23);
+		WEAPON_SOUND_CUSTOM(sound24);
+		WEAPON_SOUND_CUSTOM(sound25);
+		WEAPON_SOUND_CUSTOM(sound26);
 		WEAPON_SOUND_CUSTOM(fireStopSound);
 		WEAPON_SOUND_CUSTOM(fireStopSoundPlayer);
-		WEAPON_SOUND_CUSTOM(sound27);
-		WEAPON_SOUND_CUSTOM(sound28);
 		WEAPON_SOUND_CUSTOM(sound29);
 		WEAPON_SOUND_CUSTOM(sound30);
-		WEAPON_SOUND_CUSTOM(fireLastShotSound);
-		WEAPON_SOUND_CUSTOM(fireLastShotSoundPlayer);
+		WEAPON_SOUND_CUSTOM(sound31);
+		WEAPON_SOUND_CUSTOM(sound32);
+		WEAPON_SOUND_CUSTOM(sound33);
 		WEAPON_SOUND_CUSTOM(fireFirstSound);
 		WEAPON_SOUND_CUSTOM(fireFirstSoundPlayer);
-		WEAPON_SOUND_CUSTOM(fireLastSound);
-		WEAPON_SOUND_CUSTOM(fireLastSoundPlayer);
+		WEAPON_SOUND_CUSTOM(fireSound2);
+		WEAPON_SOUND_CUSTOM(fireSoundPlayer2);
+		WEAPON_SOUND_CUSTOM(fireSpecialSound);
+		WEAPON_SOUND_CUSTOM(fireSpecialSoundPlayer);
 		WEAPON_SOUND_CUSTOM(emptyFireSound);
 		WEAPON_SOUND_CUSTOM(emptyFireSoundPlayer);
-		WEAPON_SOUND_CUSTOM(sound39);
+		WEAPON_SOUND_CUSTOM(emptyFireSoundPlayerLeft);
+		WEAPON_SOUND_CUSTOM(emptyFireSoundPlayerRight);
+		WEAPON_SOUND_CUSTOM(emptyFireSoundReleasePlayer);
+		WEAPON_SOUND_CUSTOM(emptyFireSoundReleasePlayerLeft);
+		WEAPON_SOUND_CUSTOM(emptyFireSoundReleasePlayerRight);
+		WEAPON_SOUND_CUSTOM(sound47);
 		WEAPON_SOUND_CUSTOM(meleeSwipeSound);
 		WEAPON_SOUND_CUSTOM(meleeSwipeSoundPlayer);
 		WEAPON_SOUND_CUSTOM(meleeHitSound);
 		WEAPON_SOUND_CUSTOM(meleeHitSoundPlayer);
 		WEAPON_SOUND_CUSTOM(meleeMissSound);
 		WEAPON_SOUND_CUSTOM(meleeMissSoundPlayer);
-		WEAPON_SOUND_CUSTOM(rechamberSound);
-		WEAPON_SOUND_CUSTOM(rechamberSoundPlayer);
-		WEAPON_SOUND_CUSTOM(reloadSound);
-		WEAPON_SOUND_CUSTOM(reloadSoundPlayer);
-		WEAPON_SOUND_CUSTOM(reloadEmptySound);
-		WEAPON_SOUND_CUSTOM(reloadEmptySoundPlayer);
-		WEAPON_SOUND_CUSTOM(reloadStartSound);
-		WEAPON_SOUND_CUSTOM(reloadStartSoundPlayer);
-		WEAPON_SOUND_CUSTOM(reloadEndSound);
-		WEAPON_SOUND_CUSTOM(reloadEndSoundPlayer);
-		WEAPON_SOUND_CUSTOM(detonateSound);
-		WEAPON_SOUND_CUSTOM(detonateSoundPlayer);
+		WEAPON_SOUND_CUSTOM(sound54);
+		WEAPON_SOUND_CUSTOM(sound55);
+		WEAPON_SOUND_CUSTOM(sound56);
+		WEAPON_SOUND_CUSTOM(sound57);
+		WEAPON_SOUND_CUSTOM(sound58);
+		WEAPON_SOUND_CUSTOM(sound59);
+		WEAPON_SOUND_CUSTOM(sound60);
+		WEAPON_SOUND_CUSTOM(sound61);
+		WEAPON_SOUND_CUSTOM(sound62);
+		WEAPON_SOUND_CUSTOM(sound63);
+		WEAPON_SOUND_CUSTOM(sound64);
+		WEAPON_SOUND_CUSTOM(sound65);
 		WEAPON_SOUND_CUSTOM(nightVisionWearSound);
 		WEAPON_SOUND_CUSTOM(nightVisionWearSoundPlayer);
 		WEAPON_SOUND_CUSTOM(nightVisionRemoveSound);
 		WEAPON_SOUND_CUSTOM(nightVisionRemoveSoundPlayer);
 		WEAPON_SOUND_CUSTOM(raiseSound);
 		WEAPON_SOUND_CUSTOM(raiseSoundPlayer);
-		WEAPON_SOUND_CUSTOM(sound64);
-		WEAPON_SOUND_CUSTOM(sound65);
-		WEAPON_SOUND_CUSTOM(sound66);
-		WEAPON_SOUND_CUSTOM(sound67);
+		WEAPON_SOUND_CUSTOM(raiseSoundPlayerLeft);
+		WEAPON_SOUND_CUSTOM(raiseSoundPlayerRight);
+		WEAPON_SOUND_CUSTOM(sound74);
+		WEAPON_SOUND_CUSTOM(quickRaiseSoundPlayer);
+		WEAPON_SOUND_CUSTOM(quickRaiseSoundPlayerLeft);
+		WEAPON_SOUND_CUSTOM(quickRaiseSoundPlayerRight);
+		WEAPON_SOUND_CUSTOM(raiseSound2);
+		WEAPON_SOUND_CUSTOM(sound79);
+		WEAPON_SOUND_CUSTOM(sound80);
+		WEAPON_SOUND_CUSTOM(sound81);
 		WEAPON_SOUND_CUSTOM(putawaySound);
 		WEAPON_SOUND_CUSTOM(putawaySoundPlayer);
-		WEAPON_SOUND_CUSTOM(sound70);
-		WEAPON_SOUND_CUSTOM(sound71);
+		WEAPON_SOUND_CUSTOM(putawaySoundPlayerLeft);
+		WEAPON_SOUND_CUSTOM(putawaySoundPlayerRight);
+		WEAPON_SOUND_CUSTOM(sound86);
+		WEAPON_SOUND_CUSTOM(sound87);
 		WEAPON_SOUND_CUSTOM(adsEnterSoundPlayer);
 		WEAPON_SOUND_CUSTOM(adsLeaveSoundPlayer);
 		WEAPON_SOUND_CUSTOM(adsCrosshairEnemySound);
@@ -2371,6 +2454,8 @@ namespace zonetool
 		WEAPON_DUMP_ASSET(shaderEMP);
 		WEAPON_DUMP_ASSET(shaderEMPLowRes);
 		WEAPON_DUMP_FIELD(reticle);
+		WEAPON_DUMP_FIELD(xU_01);
+		WEAPON_DUMP_FIELD(xU_02);
 		WEAPON_DUMP_FIELD(width);
 		WEAPON_DUMP_FIELD(height);
 		WEAPON_DUMP_FIELD(widthSplitscreen);
@@ -2516,6 +2601,12 @@ namespace zonetool
 	void IWeaponDef::dump(WeaponDef* asset)
 	{
 		const auto path = "weapons\\"s + asset->name + ".json"s;
+		const auto base_asset_path = "weapons\\"s + asset->name + ".base";
+
+		auto base_asset_file = filesystem::file(base_asset_path);
+		base_asset_file.open("wb");
+		base_asset_file.write(reinterpret_cast<char*>(asset), sizeof(WeaponDef), 1);
+		base_asset_file.close();
 
 		ordered_json data;
 
@@ -2524,6 +2615,8 @@ namespace zonetool
 		WEAPON_DUMP_STRING(szInternalName);
 		WEAPON_DUMP_STRING(szDisplayName);
 		WEAPON_DUMP_STRING(szOverlayName);
+		WEAPON_DUMP_STRING(szAttachmentName);
+		WEAPON_DUMP_STRING(szUnknownName);
 
 		WEAPON_DUMP_ASSET_ARR(gunModel, 2);
 		WEAPON_DUMP_ASSET_ARR(worldModel, 2);
@@ -2537,9 +2630,9 @@ namespace zonetool
 		WEAPON_DUMP_ASSET(knifeModel);
 		WEAPON_DUMP_ASSET(worldKnifeModel);
 
-		WEAPON_DUMP_ANIM_ARR(szXAnimsRightHanded, 190);
-		WEAPON_DUMP_ANIM_ARR(szXAnimsLeftHanded, 190);
-		WEAPON_DUMP_ANIM_ARR(szXAnims, 190);
+		WEAPON_DUMP_ANIM_ARR(szXAnimsRightHanded, NUM_WEAP_ANIMS);
+		WEAPON_DUMP_ANIM_ARR(szXAnimsLeftHanded, NUM_WEAP_ANIMS);
+		WEAPON_DUMP_ANIM_ARR(szXAnims, NUM_WEAP_ANIMS);
 
 		for (auto i = 0; i < 32; i++)
 		{
@@ -2752,67 +2845,82 @@ namespace zonetool
 		WEAPON_DUMP_SOUND(pullbackSoundQuickPlayer);
 		WEAPON_DUMP_SOUND(fireSound);
 		WEAPON_DUMP_SOUND(fireSoundPlayer);
-		WEAPON_DUMP_SOUND(fireSoundPlayerAkimbo);
-		WEAPON_DUMP_SOUND(sound13);
+		WEAPON_DUMP_SOUND(fireSoundPlayerLeft);
+		WEAPON_DUMP_SOUND(fireSoundPlayerRight);
 		WEAPON_DUMP_SOUND(sound14);
 		WEAPON_DUMP_SOUND(sound15);
 		WEAPON_DUMP_SOUND(sound16);
+		WEAPON_DUMP_SOUND(sound17);
+		WEAPON_DUMP_SOUND(sound18);
 		WEAPON_DUMP_SOUND(fireLoopSound);
 		WEAPON_DUMP_SOUND(fireLoopSoundPlayer);
-		WEAPON_DUMP_SOUND(sound19);
-		WEAPON_DUMP_SOUND(sound20);
 		WEAPON_DUMP_SOUND(sound21);
 		WEAPON_DUMP_SOUND(sound22);
-		WEAPON_DUMP_SOUND(fireLoopEndPointSound);
-		WEAPON_DUMP_SOUND(fireLoopEndPointSoundPlayer);
+		WEAPON_DUMP_SOUND(sound23);
+		WEAPON_DUMP_SOUND(sound24);
+		WEAPON_DUMP_SOUND(sound25);
+		WEAPON_DUMP_SOUND(sound26);
 		WEAPON_DUMP_SOUND(fireStopSound);
 		WEAPON_DUMP_SOUND(fireStopSoundPlayer);
-		WEAPON_DUMP_SOUND(sound27);
-		WEAPON_DUMP_SOUND(sound28);
 		WEAPON_DUMP_SOUND(sound29);
 		WEAPON_DUMP_SOUND(sound30);
-		WEAPON_DUMP_SOUND(fireLastShotSound);
-		WEAPON_DUMP_SOUND(fireLastShotSoundPlayer);
-		WEAPON_DUMP_SOUND(fireFirstSound);
+		WEAPON_DUMP_SOUND(sound31);
+		WEAPON_DUMP_SOUND(sound32);
+		WEAPON_DUMP_SOUND(sound33);
 		WEAPON_DUMP_SOUND(fireFirstSound);
 		WEAPON_DUMP_SOUND(fireFirstSoundPlayer);
-		WEAPON_DUMP_SOUND(fireLastSound);
-		WEAPON_DUMP_SOUND(fireLastSoundPlayer);
+		WEAPON_DUMP_SOUND(fireSound2);
+		WEAPON_DUMP_SOUND(fireSoundPlayer2);
+		WEAPON_DUMP_SOUND(fireSpecialSound);
+		WEAPON_DUMP_SOUND(fireSpecialSoundPlayer);
 		WEAPON_DUMP_SOUND(emptyFireSound);
 		WEAPON_DUMP_SOUND(emptyFireSoundPlayer);
-		WEAPON_DUMP_SOUND(sound39);
+		WEAPON_DUMP_SOUND(emptyFireSoundPlayerLeft);
+		WEAPON_DUMP_SOUND(emptyFireSoundPlayerRight);
+		WEAPON_DUMP_SOUND(emptyFireSoundReleasePlayer);
+		WEAPON_DUMP_SOUND(emptyFireSoundReleasePlayerLeft);
+		WEAPON_DUMP_SOUND(emptyFireSoundReleasePlayerRight);
+		WEAPON_DUMP_SOUND(sound47);
 		WEAPON_DUMP_SOUND(meleeSwipeSound);
 		WEAPON_DUMP_SOUND(meleeSwipeSoundPlayer);
 		WEAPON_DUMP_SOUND(meleeHitSound);
 		WEAPON_DUMP_SOUND(meleeHitSoundPlayer);
 		WEAPON_DUMP_SOUND(meleeMissSound);
 		WEAPON_DUMP_SOUND(meleeMissSoundPlayer);
-		WEAPON_DUMP_SOUND(rechamberSound);
-		WEAPON_DUMP_SOUND(rechamberSoundPlayer);
-		WEAPON_DUMP_SOUND(reloadSound);
-		WEAPON_DUMP_SOUND(reloadSoundPlayer);
-		WEAPON_DUMP_SOUND(reloadEmptySound);
-		WEAPON_DUMP_SOUND(reloadEmptySoundPlayer);
-		WEAPON_DUMP_SOUND(reloadStartSound);
-		WEAPON_DUMP_SOUND(reloadStartSoundPlayer);
-		WEAPON_DUMP_SOUND(reloadEndSound);
-		WEAPON_DUMP_SOUND(reloadEndSoundPlayer);
-		WEAPON_DUMP_SOUND(detonateSound);
-		WEAPON_DUMP_SOUND(detonateSoundPlayer);
+		WEAPON_DUMP_SOUND(sound54);
+		WEAPON_DUMP_SOUND(sound55);
+		WEAPON_DUMP_SOUND(sound56);
+		WEAPON_DUMP_SOUND(sound57);
+		WEAPON_DUMP_SOUND(sound58);
+		WEAPON_DUMP_SOUND(sound59);
+		WEAPON_DUMP_SOUND(sound60);
+		WEAPON_DUMP_SOUND(sound61);
+		WEAPON_DUMP_SOUND(sound62);
+		WEAPON_DUMP_SOUND(sound63);
+		WEAPON_DUMP_SOUND(sound64);
+		WEAPON_DUMP_SOUND(sound65);
 		WEAPON_DUMP_SOUND(nightVisionWearSound);
 		WEAPON_DUMP_SOUND(nightVisionWearSoundPlayer);
 		WEAPON_DUMP_SOUND(nightVisionRemoveSound);
 		WEAPON_DUMP_SOUND(nightVisionRemoveSoundPlayer);
 		WEAPON_DUMP_SOUND(raiseSound);
 		WEAPON_DUMP_SOUND(raiseSoundPlayer);
-		WEAPON_DUMP_SOUND(sound64);
-		WEAPON_DUMP_SOUND(sound65);
-		WEAPON_DUMP_SOUND(sound66);
-		WEAPON_DUMP_SOUND(sound67);
+		WEAPON_DUMP_SOUND(raiseSoundPlayerLeft);
+		WEAPON_DUMP_SOUND(raiseSoundPlayerRight);
+		WEAPON_DUMP_SOUND(sound74);
+		WEAPON_DUMP_SOUND(quickRaiseSoundPlayer);
+		WEAPON_DUMP_SOUND(quickRaiseSoundPlayerLeft);
+		WEAPON_DUMP_SOUND(quickRaiseSoundPlayerRight);
+		WEAPON_DUMP_SOUND(raiseSound2);
+		WEAPON_DUMP_SOUND(sound79);
+		WEAPON_DUMP_SOUND(sound80);
+		WEAPON_DUMP_SOUND(sound81);
 		WEAPON_DUMP_SOUND(putawaySound);
 		WEAPON_DUMP_SOUND(putawaySoundPlayer);
-		WEAPON_DUMP_SOUND(sound70);
-		WEAPON_DUMP_SOUND(sound71);
+		WEAPON_DUMP_SOUND(putawaySoundPlayerLeft);
+		WEAPON_DUMP_SOUND(putawaySoundPlayerRight);
+		WEAPON_DUMP_SOUND(sound86);
+		WEAPON_DUMP_SOUND(sound87);
 		WEAPON_DUMP_SOUND(adsEnterSoundPlayer);
 		WEAPON_DUMP_SOUND(adsLeaveSoundPlayer);
 		WEAPON_DUMP_SOUND(adsCrosshairEnemySound);
@@ -3143,6 +3251,7 @@ namespace zonetool
 		WEAPON_DUMP_FIELD(midPlayerDamage);
 		WEAPON_DUMP_FIELD(maxDamageRange);
 		WEAPON_DUMP_FIELD(minDamageRange);
+		WEAPON_DUMP_FIELD_ARR(__pad, 12);
 		//WEAPON_DUMP_FIELD(iU_045);
 		//WEAPON_DUMP_FIELD(iU_046);
 		//WEAPON_DUMP_FIELD(iU_047);

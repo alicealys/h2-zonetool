@@ -194,6 +194,11 @@ namespace zonetool
 		{
 			auto load_visuals = [zone](FxElemDef* def, FxElemVisuals* vis)
 			{
+				if (!vis->anonymous)
+				{
+					return;
+				}
+
 				switch (def->elemType)
 				{
 				case FX_ELEM_TYPE_MODEL:
@@ -285,6 +290,11 @@ namespace zonetool
 	{
 		auto data = dest;
 
+		if (!data->anonymous)
+		{
+			return;
+		}
+
 		switch (def->elemType)
 		{
 		case FX_ELEM_TYPE_MODEL:
@@ -366,12 +376,14 @@ namespace zonetool
 		{
 			buf->align(3);
 			buf->write(data->velSamples, data->velIntervalCount + 1);
+			ZoneBuffer::clear_pointer(&dest->velSamples);
 		}
 
 		if (data->visSamples)
 		{
 			buf->align(3);
 			buf->write(data->visSamples, data->visStateIntervalCount + 1);
+			ZoneBuffer::clear_pointer(&dest->visSamples);
 		}
 
 		write_fx_elem_def_visuals(zone, buf, data, &dest->visuals);
@@ -469,11 +481,14 @@ namespace zonetool
 				{
 					buf->write(data->extended.flareDef->srcCosScale, data->extended.flareDef->srcCosScaleIntervalCount + 1);
 				}
+
+				ZoneBuffer::clear_pointer(&dest->extended.flareDef);
 			}
 			else
 			{
 				buf->align(0);
 				buf->write_stream(data->extended.unknownDef, 1);
+				ZoneBuffer::clear_pointer(&dest->extended.unknownDef);
 			}
 		}
 	}
@@ -499,6 +514,8 @@ namespace zonetool
 			{
 				write_fx_elem_def(zone, buf, &destdef[i]);
 			}
+
+			ZoneBuffer::clear_pointer(&dest->elemDefs);
 		}
 
 		buf->pop_stream();

@@ -13,7 +13,7 @@ namespace console
 	DWORD WINAPI console(LPVOID)
 	{
 		ShowWindow(GetConsoleWindow(), SW_SHOW);
-		SetConsoleTitleA("H1-ZoneTool");
+		SetConsoleTitleA("H2-ZoneTool");
 
 		std::string cmd;
 		exit = false;

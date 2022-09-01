@@ -151,7 +151,7 @@ namespace scheduler
 
 		void post_unpack() override
 		{
-			main_frame_hook.create(0x1400D8310, scheduler::main_frame_stub);
+			main_frame_hook.create(0x140417FA0, scheduler::main_frame_stub);
 		}
 
 		void pre_destroy() override

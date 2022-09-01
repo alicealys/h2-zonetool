@@ -1,20 +1,18 @@
 #pragma once
 #include <d3d11.h>
 
-#ifdef DEBUG
-#define assert_sizeof(__ASSET__, __SIZE__) static_assert(sizeof(__ASSET__) == __SIZE__)
-#define assert_offsetof(__ASSET__, __VARIABLE__, __OFFSET__) static_assert(offsetof(__ASSET__, __VARIABLE__) == __OFFSET__)
-#else
-#define assert_sizeof(__ASSET__, __SIZE)
-#define assert_offsetof(__ASSET__, __VARIABLE__, __OFFSET__)
-#endif
-
 namespace zonetool
 {
 	typedef float vec_t;
 	typedef vec_t vec2_t[2];
 	typedef vec_t vec3_t[3];
 	typedef vec_t vec4_t[4];
+
+	template <std::size_t N>
+	struct VecInternal
+	{
+		float data[N];
+	};
 
 	struct dummy
 	{
@@ -50,7 +48,7 @@ namespace zonetool
 		ASSET_TYPE_REVERB_CURVE,
 		ASSET_TYPE_SOUND_CONTEXT,
 		ASSET_TYPE_LOADED_SOUND,
-		ASSET_TYPE_COL_MAP_MP,
+		ASSET_TYPE_COL_MAP_SP,
 		ASSET_TYPE_COM_MAP,
 		ASSET_TYPE_GLASS_MAP,
 		ASSET_TYPE_AIPATHS,
@@ -60,7 +58,7 @@ namespace zonetool
 		ASSET_TYPE_GFX_MAP,
 		ASSET_TYPE_LIGHT_DEF,
 		ASSET_TYPE_UI_MAP,
-		ASSET_TYPE_MENULIST,
+		ASSET_TYPE_MENUFILE,
 		ASSET_TYPE_MENU,
 		ASSET_TYPE_ANIMCLASS,
 		ASSET_TYPE_LOCALIZE_ENTRY,
@@ -101,24 +99,11 @@ namespace zonetool
 	};
 
 	struct FxEffectDef;
-	struct GfxImage;
-	struct XModel;
-
-	struct Statement_s;
-	struct MenuEventHandlerSet;
-	struct menuDef_t;
-
-	struct GfxLightDef;
 
 	struct Bounds
 	{
 		vec3_t midPoint;
 		vec3_t halfSize;
-	};
-
-	struct GfxColorFloat
-	{
-		float array[4];
 	};
 
 	struct PhysPreset
@@ -127,8 +112,8 @@ namespace zonetool
 		char __pad0[32];
 		const char* sndAliasPrefix;
 		char __pad1[48];
-	}; assert_sizeof(PhysPreset, 0x60);
-	
+	}; static_assert(sizeof(PhysPreset) == 0x60);
+
 	struct dmMeshNode_array_t
 	{
 		char __pad0[16];
@@ -149,7 +134,7 @@ namespace zonetool
 		unsigned int count1;
 		unsigned int count2;
 		char __pad1[8];
-	}; assert_sizeof(dmMeshData, 0x50);
+	}; static_assert(sizeof(dmMeshData) == 0x50);
 
 	struct dmSubEdge
 	{
@@ -169,7 +154,7 @@ namespace zonetool
 		unsigned int count1;
 		unsigned int count2;
 		char __pad1[40];
-	}; assert_sizeof(dmPolytopeData, 0x70);
+	}; static_assert(sizeof(dmPolytopeData) == 0x70);
 
 	struct PhysGeomInfo
 	{
@@ -190,7 +175,7 @@ namespace zonetool
 		PhysGeomInfo* geoms;
 		PhysMass mass;
 		Bounds bounds;
-	}; assert_sizeof(PhysCollmap, 0x58);
+	}; static_assert(sizeof(PhysCollmap) == 0x58);
 
 	struct PhysWaterPreset
 	{
@@ -203,7 +188,7 @@ namespace zonetool
 		FxEffectDef* fx4;
 		FxEffectDef* fx5;
 		FxEffectDef* fx6;
-	}; assert_sizeof(PhysWaterPreset, 0x80);
+	}; static_assert(sizeof(PhysWaterPreset) == 0x80);
 
 	struct PhysWaterVolumeDef
 	{
@@ -211,8 +196,8 @@ namespace zonetool
 		char __pad0[12];
 		scr_string_t string;
 		char __pad1[8];
-	}; assert_sizeof(PhysWaterVolumeDef, 0x20);
-	assert_offsetof(PhysWaterVolumeDef, string, 20);
+	}; static_assert(sizeof(PhysWaterVolumeDef) == 0x20);
+	static_assert(offsetof(PhysWaterVolumeDef, string) == 20);
 
 	struct PhysBrushModel
 	{
@@ -230,13 +215,13 @@ namespace zonetool
 		unsigned int polytopeDatasCount;
 		unsigned int meshDatasCount;
 		unsigned int waterVolumesCount;
-	}; assert_sizeof(PhysWorld, 0x38);
+	}; static_assert(sizeof(PhysWorld) == 0x38);
 
 	struct PhysConstraint
 	{
 		const char* name;
 		char __pad0[32];
-	}; assert_sizeof(PhysConstraint, 0x28);
+	}; static_assert(sizeof(PhysConstraint) == 0x28);
 
 	struct Packed128
 	{
@@ -267,7 +252,7 @@ namespace zonetool
 	{
 		const char* name;
 		ComputeShaderProgram prog;
-	}; assert_sizeof(ComputeShader, 0x20);
+	}; static_assert(sizeof(ComputeShader) == 0x20);
 
 	struct GfxVertexShaderLoadDef
 	{
@@ -286,7 +271,7 @@ namespace zonetool
 	{
 		const char* name;
 		MaterialVertexShaderProgram prog;
-	}; assert_sizeof(MaterialVertexShader, 0x20);
+	}; static_assert(sizeof(MaterialVertexShader) == 0x20);
 
 	struct GfxPixelShaderLoadDef
 	{
@@ -305,7 +290,7 @@ namespace zonetool
 	{
 		const char* name;
 		MaterialPixelShaderProgram prog;
-	}; assert_sizeof(MaterialPixelShader, 0x20);
+	}; static_assert(sizeof(MaterialPixelShader) == 0x20);
 
 	struct GfxHullShaderLoadDef
 	{
@@ -324,7 +309,7 @@ namespace zonetool
 	{
 		const char* name;
 		MaterialHullShaderProgram prog;
-	}; assert_sizeof(MaterialHullShader, 0x20);
+	}; static_assert(sizeof(MaterialHullShader) == 0x20);
 
 	struct GfxDomainShaderLoadDef
 	{
@@ -343,7 +328,7 @@ namespace zonetool
 	{
 		const char* name;
 		MaterialDomainShaderProgram prog;
-	}; assert_sizeof(MaterialDomainShader, 0x20);
+	}; static_assert(sizeof(MaterialDomainShader) == 0x20);
 
 	struct MaterialArgumentCodeConst
 	{
@@ -366,7 +351,7 @@ namespace zonetool
 		unsigned char shader;
 		unsigned short dest;
 		MaterialArgumentDef u;
-	}; assert_sizeof(MaterialShaderArgument, 0x10);
+	}; static_assert(sizeof(MaterialShaderArgument) == 0x10);
 
 	struct MaterialStreamRouting
 	{
@@ -387,7 +372,7 @@ namespace zonetool
 		unsigned char streamCount;
 		bool hasOptionalSource;
 		MaterialVertexStreamRouting routing;
-	}; assert_sizeof(MaterialVertexDeclaration, 0x840);
+	}; static_assert(sizeof(MaterialVertexDeclaration) == 0x840);
 
 	struct MaterialPass
 	{
@@ -423,6 +408,9 @@ namespace zonetool
 
 	struct MaterialTechnique
 	{
+		//const char* name;
+		//unsigned short flags;
+		//unsigned short passCount;
 		MaterialTechniqueHeader hdr;
 		MaterialPass passArray[1];
 	};
@@ -433,8 +421,12 @@ namespace zonetool
 		unsigned short flags;
 		unsigned char worldVertFormat;
 		unsigned char preDisplacementOnlyCount;
-		MaterialTechnique* techniques[240];
-	}; assert_sizeof(MaterialTechniqueSet, 0x790);
+		MaterialTechnique* techniques[252];
+	}; static_assert(sizeof(MaterialTechniqueSet) == 0x7F0);
+
+	static_assert(offsetof(MaterialTechniqueSet, techniques) == 16);
+
+	struct GfxImage;
 
 	struct WaterWritable
 	{
@@ -473,14 +465,14 @@ namespace zonetool
 		unsigned char samplerState;
 		unsigned char semantic;
 		MaterialTextureDefInfo u;
-	}; assert_sizeof(MaterialTextureDef, 0x10);
+	}; static_assert(sizeof(MaterialTextureDef) == 0x10);
 
 	struct MaterialConstantDef
 	{
 		unsigned int nameHash;
 		char name[12];
 		float literal[4];
-	}; assert_sizeof(MaterialConstantDef, 0x20);
+	}; static_assert(sizeof(MaterialConstantDef) == 0x20);
 
 	struct GfxStateBits
 	{
@@ -489,7 +481,7 @@ namespace zonetool
 		unsigned char depthStencilState[10];
 		unsigned char blendState;
 		unsigned char rasterizerState;
-	}; assert_sizeof(GfxStateBits, 0x28);
+	}; static_assert(sizeof(GfxStateBits) == 0x28);
 
 	struct MaterialConstantBufferDef
 	{
@@ -585,7 +577,7 @@ namespace zonetool
 		GfxDrawSurf drawSurf;
 		SurfaceTypeBits surfaceTypeBits;
 		unsigned int hashIndex;
-	}; assert_sizeof(MaterialInfo, 48);
+	}; static_assert(sizeof(MaterialInfo) == 48);
 
 	struct Material
 	{
@@ -594,7 +586,7 @@ namespace zonetool
 			const char* name;
 			MaterialInfo info;
 		};
-		unsigned char stateBitsEntry[240];
+		unsigned char stateBitsEntry[252];
 		unsigned char textureCount;
 		unsigned char constantCount;
 		unsigned char stateBitsCount;
@@ -606,12 +598,22 @@ namespace zonetool
 		MaterialTechniqueSet* techniqueSet;
 		MaterialTextureDef* textureTable;
 		MaterialConstantDef* constantTable;
-		GfxStateBits* stateBitsTable;
-		unsigned char constantBufferIndex[240];
+		GfxStateBits* stateBitsTable; 
+		unsigned char constantBufferIndex[252];
+		char __pad0[4];
 		MaterialConstantBufferDef* constantBufferTable;
 		unsigned char constantBufferCount;
 		const char** subMaterials;
-	}; assert_sizeof(Material, 0x250);
+	}; static_assert(sizeof(Material) == 0x270);
+
+	static_assert(offsetof(Material, textureCount) == 0x12C);
+	static_assert(offsetof(Material, techniqueSet) == 0x138);
+	static_assert(offsetof(Material, textureTable) == 0x140);
+	static_assert(offsetof(Material, constantTable) == 0x148);
+	static_assert(offsetof(Material, stateBitsTable) == 0x150);
+	static_assert(offsetof(Material, constantBufferTable) == 0x258);
+	static_assert(offsetof(Material, constantBufferCount) == 0x260);
+	static_assert(offsetof(Material, subMaterials) == 0x268);
 
 	struct GfxImageLoadDef
 	{
@@ -684,7 +686,26 @@ namespace zonetool
 		unsigned char* pixelData;
 		GfxImageStreamData streams[4];
 		const char* name;
-	}; assert_sizeof(GfxImage, 0x68);
+	}; static_assert(sizeof(GfxImage) == 0x68);
+
+	struct GfxLightImage
+	{
+		GfxImage* image;
+		unsigned char samplerState;
+	};
+
+	struct GfxLightDef
+	{
+		const char* name;
+		GfxLightImage attenuation;
+		GfxLightImage cucoloris;
+		int lmapLookupStart;
+	}; static_assert(sizeof(GfxLightDef) == 0x30);
+
+	struct GfxColorFloat
+	{
+		float array[4];
+	};
 
 	enum snd_alias_type_t : std::int8_t
 	{
@@ -738,14 +759,14 @@ namespace zonetool
 		char blockAlign;
 		short format;
 		int loadedSize;
-	}; assert_sizeof(LoadedSoundInfo, 0x20);
+	}; static_assert(sizeof(LoadedSoundInfo) == 0x20);
 
 	struct LoadedSound
 	{
 		const char* name;
 		StreamFileName filename;
 		LoadedSoundInfo info;
-	}; assert_sizeof(LoadedSound, 0x40);
+	}; static_assert(sizeof(LoadedSound) == 0x40);
 
 	struct PrimedSound
 	{
@@ -753,7 +774,7 @@ namespace zonetool
 		StreamFileName streamedPart;
 		int dataOffset; // not sure
 		int totalSize; // not sure
-	}; assert_sizeof(PrimedSound, 0x28);
+	}; static_assert(sizeof(PrimedSound) == 0x28);
 
 	union SoundFileRef
 	{
@@ -785,7 +806,7 @@ namespace zonetool
 		};
 		unsigned short knotCount;
 		float knots[16][2];
-	}; assert_sizeof(SndCurve, 0x98);
+	}; static_assert(sizeof(SndCurve) == 0x98);
 
 	struct SpeakerLevels
 	{
@@ -806,7 +827,7 @@ namespace zonetool
 		const char* name;
 		int unknown;
 		ChannelMap channelMaps[2][2];
-	}; assert_sizeof(SpeakerMap, 0x148);
+	}; static_assert(sizeof(SpeakerMap) == 0x148);
 
 	struct DopplerPreset
 	{
@@ -816,7 +837,7 @@ namespace zonetool
 		float minPitch;
 		float maxPitch;
 		float smoothing;
-	}; assert_sizeof(DopplerPreset, 0x20);
+	}; static_assert(sizeof(DopplerPreset) == 0x20);
 
 	union SoundAliasFlags
 	{
@@ -867,44 +888,35 @@ namespace zonetool
 		char u1; // value: 0-4
 		//char __padding2[3]; // padding
 		SndContext* sndContext;
-		int sequence;
+		unsigned char sequence;
+		//char __padding3[3]; // padding
 		float lfePercentage;
 		float centerPercentage;
 		int startDelay;
 		SndCurve* sndCurve;
-		float envelopMin;
-		float envelopMax;
+		char __pad1[8];
 		SndCurve* lpfCurve;
+		SndCurve* hpfCurve;
 		SndCurve* reverbSendCurve;
 		SpeakerMap* speakerMap;
 		float reverbWetMixOverride;
-		float reverbMultiplier;
+		float u4;
 		float smartPanDistance2d;
 		float smartPanDistance3d;
 		float smartPanAttenuation3d;
-		float envelopPercentage;
+		char __pad2[4]; // unknown
 		short stereo3dAngle;
-		//char __padding3[3]; // padding
+		//char __padding4[2]; // padding
 		float stereo3dStart;
 		float stereo3dEnd;
 		unsigned char allowDoppler;
-		//char __padding4[3]; // padding
+		//char __padding5[3]; // padding
 		DopplerPreset* dopplerPreset;
-		float u2;
-		//char __padding5[4]; // padding
-	}; assert_sizeof(snd_alias_t, 0xF8);
-	assert_offsetof(snd_alias_t, soundFile, 32);
-	assert_offsetof(snd_alias_t, sndContext, 128);
-	assert_offsetof(snd_alias_t, sndCurve, 152);
-	assert_offsetof(snd_alias_t, lpfCurve, 168);
-	assert_offsetof(snd_alias_t, reverbSendCurve, 176);
-	assert_offsetof(snd_alias_t, speakerMap, 184);
-	assert_offsetof(snd_alias_t, dopplerPreset, 232);
+		float u6;
+		//char __padding6[4]; // padding
+	};
 
-	struct snd_alias_context_list
-	{
-		short unk;
-	}; assert_sizeof(snd_alias_context_list, 2);
+	static_assert(sizeof(snd_alias_t) == 256);
 
 	struct snd_alias_list_t
 	{
@@ -914,16 +926,17 @@ namespace zonetool
 			const char* name;
 		};
 		snd_alias_t* head;
-		snd_alias_context_list* contextList;
+		short* unk;
 		unsigned char count;
-		unsigned char contextListCount;
-	}; assert_sizeof(snd_alias_list_t, 0x20);
+		unsigned char unkCount;
+		char __pad0[6];
+	};
 
 	struct LocalizeEntry
 	{
 		const char* value;
 		const char* name;
-	}; assert_sizeof(LocalizeEntry, 0x10);
+	}; static_assert(sizeof(LocalizeEntry) == 0x10);
 
 	struct TriggerModel
 	{
@@ -983,7 +996,7 @@ namespace zonetool
 		short* unk6;
 		short* unk7;
 		short* unk8;
-	}; assert_sizeof(ClientTriggers, 0xB0);
+	}; static_assert(sizeof(ClientTriggers) == 0xB0);
 
 	struct ClientTriggerBlendNode
 	{
@@ -1053,7 +1066,22 @@ namespace zonetool
 		ClientTriggerBlend clientTriggerBlend;
 		SpawnPointRecordList spawnList;
 		SplineRecordList splineList;
-	}; assert_sizeof(MapEnts, 0x128);
+	}; static_assert(sizeof(MapEnts) == 0x128);
+
+	struct AddonMapEnts
+	{
+		const char* name;
+		char* entityString;
+		int numEntityChars;
+		MapTriggers trigger;
+		void* info;
+		unsigned int numSubModels;
+		void* cmodels;
+		void* models;
+		char __pad0[0x20];
+	};
+
+	static_assert(sizeof(AddonMapEnts) == 136);
 
 	struct RawFile
 	{
@@ -1061,7 +1089,7 @@ namespace zonetool
 		int compressedLen;
 		int len;
 		const char* buffer;
-	}; assert_sizeof(RawFile, 0x18);
+	}; static_assert(sizeof(RawFile) == 0x18);
 
 	struct ScriptFile
 	{
@@ -1071,7 +1099,7 @@ namespace zonetool
 		int bytecodeLen;
 		const char* buffer;
 		char* bytecode;
-	}; assert_sizeof(ScriptFile, 0x28);
+	}; static_assert(sizeof(ScriptFile) == 0x28);
 
 	struct StringTableCell
 	{
@@ -1085,7 +1113,7 @@ namespace zonetool
 		int columnCount;
 		int rowCount;
 		StringTableCell* values;
-	}; assert_sizeof(StringTable, 0x18);
+	}; static_assert(sizeof(StringTable) == 0x18);
 
 	struct StructuredDataEnumEntry
 	{
@@ -1180,14 +1208,14 @@ namespace zonetool
 		StructuredDataEnumedArray* enumedArrays;
 		StructuredDataType rootType;
 		unsigned int size;
-	}; assert_sizeof(StructuredDataDef, 0x58);
+	}; static_assert(sizeof(StructuredDataDef) == 0x58);
 
 	struct StructuredDataDefSet
 	{
 		const char* name;
 		unsigned int defCount;
 		StructuredDataDef* defs;
-	}; assert_sizeof(StructuredDataDefSet, 0x18);
+	}; static_assert(sizeof(StructuredDataDefSet) == 0x18);
 
 	enum NetConstStringType
 	{
@@ -1204,7 +1232,7 @@ namespace zonetool
 		NetConstStringSource sourceType;
 		unsigned int entryCount;
 		const char** stringList;
-	}; assert_sizeof(NetConstStrings, 0x20);
+	}; static_assert(sizeof(NetConstStrings) == 0x20);
 
 	struct LuaFile
 	{
@@ -1212,7 +1240,7 @@ namespace zonetool
 		int len;
 		char strippingType;
 		const char* buffer;
-	}; assert_sizeof(LuaFile, 0x18);
+	}; static_assert(sizeof(LuaFile) == 0x18);
 
 	struct TTFDef
 	{
@@ -1220,7 +1248,7 @@ namespace zonetool
 		int fileLen;
 		const char* file;
 		void* ftFace;
-	}; assert_sizeof(TTFDef, 0x20);
+	}; static_assert(sizeof(TTFDef) == 0x20);
 
 	struct FxParticleSimAnimationHeader
 	{
@@ -1339,6 +1367,7 @@ namespace zonetool
 		short entryCount;
 	};
 
+	struct FxEffectDef;
 	union FxEffectDefRef
 	{
 		FxEffectDef* handle;
@@ -1349,6 +1378,7 @@ namespace zonetool
 	{
 		float base[3];
 		float amplitude[3];
+		float unk_vec[3];
 	};
 
 	struct FxElemVelStateInFrame
@@ -1361,7 +1391,7 @@ namespace zonetool
 	{
 		FxElemVelStateInFrame local;
 		FxElemVelStateInFrame world;
-	}; assert_sizeof(FxElemVelStateSample, 96);
+	}; static_assert(sizeof(FxElemVelStateSample) == 144);
 
 	struct FxElemVisualState
 	{
@@ -1378,13 +1408,14 @@ namespace zonetool
 	{
 		FxElemVisualState base;
 		FxElemVisualState amplitude;
-	}; assert_sizeof(FxElemVisStateSample, 112);
+	}; static_assert(sizeof(FxElemVisStateSample) == 112);
 
 	struct FxElemMarkVisuals
 	{
 		Material* materials[3];
 	};
 
+	struct XModel;
 	union FxElemVisuals
 	{
 		const void* anonymous;
@@ -1410,7 +1441,7 @@ namespace zonetool
 		float normal[2];
 		float texCoord[2];
 		char __pad0[8];
-	}; assert_sizeof(FxTrailVertex, 32);
+	}; static_assert(sizeof(FxTrailVertex) == 32);
 
 	struct FxTrailDef
 	{
@@ -1419,13 +1450,16 @@ namespace zonetool
 		float invSplitDist;
 		float invSplitArcDist;
 		float invSplitTime;
-		char __pad0[8];
+		char __pad0[12];
 		int vertCount;
 		FxTrailVertex* verts;
 		int indCount;
 		unsigned short* inds;
-	}; assert_sizeof(FxTrailDef, 0x38);
-	assert_offsetof(FxTrailDef, vertCount, 28);
+	}; static_assert(sizeof(FxTrailDef) == 0x40);
+	static_assert(offsetof(FxTrailDef, verts) == 40);
+	static_assert(offsetof(FxTrailDef, inds) == 56);
+	static_assert(offsetof(FxTrailDef, vertCount) == 32);
+	static_assert(offsetof(FxTrailDef, indCount) == 48);
 
 	struct FxSparkFountainDef
 	{
@@ -1442,7 +1476,7 @@ namespace zonetool
 		float restSpeed;
 		float boostTime;
 		float boostFactor;
-	}; assert_sizeof(FxSparkFountainDef, 0x34);
+	}; static_assert(sizeof(FxSparkFountainDef) == 0x34);
 
 	struct FxSpotLightDef
 	{
@@ -1453,12 +1487,12 @@ namespace zonetool
 		float maxLength;
 		int exponent;
 		char __pad0[24];
-	}; assert_sizeof(FxSpotLightDef, 0x30);
+	}; static_assert(sizeof(FxSpotLightDef) == 0x30);
 
 	struct FxOmniLightDef
 	{
 		char __pad0[16];
-	}; assert_sizeof(FxOmniLightDef, 0x10);
+	}; static_assert(sizeof(FxOmniLightDef) == 0x10);
 
 	struct FxFlareDef
 	{
@@ -1479,7 +1513,7 @@ namespace zonetool
 		float* intensityY;
 		float* srcCosIntensity;
 		float* srcCosScale;
-	}; assert_sizeof(FxFlareDef, 0x70);
+	}; static_assert(sizeof(FxFlareDef) == 0x70);
 
 	union FxElemExtendedDefPtr
 	{
@@ -1503,8 +1537,10 @@ namespace zonetool
 		FxIntRange spawnDelayMsec;
 		FxIntRange lifeSpanMsec;
 		FxFloatRange spawnOrigin[3];
+		char __pad0[4];
 		FxFloatRange spawnOffsetRadius;
 		FxFloatRange spawnOffsetHeight;
+		char __pad1[8];
 		FxFloatRange spawnAngles[3];
 		FxFloatRange angularVelocity[3];
 		FxFloatRange initialRotation;
@@ -1531,8 +1567,27 @@ namespace zonetool
 		unsigned char useItemClip;
 		unsigned char fadeInfo;
 		int randomSeed;
-		char __pad0[24];
-	}; assert_sizeof(FxElemDef, 0x140);
+		char __pad2[16];
+	}; static_assert(sizeof(FxElemDef) == 0x140);
+
+	static_assert(offsetof(FxElemDef, spawnOrigin) == 60);
+	static_assert(offsetof(FxElemDef, spawnOffsetRadius) == 88);
+	static_assert(offsetof(FxElemDef, spawnOffsetHeight) == 96);
+	static_assert(offsetof(FxElemDef, spawnAngles) == 112);
+	static_assert(offsetof(FxElemDef, spawnDelayMsec) == 44);
+	static_assert(offsetof(FxElemDef, lifeSpanMsec) == 52);
+	static_assert(offsetof(FxElemDef, spawn) == 8);
+	static_assert(offsetof(FxElemDef, visualCount) == 194);
+	static_assert(offsetof(FxElemDef, effectOnDeath) == 256);
+	static_assert(offsetof(FxElemDef, spawnAngles) == 112);
+	static_assert(offsetof(FxElemDef, elemType) == 192);
+	static_assert(offsetof(FxElemDef, visSamples) == 0xD0);
+	static_assert(offsetof(FxElemDef, visuals) == 0xD8);
+	static_assert(offsetof(FxElemDef, effectOnImpact) == 0xF8);
+	static_assert(offsetof(FxElemDef, extended) == 0x120);
+	static_assert(offsetof(FxElemDef, effectEmitted) == 0x108);
+	static_assert(offsetof(FxElemDef, visStateIntervalCount) == 0xC4);
+	static_assert(offsetof(FxElemDef, velIntervalCount) == 0xC3);
 
 	struct FxEffectDef
 	{
@@ -1548,8 +1603,14 @@ namespace zonetool
 		int occlusionQueryFadeIn;
 		int occlusionQueryFadeOut;
 		FxFloatRange occlusionQueryScaleRange;
+		float xU_01;
 		FxElemDef* elemDefs;
-	}; assert_sizeof(FxEffectDef, 0x40);
+	}; static_assert(sizeof(FxEffectDef) == 0x48);
+
+	static_assert(offsetof(FxEffectDef, elemDefs) == 0x40);
+	static_assert(offsetof(FxEffectDef, elemDefCountLooping) == 0x14);
+	static_assert(offsetof(FxEffectDef, elemDefCountOneShot) == 0x18);
+	static_assert(offsetof(FxEffectDef, elemDefCountEmission) == 0x1C);
 
 	struct XModelIKData
 	{
@@ -1561,7 +1622,7 @@ namespace zonetool
 		float* floatData;
 		int* int32Data;
 		scr_string_t* strings;
-	}; assert_sizeof(XModelIKData, 0x28);
+	}; static_assert(sizeof(XModelIKData) == 0x28);
 
 	struct SkeletonScriptCode
 	{
@@ -1574,7 +1635,15 @@ namespace zonetool
 		XModelIKData ikData;
 		unsigned short codeLen;
 		SkeletonScriptCode* code;
-	}; assert_sizeof(SkeletonScript, 0x40);
+	}; static_assert(sizeof(SkeletonScript) == 0x40);
+
+	static_assert(offsetof(SkeletonScript, ikData) == 8);
+	static_assert(offsetof(XModelIKData, strings) == 32);
+	static_assert(offsetof(XModelIKData, stringsCount) == 3);
+	static_assert(offsetof(XModelIKData, int32Data) == 24);
+	static_assert(offsetof(XModelIKData, int32DataLen) == 2);
+	static_assert(offsetof(XModelIKData, floatData) == 16);
+	static_assert(offsetof(XModelIKData, floatDataLen) == 1);
 
 	union XAnimDynamicFrames
 	{
@@ -1719,7 +1788,7 @@ namespace zonetool
 		BlendShapeWeight* blendShapeWeights; // 192
 		std::uint64_t u5; // unused?
 		XAnimScriptedViewmodelAnimData* scriptedViewmodelAnimData; // 208 // count = 8
-	}; assert_sizeof(XAnimParts, 0xD8);
+	}; static_assert(sizeof(XAnimParts) == 0xD8);
 
 	union PackedUnitVec
 	{
@@ -1818,7 +1887,7 @@ namespace zonetool
 	{
 		unsigned short b[15];
 		unsigned short blendVertCountIndex; // 30
-	}; assert_sizeof(BlendVertsUnknown, 32);
+	}; static_assert(sizeof(BlendVertsUnknown) == 32);
 
 	struct XSubdivRigidVertList
 	{
@@ -1867,21 +1936,21 @@ namespace zonetool
 		ID3D11ShaderResourceView* normalsView;
 		ID3D11ShaderResourceView* transitionPointsView;
 		ID3D11ShaderResourceView* regularPatchConesView;
-	}; assert_sizeof(XSurfaceSubdivLevel, 0xE8);
+	}; static_assert(sizeof(XSurfaceSubdivLevel) == 0xE8);
 
 	struct GfxSubdivCache
 	{
 		unsigned int size;
 		ID3D11Buffer* subdivCacheBuffer;
 		ID3D11ShaderResourceView* subdivCacheView;
-	}; assert_sizeof(GfxSubdivCache, 0x18);
+	}; static_assert(sizeof(GfxSubdivCache) == 0x18);
 
 	struct XSurfaceSubdivInfo
 	{
 		XSurfaceSubdivLevel* levels;
 		char __pad0[24];
 		GfxSubdivCache cache;
-	}; assert_sizeof(XSurfaceSubdivInfo, 0x38);
+	}; static_assert(sizeof(XSurfaceSubdivInfo) == 0x38);
 
 	struct BlendShapeVert
 	{
@@ -1939,7 +2008,7 @@ namespace zonetool
 		char __pad0[4];
 		int partBits[8];
 		char __pad1[4];
-	}; assert_sizeof(XSurface, 0x108);
+	}; static_assert(sizeof(XSurface) == 0x108);
 
 	struct XModelSurfs
 	{
@@ -1947,18 +2016,26 @@ namespace zonetool
 		XSurface* surfs;
 		unsigned short numsurfs;
 		int partBits[8];
-	}; assert_sizeof(XModelSurfs, 0x38);
+	}; static_assert(sizeof(XModelSurfs) == 0x38);
+
+	struct XUnknown1
+	{
+		char __pad0[32];
+	}; static_assert(sizeof(XUnknown1) == 32);
 
 	struct XModelLodInfo
 	{
-		float dist;
-		unsigned short numsurfs;
-		unsigned short surfIndex;
-		XModelSurfs* modelSurfs;
-		int partBits[8];
-		XSurface* surfs;
-		char unknown[8];
-	};
+		float dist; // 0
+		unsigned short numsurfs; // 4
+		unsigned short surfIndex; // 6
+		XModelSurfs* modelSurfs; // 8
+		int partBits[8]; // 16 20 24 28 32 36 40 44
+		XSurface* surfs; // 48
+		XUnknown1* unknown; // 56 (sizeof struct = 32) (reactiveMotionParts?)
+		char __pad0[5]; // 64 (something must be here)
+		char unknownCount; // 69 (numReactiveMotionParts?)
+		char __pad1[2]; // 70 (padding?)
+	}; static_assert(sizeof(XModelLodInfo) == 72);
 
 	struct XModelAngle
 	{
@@ -2030,7 +2107,7 @@ namespace zonetool
 		unsigned __int16 cellCount[3];
 		unsigned __int16 parentBoneIndex;
 		GfxImage* volumeData;
-	}; assert_sizeof(MdaoVolume, 0x28);
+	}; static_assert(sizeof(MdaoVolume) == 0x28);
 
 	struct XPhysBoneInfo
 	{
@@ -2038,7 +2115,7 @@ namespace zonetool
 		PhysConstraint* physContraint;
 		PhysCollmap* physCollmap;
 		char __pad0[8];
-	}; assert_sizeof(XPhysBoneInfo, 0x20);
+	}; static_assert(sizeof(XPhysBoneInfo) == 0x20);
 
 	enum XModelFlags : std::uint16_t
 	{
@@ -2051,9 +2128,9 @@ namespace zonetool
 		unsigned char numBones; // 8
 		unsigned char numRootBones; // 9
 		unsigned char numsurfs; // 10
-		unsigned char numReactiveMotionParts; // 11
-		unsigned char lodRampType; // 12
-		unsigned char numBonePhysics; // 13
+		unsigned char lodRampType; // 11
+		unsigned char numBonePhysics; // 12
+		unsigned char numCompositeModels; // 13
 		char __pad0[2]; // 14-16
 		float scale; // 16
 		unsigned int noScalePartBits[8]; // 20
@@ -2063,43 +2140,35 @@ namespace zonetool
 		XModelTagPos* tagPositions; // 80
 		unsigned char* partClassification; // 88
 		DObjAnimMat* baseMat; // 96
-		ReactiveMotionModelPart* reactiveMotionParts; // 104
-		ReactiveMotionModelTweaks* reactiveMotionTweaks; // 112
-		Material** materialHandles; // 120
-		XModelLodInfo lodInfo[6]; // 128
-		char numLods; // 512
-		char collLod; // 513
-		char numCompositeModels; // 514
-		char u1; // 515
-		short flags; // 516
-		short numCollSurfs; // 518
-		XModelCollSurf_s* collSurfs; // 520
-		int contents; // 528
-		XBoneInfo* boneInfo; // 536
-		float radius; // 544
-		Bounds bounds; // 548
-		unsigned short* invHighMipRadius; // 576
-		int memUsage; // 584
-		bool bad; // 588
-		char pad; // 589
-		unsigned short targetCount; // 590
-		unsigned short numberOfWeights; // 592
-		unsigned short numberOfWeightMaps; // 594
-		char __pad2[4]; // 596-600
-		scr_string_t* weightNames; // 600
-		BlendShapeWeightMap* blendShapeWeightMap; // 608
-		PhysPreset* physPreset; // 616
-		PhysCollmap* physCollmap; // 624
-		unsigned short mdaoVolumeCount; // 632
-		short u3; // 634
-		float quantization; // 636
-		MdaoVolume* mdaoVolumes; // 640
-		int u4; // 648
-		int u5; // 652
-		SkeletonScript* skeletonScript; // 656
-		XModel** compositeModels; // 664
-		XPhysBoneInfo* bonePhysics; // 672
-	}; assert_sizeof(XModel, 0x2A8);
+		ReactiveMotionModelTweaks* reactiveMotionTweaks; // 104
+		Material** materialHandles; // 112
+		XModelLodInfo lodInfo[6]; // 120
+		char numLods; // 552
+		char collLod; // 553
+		char __pad1[2]; // 554-556
+		short flags; // 556
+		short numCollSurfs; // 558
+		XModelCollSurf_s* collSurfs; // 560
+		XBoneInfo* boneInfo; // 568
+		int contents;
+		float radius;
+		Bounds bounds;
+		unsigned short* invHighMipRadius; // 608
+		MdaoVolume* mdaoVolumes; // 616
+		unsigned short mdaoVolumeCount; // 624
+		unsigned short targetCount; // 626
+		unsigned short numberOfWeights; // 628
+		unsigned short numberOfWeightMaps; // 630
+		scr_string_t* weightNames; // 632
+		BlendShapeWeightMap* blendShapeWeightMap; // 640
+		PhysPreset* physPreset; // 648
+		PhysCollmap* physCollmap; // 656
+		float quantization;
+		int memUsage;
+		SkeletonScript* skeletonScript; // 672
+		XModel** compositeModels; // 680
+		XPhysBoneInfo* bonePhysics; // 688
+	};  static_assert(sizeof(XModel) == 0x2B8);
 
 	enum activeReticleType_t : std::int32_t
 	{
@@ -2291,12 +2360,12 @@ namespace zonetool
 	struct AttChargeInfo
 	{
 		char __pad0[28];
-	}; assert_sizeof(AttChargeInfo, 28);
+	}; static_assert(sizeof(AttChargeInfo) == 28);
 
 	struct AttHybridSettings
 	{
 		char __pad0[72];
-	}; assert_sizeof(AttHybridSettings, 72);
+	}; static_assert(sizeof(AttHybridSettings) == 72);
 
 	union WAFieldParm
 	{
@@ -2339,7 +2408,7 @@ namespace zonetool
 		unsigned char fieldType; //WAFieldType fieldType;
 		unsigned char code; // WAFieldCode code;
 		WAFieldParm parm;
-	}; assert_sizeof(WAField, 16);
+	}; static_assert(sizeof(WAField) == 16);
 
 	struct WeaponAttachment
 	{
@@ -2368,8 +2437,8 @@ namespace zonetool
 		bool riotShield; // 138
 		char __pad1[5];
 		// size: 144
-	}; assert_sizeof(WeaponAttachment, 0x90);
-	assert_offsetof(WeaponAttachment, riotShield, 138);
+	}; static_assert(sizeof(WeaponAttachment) == 0x90);
+	static_assert(offsetof(WeaponAttachment, riotShield) == 138);
 
 	struct AnimOverrideEntry
 	{
@@ -2380,7 +2449,7 @@ namespace zonetool
 		//unsigned int animTreeType;
 		int animTime;
 		int altTime;
-	}; assert_sizeof(AnimOverrideEntry, 32);
+	}; static_assert(sizeof(AnimOverrideEntry) == 32);
 
 	struct SoundOverrideEntry
 	{
@@ -2389,7 +2458,7 @@ namespace zonetool
 		snd_alias_list_t* overrideSound;
 		snd_alias_list_t* altmodeSound;
 		//unsigned int soundType;
-	}; assert_sizeof(SoundOverrideEntry, 24);
+	}; static_assert(sizeof(SoundOverrideEntry) == 24);
 
 	struct FXOverrideEntry
 	{
@@ -2398,7 +2467,7 @@ namespace zonetool
 		FxEffectDef* overrideFX;
 		FxEffectDef* altmodeFX;
 		//unsigned int fxType;
-	}; assert_sizeof(FXOverrideEntry, 24);
+	}; static_assert(sizeof(FXOverrideEntry) == 24);
 
 	struct ReloadStateTimerEntry
 	{
@@ -2406,14 +2475,14 @@ namespace zonetool
 		int reloadAddTime;
 		int reloadEmptyAddTime;
 		int reloadStartAddTime;
-	}; assert_sizeof(ReloadStateTimerEntry, 16);
+	}; static_assert(sizeof(ReloadStateTimerEntry) == 16);
 
 	struct NoteTrackToSoundEntry
 	{
 		int attachment;
 		scr_string_t* notetrackSoundMapKeys;
 		scr_string_t* notetrackSoundMapValues;
-	}; assert_sizeof(NoteTrackToSoundEntry, 24);
+	}; static_assert(sizeof(NoteTrackToSoundEntry) == 24);
 
 	struct TracerDef
 	{
@@ -2427,7 +2496,7 @@ namespace zonetool
 		float screwRadius;
 		float screwDist;
 		float colors[5][4];
-	}; assert_sizeof(TracerDef, 0x80);
+	}; static_assert(sizeof(TracerDef) == 0x80);
 
 	struct LaserDef
 	{
@@ -2438,7 +2507,7 @@ namespace zonetool
 		LaserDef* altLaser;
 		scr_string_t* value;
 		char __pad0[104];
-	}; assert_sizeof(LaserDef, 0x98);
+	}; static_assert(sizeof(LaserDef) == 0x98);
 
 	struct TurretHydraulicSettings
 	{
@@ -2448,7 +2517,7 @@ namespace zonetool
 		snd_alias_list_t* verticalStopSound;
 		snd_alias_list_t* horizontalSound;
 		snd_alias_list_t* horizontalStopSound;
-	}; assert_sizeof(TurretHydraulicSettings, 40);
+	}; static_assert(sizeof(TurretHydraulicSettings) == 40);
 
 	enum weapOverlayReticle_t : std::int32_t
 	{
@@ -2464,11 +2533,13 @@ namespace zonetool
 		Material* shaderEMP;
 		Material* shaderEMPLowRes;
 		weapOverlayReticle_t reticle;
+		float xU_01;
+		float xU_02;
 		float width;
 		float height;
 		float widthSplitscreen;
 		float heightSplitscreen;
-	}; assert_sizeof(ADSOverlay, 0x38);
+	}; static_assert(sizeof(ADSOverlay) == 0x40);
 
 	enum weaponIconRatioType_t : std::int32_t
 	{
@@ -2512,197 +2583,7 @@ namespace zonetool
 	enum weapAnimFiles_t : std::int32_t
 	{
 		WEAP_ANIM_INVALID = -1,
-		WEAP_ANIM_ROOT = 0,
-		WEAP_ANIM_IDLE = 1,
-		WEAP_ANIM_EMPTY_IDLE = 2,
-		WEAP_ANIM_FIRE = 3,
-		WEAP_ANIM_HOLD_FIRE = 4,
-		WEAP_ANIM_LASTSHOT = 5,
-		WEAP_ANIM_RECHAMBER = 6,
-		WEAP_ANIM_GRENADE_PRIME = 7,
-		WEAP_ANIM_GRENADE_PRIME_READY_TO_THROW = 8,
-		WEAP_ANIM_MELEE_SWIPE = 9,
-		WEAP_ANIM_MELEE_HIT = 10,
-		WEAP_ANIM_MELEE_FATAL = 11,
-		WEAP_ANIM_MELEE_MISS = 12,
-		WEAP_ANIM_MELEE_VICTIM_CROUCHING_HIT = 13,
-		WEAP_ANIM_MELEE_VICTIM_CROUCHING_FATAL = 14,
-		WEAP_ANIM_MELEE_VICTIM_CROUCHING_MISS = 15,
-		WEAP_ANIM_MELEE_ALT_STANDING = 16,
-		WEAP_ANIM_MELEE_ALT_CROUCHING = 17,
-		WEAP_ANIM_MELEE_ALT_PRONE = 18,
-		WEAP_ANIM_MELEE_ALT_JUMPING = 19,
-		WEAP_ANIM_MELEE_ALT_STANDING_VICTIM_CROUCHING = 20,
-		WEAP_ANIM_MELEE_ALT_CROUCHING_VICTIM_CROUCHING = 21,
-		WEAP_ANIM_MELEE_ALT_PRONE_VICTIM_CROUCHING = 22,
-		WEAP_ANIM_MELEE_ALT_JUMPING_VICTIM_CROUCHING = 23,
-		WEAP_ANIM_RELOAD = 24,
-		WEAP_ANIM_RELOAD_EMPTY = 25,
-		WEAP_ANIM_RELOAD_START = 26,
-		WEAP_ANIM_RELOAD_END = 27,
-		WEAP_ANIM_FAST_RELOAD = 28,
-		WEAP_ANIM_FAST_RELOAD_EMPTY = 29,
-		WEAP_ANIM_FAST_RELOAD_START = 30,
-		WEAP_ANIM_FAST_RELOAD_END = 31,
-		WEAP_ANIM_DUALMAG_RELOAD = 32,
-		WEAP_ANIM_DUALMAG_RELOAD_EMPTY = 33,
-		WEAP_ANIM_SPEED_RELOAD = 34,
-		WEAP_ANIM_RELOAD_FROM_ALT = 35,
-		WEAP_ANIM_RAISE = 36,
-		WEAP_ANIM_FIRST_RAISE = 37,
-		WEAP_ANIM_BREACH_RAISE = 38,
-		WEAP_ANIM_DROP = 39,
-		WEAP_ANIM_ALT_RAISE = 40,
-		WEAP_ANIM_ALT_DROP = 41,
-		WEAP_ANIM_ALT_OVERRIDE = 42,
-		WEAP_ANIM_QUICK_RAISE = 43,
-		WEAP_ANIM_QUICK_DROP = 44,
-		WEAP_ANIM_EMPTY_RAISE = 45,
-		WEAP_ANIM_EMPTY_DROP = 46,
-		WEAP_ANIM_HYBRID_SIGHT_ON = 47,
-		WEAP_ANIM_HYBRID_SIGHT_OFF = 48,
-		WEAP_ANIM_SPRINT_IN = 49,
-		WEAP_ANIM_SPRINT_IN_FROM_SLIDE = 50,
-		WEAP_ANIM_SPRINT_IN_CANCEL = 51,
-		WEAP_ANIM_SPRINT_LOOP = 52,
-		WEAP_ANIM_SPRINT_OUT = 53,
-		WEAP_ANIM_SPRINTANDFIRE_IN = 54,
-		WEAP_ANIM_SPRINTANDFIRE_LOOP = 55,
-		WEAP_ANIM_SPRINTANDFIRE_OUT = 56,
-		WEAP_ANIM_STUNNED_START = 57,
-		WEAP_ANIM_STUNNED_LOOP = 58,
-		WEAP_ANIM_STUNNED_END = 59,
-		WEAP_ANIM_THROWBACK = 60,
-		WEAP_ANIM_DETONATE = 61,
-		WEAP_ANIM_NIGHTVISION_WEAR = 62,
-		WEAP_ANIM_NIGHTVISION_REMOVE = 63,
-		WEAP_ANIM_ADS_FIRE = 64,
-		WEAP_ANIM_ADS_LASTSHOT = 65,
-		WEAP_ANIM_ADS_RECHAMBER = 66,
-		WEAP_ANIM_BLAST_FRONT = 67,
-		WEAP_ANIM_BLAST_RIGHT = 68,
-		WEAP_ANIM_BLAST_BACK = 69,
-		WEAP_ANIM_BLAST_LEFT = 70,
-		WEAP_ANIM_SLIDE_IN = 71,
-		WEAP_ANIM_SLIDE_LOOP = 72,
-		WEAP_ANIM_SLIDE_OUT_TO_SPRINT = 73,
-		WEAP_ANIM_SLIDE_OUT = 74,
-		WEAP_ANIM_SLIDE_AND_FIRE_IN = 75,
-		WEAP_ANIM_SLIDE_AND_FIRE_LOOP = 76,
-		WEAP_ANIM_SLIDE_AND_FIRE_OUT = 77,
-		WEAP_ANIM_HIGH_JUMP_IN = 78,
-		WEAP_ANIM_HIGH_JUMP_DROP_IN = 79,
-		WEAP_ANIM_HIGH_JUMP_DROP_LOOP = 80,
-		WEAP_ANIM_HIGH_JUMP_DROP_LAND = 81,
-		WEAP_ANIM_DODGE_GROUND_BACK = 82,
-		WEAP_ANIM_DODGE_GROUND_LEFT = 83,
-		WEAP_ANIM_DODGE_GROUND_RIGHT = 84,
-		WEAP_ANIM_DODGE_AIR_FORWARD = 85,
-		WEAP_ANIM_DODGE_AIR_BACK = 86,
-		WEAP_ANIM_DODGE_AIR_LEFT = 87,
-		WEAP_ANIM_DODGE_AIR_RIGHT = 88,
-		WEAP_ANIM_LAND_DIP = 89,
-		WEAP_ANIM_RECOIL_SETTLE = 90,
-		WEAP_ANIM_SWIM_LOOP = 91,
-		WEAP_ANIM_MANTLE_UP_64 = 92,
-		WEAP_ANIM_MANTLE_UP_56 = 93,
-		WEAP_ANIM_MANTLE_UP_48 = 94,
-		WEAP_ANIM_MANTLE_UP_40 = 95,
-		WEAP_ANIM_MANTLE_UP_32 = 96,
-		WEAP_ANIM_MANTLE_UP_24 = 97,
-		WEAP_ANIM_MANTLE_UP_16 = 98,
-		WEAP_ANIM_MANTLE_OVER_64 = 99,
-		WEAP_ANIM_MANTLE_OVER_56 = 100,
-		WEAP_ANIM_MANTLE_OVER_48 = 101,
-		WEAP_ANIM_MANTLE_OVER_40 = 102,
-		WEAP_ANIM_MANTLE_OVER_32 = 103,
-		WEAP_ANIM_MANTLE_OVER_24 = 104,
-		WEAP_ANIM_MANTLE_OVER_16 = 105,
-		WEAP_ANIM_GOLIATH_ENTRY = 106,
-		WEAP_ANIM_OFFHAND_SWITCH = 107,
-		WEAP_ANIM_HEAT_COOLDOWN_IN = 108,
-		WEAP_ANIM_HEAT_COOLDOWN_OUT = 109,
-		WEAP_ANIM_OVERHEAT_OUT = 110,
-		WEAP_ANIM_SCRIPTED = 111,
-		WEAP_ANIM_INSPECTION = 112,
-		WEAP_ANIM_RELOAD_MULTIPLE_1 = 113,
-		WEAP_ANIM_RELOAD_MULTIPLE_2 = 114,
-		WEAP_ANIM_RELOAD_MULTIPLE_3 = 115,
-		WEAP_ANIM_RELOAD_MULTIPLE_4 = 116,
-		WEAP_ANIM_RELOAD_MULTIPLE_5 = 117,
-		WEAP_ANIM_RELOAD_MULTIPLE_6 = 118,
-		WEAP_ANIM_RELOAD_MULTIPLE_7 = 119,
-		WEAP_ANIM_RELOAD_MULTIPLE_8 = 120,
-		WEAP_ANIM_RELOAD_MULTIPLE_FAST_1 = 121,
-		WEAP_ANIM_RELOAD_MULTIPLE_FAST_2 = 122,
-		WEAP_ANIM_RELOAD_MULTIPLE_FAST_3 = 123,
-		WEAP_ANIM_RELOAD_MULTIPLE_FAST_4 = 124,
-		WEAP_ANIM_RELOAD_MULTIPLE_FAST_5 = 125,
-		WEAP_ANIM_RELOAD_MULTIPLE_FAST_6 = 126,
-		WEAP_ANIM_RELOAD_MULTIPLE_FAST_7 = 127,
-		WEAP_ANIM_RELOAD_MULTIPLE_FAST_8 = 128,
-		WEAP_ANIM_ADS_UP = 129,
-		WEAP_ANIM_ADS_DOWN = 130,
-		WEAP_ANIM_RECOIL = 131,
-		WEAP_ALT_ANIM_ADJUST = 132,
-		WEAP_ANIM_ADDITIVE_ADS_ROOT = 133,
-		WEAP_ANIM_ADDITIVE_ADS_UP = 134,
-		WEAP_ANIM_ADDITIVE_HYBRID_SIGHT_UP_ROOT = 135,
-		WEAP_ANIM_ADDITIVE_HYBRID_SIGHT_UP = 136,
-		WEAP_ANIM_ADDITIVE_DRAG_LEFT_ROOT = 137,
-		WEAP_ANIM_ADDITIVE_DRAG_LEFT = 138,
-		WEAP_ANIM_ADDITIVE_DRAG_RIGHT_ROOT = 139,
-		WEAP_ANIM_ADDITIVE_DRAG_RIGHT = 140,
-		WEAP_ANIM_ADDITIVE_DRAG_UP_ROOT = 141,
-		WEAP_ANIM_ADDITIVE_DRAG_UP = 142,
-		WEAP_ANIM_ADDITIVE_DRAG_DOWN_ROOT = 143,
-		WEAP_ANIM_ADDITIVE_DRAG_DOWN = 144,
-		WEAP_ANIM_ADDITIVE_SWIM_FORWARD_ROOT = 145,
-		WEAP_ANIM_ADDITIVE_SWIM_FORWARD = 146,
-		WEAP_ANIM_ADDITIVE_SWIM_BACKWARD_ROOT = 147,
-		WEAP_ANIM_ADDITIVE_SWIM_BACKWARD = 148,
-		WEAP_ANIM_ADDITIVE_JUMP_ROOT = 149,
-		WEAP_ANIM_ADDITIVE_JUMP = 150,
-		WEAP_ANIM_ADDITIVE_JUMP_BOOST = 151,
-		WEAP_ANIM_ADDITIVE_JUMP_LAND_ROOT = 152,
-		WEAP_ANIM_ADDITIVE_JUMP_LAND = 153,
-		WEAP_ANIM_ADDITIVE_JUMP_LAND_HEAVY = 154,
-		WEAP_ANIM_ADDITIVE_WALK_ROOT = 155,
-		WEAP_ANIM_ADDITIVE_WALK = 156,
-		WEAP_ANIM_ADDITIVE_HEAT_COOLDOWN_LOOP_ROOT = 157,
-		WEAP_ANIM_ADDITIVE_HEAT_COOLDOWN_LOOP = 158,
-		WEAP_ANIM_ADDITIVE_OVERHEAT_IN_ROOT = 159,
-		WEAP_ANIM_ADDITIVE_OVERHEAT_IN = 160,
-		WEAP_ANIM_ADDITIVE_OVERHEAT_LOOP_ROOT = 161,
-		WEAP_ANIM_ADDITIVE_OVERHEAT_LOOP = 162,
-		WEAP_ANIM_ADDITIVE_CRAWL_IN_ROOT = 163,
-		WEAP_ANIM_ADDITIVE_CRAWL_IN = 164,
-		WEAP_ANIM_ADDITIVE_CRAWL_LOOP_ROOT = 165,
-		WEAP_ANIM_ADDITIVE_CRAWL_LOOP = 166,
-		WEAP_ANIM_ADDITIVE_CRAWL_LOOP_BACK_ROOT = 167,
-		WEAP_ANIM_ADDITIVE_CRAWL_LOOP_BACK = 168,
-		WEAP_ANIM_ADDITIVE_CRAWL_LOOP_LEFT_ROOT = 169,
-		WEAP_ANIM_ADDITIVE_CRAWL_LOOP_LEFT = 170,
-		WEAP_ANIM_ADDITIVE_CRAWL_LOOP_RIGHT_ROOT = 171,
-		WEAP_ANIM_ADDITIVE_CRAWL_LOOP_RIGHT = 172,
-		WEAP_ANIM_ADDITIVE_PRONE_DROP_ROOT = 173,
-		WEAP_ANIM_ADDITIVE_PRONE_DROP = 174,
-		WEAP_ANIM_ADDITIVE_EMPTY_ROOT = 175,
-		WEAP_ANIM_ADDITIVE_EMPTY = 176,
-		WEAP_ANIM_ADDITIVE_MANTLE_ROOT = 177,
-		WEAP_ANIM_ADDITIVE_MANTLE = 178,
-		WEAP_ANIM_ADDITIVE_LOW_MANTLE_ROOT = 179,
-		WEAP_ANIM_ADDITIVE_MANTLE_UP_24 = 180,
-		WEAP_ANIM_ADDITIVE_MANTLE_UP_16 = 181,
-		WEAP_ANIM_ADDITIVE_MANTLE_OVER_24 = 182,
-		WEAP_ANIM_ADDITIVE_MANTLE_OVER_16 = 183,
-		WEAP_ANIM_ADDITIVE_SHOT_CHARGE_IN_ROOT = 184,
-		WEAP_ANIM_ADDITIVE_SHOT_CHARGE_IN = 185,
-		WEAP_ANIM_ADDITIVE_SHOT_CHARGE_LOOP_ROOT = 186,
-		WEAP_ANIM_ADDITIVE_SHOT_CHARGE_LOOP = 187,
-		WEAP_ANIM_ADDITIVE_SCRIPTED_ROOT = 188,
-		WEAP_ANIM_ADDITIVE_SCRIPTED = 189,
-		NUM_WEAP_ANIMS = 190,
+		NUM_WEAP_ANIMS = 202,
 	};
 
 	struct StateTimers
@@ -2782,7 +2663,11 @@ namespace zonetool
 		int u72; // 1928 * x (unknown)
 		int u73; // 1932 * x (unknown)
 		int u74; // 1936 * x (unknown)
-	}; assert_sizeof(StateTimers, 300);
+		int u75; // 1936 * x (unknown)
+		int u76; // 1936 * x (unknown)
+		int u77; // 1936 * x (unknown)
+		int u78; // 1936 * x (unknown)
+	}; static_assert(sizeof(StateTimers) == 316);
 
 	struct WeaponDef
 	{
@@ -2793,6 +2678,8 @@ namespace zonetool
 		};
 		const char* szDisplayName; // 8
 		const char* szOverlayName; // 16
+		const char* szAttachmentName;
+		const char* szUnknownName;
 		XModel** gunModel; // 24 (2 xmodels)
 		XModel* handModel; // 32
 		XModel* unknownModel; // 40
@@ -2831,80 +2718,96 @@ namespace zonetool
 		FxEffectDef* effect10; // 304
 		FxEffectDef* effect11; // 312
 		FxEffectDef* effect12; // 320
-		snd_alias_list_t* pickupSound; // 328 (74 sounds)
-		snd_alias_list_t* pickupSoundPlayer; // 336
-		snd_alias_list_t* ammoPickupSound; // 344
-		snd_alias_list_t* ammoPickupSoundPlayer; // 352
-		snd_alias_list_t* projectileSound; // 360
-		snd_alias_list_t* pullbackSound; // 368
-		snd_alias_list_t* pullbackSoundPlayer; // 376
-		snd_alias_list_t* pullbackSoundQuick; // 384
-		snd_alias_list_t* pullbackSoundQuickPlayer; // 392
-		snd_alias_list_t* fireSound; // 400
-		snd_alias_list_t* fireSoundPlayer; // 408
-		snd_alias_list_t* fireSoundPlayerAkimbo; // 416
-		snd_alias_list_t* sound13; // 424
-		snd_alias_list_t* sound14; // 432
-		snd_alias_list_t* sound15; // 440
-		snd_alias_list_t* sound16; // 448
-		snd_alias_list_t* fireLoopSound; // 456
-		snd_alias_list_t* fireLoopSoundPlayer; // 464
-		snd_alias_list_t* sound19; // 472
-		snd_alias_list_t* sound20; // 480
-		snd_alias_list_t* sound21; // 488
-		snd_alias_list_t* sound22; // 496
-		snd_alias_list_t* fireLoopEndPointSound; // 504
-		snd_alias_list_t* fireLoopEndPointSoundPlayer; // 512
-		snd_alias_list_t* fireStopSound; // 520
-		snd_alias_list_t* fireStopSoundPlayer; // 528
-		snd_alias_list_t* sound27; // 536
-		snd_alias_list_t* sound28; // 544
-		snd_alias_list_t* sound29; // 552
-		snd_alias_list_t* sound30; // 560
-		snd_alias_list_t* fireLastShotSound; // 568
-		snd_alias_list_t* fireLastShotSoundPlayer; // 576
-		snd_alias_list_t* fireFirstSound; // 584
-		snd_alias_list_t* fireFirstSoundPlayer; // 592
-		snd_alias_list_t* fireLastSound; // 600
-		snd_alias_list_t* fireLastSoundPlayer; // 608
-		snd_alias_list_t* emptyFireSound; // 616
-		snd_alias_list_t* emptyFireSoundPlayer; // 624
-		snd_alias_list_t* sound39; // 632
-		snd_alias_list_t* meleeSwipeSound; // 640
-		snd_alias_list_t* meleeSwipeSoundPlayer; // 648
-		snd_alias_list_t* meleeHitSound; // 656
-		snd_alias_list_t* meleeHitSoundPlayer; // 664
-		snd_alias_list_t* meleeMissSound; // 672
-		snd_alias_list_t* meleeMissSoundPlayer; // 680
-		snd_alias_list_t* rechamberSound; // 688
-		snd_alias_list_t* rechamberSoundPlayer; // 696
-		snd_alias_list_t* reloadSound; // 704
-		snd_alias_list_t* reloadSoundPlayer; // 712
-		snd_alias_list_t* reloadEmptySound; // 720
-		snd_alias_list_t* reloadEmptySoundPlayer; // 728
-		snd_alias_list_t* reloadStartSound; // 736
-		snd_alias_list_t* reloadStartSoundPlayer; // 744
-		snd_alias_list_t* reloadEndSound; // 752
-		snd_alias_list_t* reloadEndSoundPlayer; // 760
-		snd_alias_list_t* detonateSound; // 768
-		snd_alias_list_t* detonateSoundPlayer; // 776
-		snd_alias_list_t* nightVisionWearSound; // 784
-		snd_alias_list_t* nightVisionWearSoundPlayer; // 792
-		snd_alias_list_t* nightVisionRemoveSound; // 800
-		snd_alias_list_t* nightVisionRemoveSoundPlayer; // 808
-		snd_alias_list_t* raiseSound; // 816
-		snd_alias_list_t* raiseSoundPlayer; // 824
-		snd_alias_list_t* sound64; // 832
-		snd_alias_list_t* sound65; // 840
-		snd_alias_list_t* sound66; // 848
-		snd_alias_list_t* sound67; // 856
-		snd_alias_list_t* putawaySound; // 864
-		snd_alias_list_t* putawaySoundPlayer; // 872
-		snd_alias_list_t* sound70; // 880
-		snd_alias_list_t* sound71; // 888
-		snd_alias_list_t* adsEnterSoundPlayer; // 896
-		snd_alias_list_t* adsLeaveSoundPlayer; // 904
-		snd_alias_list_t* adsCrosshairEnemySound; // 912
+		snd_alias_list_t* pickupSound; // 1
+		snd_alias_list_t* pickupSoundPlayer; // 2
+		snd_alias_list_t* ammoPickupSound; // 3
+		snd_alias_list_t* ammoPickupSoundPlayer; // 4
+		snd_alias_list_t* projectileSound; // 5
+		snd_alias_list_t* pullbackSound; // 6
+		snd_alias_list_t* pullbackSoundPlayer; // 7
+		snd_alias_list_t* pullbackSoundQuick; // 8
+		snd_alias_list_t* pullbackSoundQuickPlayer; // 9
+		snd_alias_list_t* fireSound;  // 10
+		snd_alias_list_t* fireSoundPlayer;  // 11
+		snd_alias_list_t* fireSoundPlayerLeft;  // 12
+		snd_alias_list_t* fireSoundPlayerRight;  // 13
+		snd_alias_list_t* sound14;  // 14
+		snd_alias_list_t* sound15;  // 15
+		snd_alias_list_t* sound16;  // 16
+		snd_alias_list_t* sound17;  // 17
+		snd_alias_list_t* sound18;  // 18
+		snd_alias_list_t* fireLoopSound;  // 19
+		snd_alias_list_t* fireLoopSoundPlayer;  // 20
+		snd_alias_list_t* sound21;  // 21
+		snd_alias_list_t* sound22;  // 22
+		snd_alias_list_t* sound23;  // 23
+		snd_alias_list_t* sound24;  // 24
+		snd_alias_list_t* sound25;  // 25
+		snd_alias_list_t* sound26;  // 26
+		snd_alias_list_t* fireStopSound;  // 27
+		snd_alias_list_t* fireStopSoundPlayer;  // 28
+		snd_alias_list_t* sound29;  // 29
+		snd_alias_list_t* sound30;  // 30
+		snd_alias_list_t* sound31;  // 31
+		snd_alias_list_t* sound32;  // 32
+		snd_alias_list_t* sound33;  // 33
+		snd_alias_list_t* fireFirstSound;  // 34
+		snd_alias_list_t* fireFirstSoundPlayer;  // 35
+		snd_alias_list_t* fireSound2;  // 36
+		snd_alias_list_t* fireSoundPlayer2;  // 37
+		snd_alias_list_t* fireSpecialSound;  // 38
+		snd_alias_list_t* fireSpecialSoundPlayer;  // 39
+		snd_alias_list_t* emptyFireSound;  // 40
+		snd_alias_list_t* emptyFireSoundPlayer;  // 41
+		snd_alias_list_t* emptyFireSoundPlayerLeft;  // 42
+		snd_alias_list_t* emptyFireSoundPlayerRight;  // 43
+		snd_alias_list_t* emptyFireSoundReleasePlayer;  // 44
+		snd_alias_list_t* emptyFireSoundReleasePlayerLeft;  // 45
+		snd_alias_list_t* emptyFireSoundReleasePlayerRight;  // 46
+		snd_alias_list_t* sound47;  // 47
+		snd_alias_list_t* meleeSwipeSound;  // 48
+		snd_alias_list_t* meleeSwipeSoundPlayer;  // 49
+		snd_alias_list_t* meleeHitSound;  // 50
+		snd_alias_list_t* meleeHitSoundPlayer;  // 51
+		snd_alias_list_t* meleeMissSound;  // 52
+		snd_alias_list_t* meleeMissSoundPlayer;  // 53
+		snd_alias_list_t* sound54;  // 54
+		snd_alias_list_t* sound55;  // 55
+		snd_alias_list_t* sound56;  // 56
+		snd_alias_list_t* sound57;  // 57
+		snd_alias_list_t* sound58;  // 58
+		snd_alias_list_t* sound59;  // 59
+		snd_alias_list_t* sound60;  // 60
+		snd_alias_list_t* sound61;  // 61
+		snd_alias_list_t* sound62;  // 62
+		snd_alias_list_t* sound63;  // 63
+		snd_alias_list_t* sound64;  // 64
+		snd_alias_list_t* sound65;  // 65
+		snd_alias_list_t* nightVisionWearSound;  // 66
+		snd_alias_list_t* nightVisionWearSoundPlayer;  // 67
+		snd_alias_list_t* nightVisionRemoveSound;  // 68
+		snd_alias_list_t* nightVisionRemoveSoundPlayer;  // 69
+		snd_alias_list_t* raiseSound;  // 70
+		snd_alias_list_t* raiseSoundPlayer;  // 71
+		snd_alias_list_t* raiseSoundPlayerLeft;  // 72
+		snd_alias_list_t* raiseSoundPlayerRight;  // 73
+		snd_alias_list_t* sound74;  // 74
+		snd_alias_list_t* quickRaiseSoundPlayer;  // 75
+		snd_alias_list_t* quickRaiseSoundPlayerLeft;  // 76
+		snd_alias_list_t* quickRaiseSoundPlayerRight;  // 77
+		snd_alias_list_t* raiseSound2;  // 78
+		snd_alias_list_t* sound79;  // 79
+		snd_alias_list_t* sound80;  // 80
+		snd_alias_list_t* sound81;  // 81
+		snd_alias_list_t* putawaySound;  // 82
+		snd_alias_list_t* putawaySoundPlayer;  // 83
+		snd_alias_list_t* putawaySoundPlayerLeft;  // 84
+		snd_alias_list_t* putawaySoundPlayerRight;  // 85
+		snd_alias_list_t* sound86;  // 86
+		snd_alias_list_t* sound87;  // 87
+		snd_alias_list_t* adsEnterSoundPlayer;  // 88
+		snd_alias_list_t* adsLeaveSoundPlayer;  // 89
+		snd_alias_list_t* adsCrosshairEnemySound;  // 90
 		snd_alias_list_t** bounceSound; // 920 (53 sounds)
 		snd_alias_list_t** rollingSound; // 928 (53 sounds)
 		FxEffectDef* viewShellEjectEffect; // 936
@@ -2988,6 +2891,8 @@ namespace zonetool
 		float proneOfs[3]; // 1500 1504 1508
 		float proneMove[3]; // 1512 1516 1520
 		float proneRot[3]; // 1524 1528 1532
+		float unkVec1[3];
+		float unkVec2[3];
 		float posMoveRate; // 1536
 		float posProneMoveRate; // 1540
 		float standMoveMinSpeed; // 1544
@@ -3000,7 +2905,7 @@ namespace zonetool
 		weaponIconRatioType_t ammoCounterIconRatio; // 1572
 		int ammoCounterClip; // 1576
 		int startAmmo; // 1580
-		int ammoIndex; // 1584 (runtime variable)
+		int ammoIndex; // 1752
 		char ammoIndexUnknown; // 1588 (runtime variable)
 		char __pad002[3]; // padding?
 		int clipIndex; // 1592 (runtime variable)
@@ -3223,6 +3128,7 @@ namespace zonetool
 		float scanSpeed; // 3212
 		float scanAccel; // 3216
 		int scanPauseTime; // 3220
+		char __pad[12];
 		const char* szScript; // 3224
 		int minDamage; // 3232
 		int midDamage; // 3236
@@ -3387,6 +3293,7 @@ namespace zonetool
 		bool bU_113; // 3569 X
 		bool bU_114; // 3570 (BG_ShowHideTagsBasedOnAltMode)
 		bool bU_115; // 3571 (BG_ShowHideTagsBasedOnAltMode)
+		float xU_03_1;
 		float adsDofPhysicalFStop; // 3572 (BG_ADSDOFPhysicalFStop)
 		float adsDofPhysicalFocusDistance; // 3576 (BG_ADSDOFPhysicalFocusDistance)
 		float autosimSpeedScalar; // 3580 (BG_GetAutosimSpeedScalar)
@@ -3394,1803 +3301,236 @@ namespace zonetool
 		char __pad_unknown[12]; // 3604
 		//1400C7650
 		// size: 3616
-	}; assert_sizeof(WeaponDef, 0xE20);
-
-	enum operationEnum : std::int32_t
-	{
-		OP_NOOP = 0x0,
-		OP_RIGHTPAREN = 0x1,
-		OP_MULTIPLY = 0x2,
-		OP_DIVIDE = 0x3,
-		OP_MODULUS = 0x4,
-		OP_ADD = 0x5,
-		OP_SUBTRACT = 0x6,
-		OP_NOT = 0x7,
-		OP_LESSTHAN = 0x8,
-		OP_LESSTHANEQUALTO = 0x9,
-		OP_GREATERTHAN = 0xA,
-		OP_GREATERTHANEQUALTO = 0xB,
-		OP_EQUALS = 0xC,
-		OP_NOTEQUAL = 0xD,
-		OP_AND = 0xE,
-		OP_OR = 0xF,
-		OP_LEFTPAREN = 0x10,
-		OP_COMMA = 0x11,
-		OP_BITWISEAND = 0x12,
-		OP_BITWISEOR = 0x13,
-		OP_BITWISENOT = 0x14,
-		OP_BITSHIFTLEFT = 0x15,
-		OP_BITSHIFTRIGHT = 0x16,
-		OP_FIRSTFUNCTIONCALL = 0x17,
-		OP_STATICDVARINT = 0x17,
-		OP_STATICDVARBOOL = 0x18,
-		OP_STATICDVARFLOAT = 0x19,
-		OP_STATICDVARSTRING = 0x1A,
-		OP_TOINT = 0x1B,
-		OP_TOSTRING = 0x1C,
-		OP_TOFLOAT = 0x1D,
-		LAST_COMMONLY_CALLED_FUNCTION = 0x1D,
-		OP_SIN = 0x1E,
-		OP_COS = 0x1F,
-		OP_MIN = 0x20,
-		OP_MAX = 0x21,
-		OP_MILLISECONDS = 0x22,
-		OP_LOCALCLIENTUIMILLISECONDS = 0x23,
-		OP_DVARINT = 0x24,
-		OP_DVARBOOL = 0x25,
-		OP_DVARFLOAT = 0x26,
-		OP_DVARSTRING = 0x27,
-		OP_UIACTIVE = 0x28,
-		OP_FLASHBANGED = 0x29,
-		OP_USINGVEHICLE = 0x2A,
-		OP_MISSILECAM = 0x2B,
-		OP_SCOPED = 0x2C,
-		OP_SCOPEDTHERMAL = 0x2D,
-		OP_SCOREBOARDVISIBLE = 0x2E,
-		OP_INKILLCAM = 0x2F,
-		OP_INKILLCAM_NPC = 0x30,
-		OP_PLAYERFIELD = 0x31,
-		OP_GET_PLAYER_PERK = 0x32,
-		OP_SELECTINGLOCATION = 0x33,
-		OP_SELECTINGDIRECTION = 0x34,
-		OP_TEAMFIELD = 0x35,
-		OP_OTHERTEAMFIELD = 0x36,
-		OP_MARINESFIELD = 0x37,
-		OP_OPFORFIELD = 0x38,
-		OP_MENUISOPEN = 0x39,
-		OP_WRITINGDATA = 0x3A,
-		OP_INLOBBY = 0x3B,
-		OP_INGAMELOBBY = 0x3C,
-		OP_INPRIVATEPARTY = 0x3D,
-		OP_PRIVATEPARTYHOST = 0x3E,
-		OP_PRIVATEPARTYHOSTINLOBBY = 0x3F,
-		OP_ALONEINPARTY = 0x40,
-		OP_ADSJAVELIN = 0x41,
-		OP_WEAPLOCKBLINK = 0x42,
-		OP_WEAPATTACKTOP = 0x43,
-		OP_WEAPATTACKDIRECT = 0x44,
-		OP_WEAPLOCKING = 0x45,
-		OP_WEAPLOCKED = 0x46,
-		OP_WEAPLOCKTOOCLOSE = 0x47,
-		OP_WEAPLOCKSCREENPOSX = 0x48,
-		OP_WEAPLOCKSCREENPOSY = 0x49,
-		OP_SECONDSASTIME = 0x4A,
-		OP_TABLELOOKUP = 0x4B,
-		OP_TABLELOOKUPBYROW = 0x4C,
-		OP_TABLEGETROWNUM = 0x4D,
-		OP_LOCALIZESTRING = 0x4E,
-		OP_LOCALVARINT = 0x4F,
-		OP_LOCALVARBOOL = 0x50,
-		OP_LOCALVARFLOAT = 0x51,
-		OP_LOCALVARSTRING = 0x52,
-		OP_TIMELEFT = 0x53,
-		OP_SECONDSASCOUNTDOWN = 0x54,
-		OP_GAMEMSGWNDACTIVE = 0x55,
-		OP_GAMETYPENAME = 0x56,
-		OP_GAMETYPE = 0x57,
-		OP_GAMETYPEDESCRIPTION = 0x58,
-		OP_SCORE = 0x59,
-		OP_FOLLOWING = 0x5A,
-		OP_SPECTATINGFREE = 0x5B,
-		OP_KEYBINDING = 0x5C,
-		OP_ACTIONSLOTUSABLE = 0x5D,
-		OP_HUDFADE = 0x5E,
-		OP_MAXPLAYERS = 0x5F,
-		OP_ACCEPTINGINVITE = 0x60,
-		OP_ISINTERMISSION = 0x61,
-		OP_GAMEHOST = 0x62,
-		OP_PARTYHASMISSINGMAPPACK = 0x63,
-		OP_PARTYMISSINGMAPPACKERROR = 0x64,
-		OP_ANYNEWMAPPACKS = 0x65,
-		OP_AMISELECTED = 0x66,
-		OP_PARTYSTATUSSTRING = 0x67,
-		OP_ATTACHED_CONTROLLER_COUNT = 0x68,
-		OP_IS_SPLIT_SCREEN_ONLINE_POSSIBLE = 0x69,
-		OP_SPLITSCREENPLAYERCOUNT = 0x6A,
-		OP_GETPLAYERDATA = 0x6B,
-		OP_GETPLAYERDATASPLITSCREEN = 0x6C,
-		OP_GET_MATCHRULES_DATA = 0x6D,
-		OP_GET_SAVED_MATCHRULES_METADATA = 0x6E,
-		OP_LEVEL_FOR_EXPERIENCE_MP = 0x6F,
-		OP_LEVEL_FOR_EXPERIENCE_SO = 0x70,
-		OP_IS_ITEM_UNLOCKED = 0x71,
-		OP_IS_ITEM_UNLOCKEDSPLITSCREEN = 0x72,
-		OP_IS_CARDICON_UNLOCKED = 0x73,
-		OP_IS_CARDTITLE_UNLOCKED = 0x74,
-		OP_IS_CARDICON_NEW = 0x75,
-		OP_IS_CARDTITLE_NEW = 0x76,
-		OP_IS_CARDICON_UNLOCKED_SPLITSCREEN = 0x77,
-		OP_IS_CARDTITLE_UNLOCKED_SPLITSCREEN = 0x78,
-		OP_IS_CARDICON_NEW_SPLITSCREEN = 0x79,
-		OP_IS_CARDTITLE_NEW_SPLITSCREEN = 0x7A,
-		OP_IS_PROFILEITEM_UNLOCKED = 0x7B,
-		OP_IS_PROFILEITEM_UNLOCKED_SPLITSCREEN = 0x7C,
-		OP_DEBUG_PRINT = 0x7D,
-		OP_GETPLAYERDATA_ANYBOOLTRUE = 0x7E,
-		OP_GETPROFILE_ANYBOOLTRUE = 0x7F,
-		OP_WEAPONNAME = 0x80,
-		OP_ISRELOADING = 0x81,
-		OP_SAVE_GAME_AVAILABLE = 0x82,
-		OP_UNLOCKED_ITEM_COUNT = 0x83,
-		OP_UNLOCKED_ITEM_COUNT_SPLITSCREEN = 0x84,
-		OP_UNLOCKED_ITEM = 0x85,
-		OP_UNLOCKED_ITEM_SPLITSCREEN = 0x86,
-		OP_RADAR_IS_JAMMED = 0x87,
-		OP_RADAR_JAM_INTENSITY = 0x88,
-		OP_RADAR_IS_ENABLED = 0x89,
-		OP_EMP_JAMMED = 0x8A,
-		OP_PLAYERADS = 0x8B,
-		OP_WEAPON_HEAT_ACTIVE = 0x8C,
-		OP_WEAPON_HEAT_VALUE = 0x8D,
-		OP_WEAPON_HEAT_OVERHEATED = 0x8E,
-		OP_SPLASH_TEXT = 0x8F,
-		OP_SPLASH_DESCRIPTION = 0x90,
-		OP_SPLASH_MATERIAL = 0x91,
-		OP_SPLASH_HAS_ICON = 0x92,
-		OP_SPLASH_ROWNUM = 0x93,
-		OP_GETFOCUSED_NAME = 0x94,
-		OP_GETFOCUSED_X = 0x95,
-		OP_GETFOCUSED_Y = 0x96,
-		OP_GETFOCUSED_W = 0x97,
-		OP_GETFOCUSED_H = 0x98,
-		OP_GETITEMDEF_X = 0x99,
-		OP_GETITEMDEF_Y = 0x9A,
-		OP_GETITEMDEF_W = 0x9B,
-		OP_GETITEMDEF_H = 0x9C,
-		OP_PLAYLISTFIELD = 0x9D,
-		OP_SCOREBOARD_EXTERNALMUTE_NOTICE = 0x9E,
-		OP_GET_MAP_NAME = 0x9F,
-		OP_GET_MAP_IMAGE = 0xA0,
-		OP_GET_MAP_CUSTOM = 0xA1,
-		OP_GET_MIGRATION_STATUS = 0xA2,
-		OP_GET_PLAYERCARD_INFO = 0xA3,
-		OP_IS_OFFLINE_PROFILE_SELECTED = 0xA4,
-		OP_COOP_PLAYERFIELD = 0xA5,
-		OP_IS_COOP = 0xA6,
-		OP_GETPARTYSTATUS = 0xA7,
-		OP_GETSEARCHPARAMS = 0xA8,
-		OP_GETTIMEPLAYED = 0xA9,
-		OP_IS_SELECTED_PLAYER_FRIEND = 0xAA,
-		OP_GETCHARBYINDEX = 0xAB,
-		OP_GETPLAYERPROFILEDATA = 0xAC,
-		OP_GETPLAYERPROFILEDATASPLITSCREEN = 0xAD,
-		OP_IS_PROFILE_SIGNED_IN = 0xAE,
-		OP_GET_WAIT_POPUP_STATUS = 0xAF,
-		OP_GETNATTYPE = 0xB0,
-		OP_GETLOCALIZEDNATTYPE = 0xB1,
-		OP_GET_ADJUSTED_SAFEAREA_HORIZONTAL = 0xB2,
-		OP_GET_ADJUSTED_SAFEAREA_VERTICAL = 0xB3,
-		OP_CONNECTION_INFO = 0xB4,
-		OP_OFFLINE_PROFILE_CAN_SAVE = 0xB5,
-		OP_USER_WITHOUT_OFFLINE_PROFILE = 0xB6,
-		OP_ALL_SPLITSCREEN_PROFILES_CAN_SAVE = 0xB7,
-		OP_ALL_SPLITSCREEN_PROFILES_ARE_SIGNED_IN = 0xB8,
-		OP_DO_WE_HAVE_MAP_PACK = 0xB9,
-		OP_MAY_INVITE_PLAYER_TO_PARTY = 0xBA,
-		OP_GETPATCHNOTES = 0xBB,
-		OP_GETGAMEINFOS = 0xBC,
-		OP_COOP_READY = 0xBD,
-		OP_VOTE_CAST = 0xBE,
-		OP_VOTE_PASSED = 0xBF,
-		OP_GET_MAP_VOTE_MAP_IMAGE = 0xC0,
-		OP_GET_MAP_VOTE_MAP_NAME = 0xC1,
-		OP_GET_MAP_VOTE_GAME_TYPE_NAME = 0xC2,
-		OP_IS_FRIEND_INVITABLE = 0xC3,
-		OP_IS_FRIEND_JOINABLE = 0xC4,
-		OP_GET_SORTED_CHALLENGE_INDEX = 0xC5,
-		OP_GET_SORTED_CHALLENGE_NAME = 0xC6,
-		OP_GET_SORTED_CHALLENGE_COUNT = 0xC7,
-		OP_GET_FILTER_CHALLENGE_COUNT = 0xC8,
-		OP_GET_FILTER_CHALLENGE_LOCKED_COUNT = 0xC9,
-		OP_GET_FILTER_CHALLENGE_COMPLETE_COUNT = 0xCA,
-		OP_IS_SORTED_CHALLENGE_TIERED = 0xCB,
-		OP_GET_CHALLENGE_FILTER_CACHE_COUNT = 0xCC,
-		OP_GET_CHALLENGE_FILTER_CACHE_COMPLETE_COUNT = 0xCD,
-		OP_IS_COOP_SEARCHING = 0xCE,
-		OP_IS_COOP_PUBLIC = 0xCF,
-		OP_GET_COOP_DISPLAYABLE_GROUP_NUM = 0xD0,
-		OP_COOP_HAS_REQUIRED_ONLINE_FILES = 0xD1,
-		OP_GET_TEXTWIDTH = 0xD2,
-		OP_GET_TEXTHEIGHT = 0xD3,
-		OP_DEVELOPER = 0xD4,
-		OP_IS_USING_AIRBURST_WEAPON = 0xD5,
-		OP_GET_AIRBURST_METERS = 0xD6,
-		OP_GET_CROSSHAIR_TRACE_METERS = 0xD7,
-		OP_GET_FACEBOOK_STATUS_TEXT = 0xD8,
-		OP_IS_FACEBOOK_LOGGED_IN = 0xD9,
-		OP_IS_FACEBOOK_CHECKING = 0xDA,
-		OP_IS_FACEBOOK_ALLOWED = 0xDB,
-		OP_GETPRIVATELOBBYSTATUS = 0xDC,
-		OP_INCLUDEDINMAPROTATION = 0xDD,
-		OP_SELECT = 0xDE,
-		OP_IS_DEMO_PLAYING = 0xDF,
-		OP_GET_USER_GROUP_TEXT = 0xE0,
-		OP_GET_USER_GROUP_COMMON_INTEREST_TOTAL = 0xE1,
-		OP_IS_DEMO_FOLLOW_CAMERA = 0xE2,
-		OP_IS_DEMO_FREE_CAMERA = 0xE3,
-		OP_IS_DEMO_CAPTURING_SCREENSHOT = 0xE4,
-		OP_PARTY_HOST_WAITING_ON_MEMBERS = 0xE5,
-		OP_POPUP_PARTY_MEMBER_AWAY = 0xE6,
-		OP_SELECTED_PARTY_MEMBER_AWAY = 0xE7,
-		OP_GAMETIME = 0xE8,
-		OP_GAMEENDTIME = 0xE9,
-		OP_HAS_FOCUS = 0xEA,
-		OP_MENU_HAS_FOCUS = 0xEB,
-		OP_GET_DEMO_SEGMENT_COUNT = 0xEC,
-		OP_GET_DEMO_SEGMENT_INFORMATION = 0xED,
-		OP_IS_CLIP_MODIFIED = 0xEE,
-		OP_IS_USING_RECIPE = 0xEF,
-		OP_IS_GUEST = 0xF0,
-		OP_GET_FACEBOOK_HELP_TEXT = 0xF1,
-		OP_IS_ELITE_CLAN_ALLOWED = 0xF2,
-		OP_IS_ENTITLEMENTS_ALLOWED = 0xF3,
-		OP_IS_USERGROUPS_ALLOWED = 0xF4,
-		OP_IS_WAITING_FOR_ONLINE_SERVICES = 0xF5,
-		OP_GET_TEXTWIDTHMODCASE = 0xF6,
-		OP_GET_SAVE_SCREEN_TITLE = 0xF7,
-		OP_GET_SAVE_SCREEN_DESCRIPTION = 0xF8,
-		OP_GET_ONLINEVAULT_SELECTEDITEM_DATA = 0xF9,
-		OP_ONLINEVAULT_IS_RESTRICTED = 0xFA,
-		OP_IS_CONTENTSERVER_TASK_IN_PROGRESS = 0xFB,
-		OP_IS_CONTENTSERVER_GET_TASK_PROGRESS = 0xFC,
-		OP_GET_RECENTGAMES_SELECTEDITEM_DATA = 0xFD,
-		OP_GAMETYPENAME_ABBREVIATED = 0xFE,
-		OP_GET_MAP_VOTE_GAME_TYPE_NAME_ABBREVIATED = 0xFF,
-		OP_IS_USER_SIGNED_IN_TO_LIVE = 0x100,
-		OP_USER_CAN_PLAY_ONLINE = 0x101,
-		OP_GET_FEEDER_DATA = 0x102,
-		OP_PARTY_CLIENTS_UP_TO_DATE = 0x103,
-		OP_TRUNCATETEXTWITHELLIPSIS = 0x104,
-		OP_UI_STARTED = 0x105,
-		OP_CAN_RENDER_CLIP = 0x106,
-		OP_GET_PREVIEW_MAP_CUSTOM = 0x107,
-		OP_GET_DLC_MAPS_AVAILABLE_COUNT = 0x108,
-		OP_IS_USER_SIGNED_IN = 0x109,
-		OP_USINGINTERMISSIONTIMER = 0x10A,
-		OP_ISUSINGCUSTOMMAPROTATION = 0x10B,
-		OP_MENU_IS_TOPMOST = 0x10C,
-		OP_FACEBOOK_IS_PLATFORM_FRIEND = 0x10D,
-		OP_ELITE_CLAN_IS_PLATFORM_FRIEND = 0x10E,
-		OP_ELITE_CLAN_IS_ME = 0x10F,
-		OP_ELITE_CLAN_IS_LEADER = 0x110,
-		OP_IS_USER_SIGNED_IN_FOR_VAULT = 0x111,
-		OP_GET_USING_MATCHRULES_DATA = 0x112,
-		OP_CAN_USER_ACCESS_ONLINEVAULT = 0x113,
-		OP_FRIEND_GET_GAMERTAG = 0x114,
-		OP_RECENTPLAYER_GET_GAMERTAG = 0x115,
-		OP_LIVEPARTY_GET_GAMERTAG = 0x116,
-		OP_FACEBOOK_GET_GAMERTAG = 0x117,
-		OP_ELITECLAN_GET_GAMERTAG = 0x118,
-		OP_LIVEPARTY_IS_ME = 0x119,
-		OP_LIVEPARTY_IS_LOCAL = 0x11A,
-		OP_DOUBLECLICK_WAS_RIGHT_CLICK = 0x11B,
-		OP_IS_DEMO_CLIP_RECORDING = 0x11C,
-		OP_GET_INDEX_FROM_STRING = 0x11D,
-		OP_GET_STRING_WIHTOUT_INDEX = 0x11E,
-		OP_ELITECLAN_GET_NAME = 0x11F,
-		OP_ELITECLAN_GET_HELP = 0x120,
-		OP_ELITECLAN_GET_MOTD = 0x121,
-		OP_ELITECLAN_IS_MEMBER = 0x122,
-		OP_ELITECLAN_IS_EMBLEM_OK = 0x123,
-		OP_FACEBOOKFRIENDS_SHOW_NEXT = 0x124,
-		OP_FACEBOOKFRIENDS_SHOW_PREV = 0x125,
-		OP_GET_ONLINEVAULT_FRIEND_GAMERTAG = 0x126,
-		OP_GET_OBJECTIVE_LIST_HEIGHT = 0x127,
-		OP_IS_CLIENT_DEMO_ENABLED = 0x128,
-		OP_IS_USER_SIGNED_IN_TO_DEMONWARE = 0x129,
-		OP_IS_CUSTOM_CLASS_RESTRICTED = 0x12A,
-		OP_IS_WEAPON_RESTRICTED = 0x12B,
-		OP_ANY_SPLITSCREEN_PROFILES_ARE_SIGNED_IN = 0x12C,
-		OP_IS_GUEST_SPLITSCREEN = 0x12D,
-		OP_IS_ITEM_UNLOCKED_BY_CLIENT = 0x12E,
-		OP_IS_ANY_USER_SIGNED_IN_TO_LIVE = 0x12F,
-		OP_SPLITSCREENACTIVEGAMEPADCOUNT = 0x130,
-		OP_SHOW_FRIEND_PLAYERCARD = 0x131,
-		OP_GET_FRIEND_PLAYERCARD_PRESENCE = 0x132,
-		OP_SHOW_RECENT_PLAYERS_GROUP_ICON = 0x133,
-		OP_GET_WRAPPED_TEXT_HEIGHT = 0x134,
-		OP_CAN_SAVE = 0x135,
-		OP_GET_GAME_INVITES_COUNT = 0x136,
-		OP_IS_SPLITSCREEN_GAMER_LIVE_ENABLED = 0x137,
-		OP_SO_COOP_SHOW_COMMON_GROUP_ICON = 0x138,
-		OP_STRIP_COLORS_FROM_STRING = 0x139,
-		OP_CAN_USER_ACCESS_THEATRE = 0x13A,
-		OP_IS_CHALLENGE_PERIODIC = 0x13B,
-		OP_GET_CHALLENGE_DATA = 0x13C,
-		OP_IS_ELITE_APP_PRESENT = 0x13D,
-		OP_ELITE_CLAN_SELECTED_IS_ME = 0x13E,
-		OP_ENOUGH_STORAGE_SPACE_FOR_CLIENT_DEMO = 0x13F,
-		OP_IS_USER_SIGNED_IN_FOR_COMMERCE = 0x140,
-		OP_GET_FACEBOOK_MENU_TEXT = 0x141,
-		OP_GET_FACEBOOK_IS_POSTING = 0x142,
-		OP_MEET_PLAYER_IS_PLATFORM_FRIEND = 0x143,
-		OP_IS_SELECTED_PLAYER_GUEST = 0x144,
-		OP_GET_SPLITSCREEN_CONTROLLER_CLIENT_NUM = 0x145,
-		OP_IS_CLIENT_DEMO_ENABLED_SPLITSCREEN = 0x146,
-		OP_ITEM_CAN_TAKE_FOCUS = 0x147,
-		OP_GET_TIME_SINCE_LAST_DOUBLECLICK = 0x148,
-		OP_IS_SERVER_LIST_REFRESHING = 0x149,
-		OP_IS_RECIPE_NAME_VALID = 0x14A,
-		OP_RECIPE_EXISTS = 0x14B,
-		OP_GET_FACEBOOK_OPTIONS_HELP_TEXT = 0x14C,
-		OP_DO_WE_HAVE_ALL_MAP_PACKS = 0x14D,
-		OP_IS_THERE_NEW_ELITE_ITEMS = 0x14E,
-		OP_IS_PAYING_SUBSCRIBER = 0x14F,
-		OP_LOCALUSER_HASMISSINGMAPPACK = 0x150,
-		OP_LOCALUSER_MISSINGMAPPACKERROR = 0x151,
-		OP_GET_FIRST_SPECOPS_DLC_MAP = 0x152,
-		OP_LOCALUSER_MISSINGMAPNAME = 0x153,
-		OP_SHOW_STORE_NEW = 0x154,
-		OP_USINGBOTS = 0x155,
-		OP_BOTSALLOWED = 0x156,
-		OP_ISCOLORBLIND = 0x157,
-		OP_BOTSCONNECTTYPE = 0x158,
-		OP_BOTSDIFFICULTY = 0x159,
-		OP_SPECTATINGTHIRD = 0x15A,
-		OP_GETPLAYERNAME = 0x15B,
-		OP_SQUAD_SHOW_REPORT = 0x15C,
-		OP_GETRANKEDPLAYERDATASPLITSCREEN = 0x15D,
-		OP_GETPRIVATEPLAYERDATASPLITSCREEN = 0x15E,
-		OP_GETCOOPPLAYERDATASPLITSCREEN = 0x15F,
-		OP_GETCOMMONPLAYERDATASPLITSCREEN = 0x160,
-		OP_GETOMNVAR = 0x161,
-		NUM_OPERATORS = 0x162,
-	};
-
-	struct ExpressionString
-	{
-		const char* string;
-	};
-
-	union operandInternalDataUnion
-	{
-		int intVal;
-		float floatVal;
-		ExpressionString stringVal;
-		Statement_s* function;
-	};
-
-	enum expDataType : std::int32_t
-	{
-		VAL_INT = 0x0,
-		VAL_FLOAT = 0x1,
-		VAL_STRING = 0x2,
-		NUM_INTERNAL_DATATYPES = 0x3,
-		VAL_FUNCTION = 0x3,
-		NUM_DATATYPES = 0x4,
-	};
-
-#pragma pack(push, 1)
-	struct Operand
-	{
-		operandInternalDataUnion internals;
-		expDataType dataType;
-	}; assert_sizeof(Operand, 12);
-#pragma pack(pop)
-
-	union entryInternalData
-	{
-		operationEnum op;
-		Operand operand;
-	};
-
-	struct expressionEntry
-	{
-		entryInternalData data;
-		int type;
-	};
-
-	struct UIFunctionList
-	{
-		int totalFunctions;
-		Statement_s** functions;
-	};
-
-	struct StaticDvar
-	{
-		void* dvar; //const dvar_t* dvar;
-		char* dvarName;
-	};
-
-	struct StaticDvarList
-	{
-		int numStaticDvars;
-		StaticDvar** staticDvars;
-	};
-
-	struct StringList
-	{
-		int totalStrings;
-		const char** strings;
-	};
-
-	struct ExpressionSupportingData
-	{
-		UIFunctionList uifunctions;
-		StaticDvarList staticDvarList;
-		StringList uiStrings;
-	};
-
-	struct ExpressionPersistentState
-	{
-		int flags;
-		int playerDataKey[4];
-		int lastExecuteTime[4];
-		Operand lastResult[4];
-	};
-
-	struct __declspec(align(8)) Statement_s
-	{
-		int numEntries;
-		expressionEntry* entries;
-		ExpressionSupportingData* supportingData;
-		ExpressionPersistentState persistentState;
-	};
-
-	struct ConditionalScript
-	{
-		MenuEventHandlerSet* eventHandlerSet;
-		Statement_s* eventExpression;
-	};
-
-	struct SetLocalVarData
-	{
-		const char* localVarName;
-		Statement_s* expression;
-	};
-
-	union EventData
-	{
-		const char* unconditionalScript;
-		ConditionalScript* conditionalScript;
-		MenuEventHandlerSet* elseScript;
-		SetLocalVarData* setLocalVarData;
-	};
-
-	enum EventType : std::uint8_t
-	{
-		EVENT_UNCONDITIONAL = 0x0,
-		EVENT_IF = 0x1,
-		EVENT_ELSE = 0x2,
-		EVENT_SET_LOCAL_VAR_BOOL = 0x3,
-		EVENT_SET_LOCAL_VAR_INT = 0x4,
-		EVENT_SET_LOCAL_VAR_FLOAT = 0x5,
-		EVENT_SET_LOCAL_VAR_STRING = 0x6,
-		EVENT_COUNT = 0x7,
-	};
-
-	struct __declspec(align(8)) MenuEventHandler
-	{
-		EventData eventData;
-		EventType eventType;
-	};
-
-	struct MenuEventHandlerSet
-	{
-		int eventHandlerCount;
-		MenuEventHandler** eventHandlers;
-	};
-
-	struct ItemKeyHandler
-	{
-		int key;
-		MenuEventHandlerSet* action;
-		ItemKeyHandler* next;
-	};
-
-	struct menuTransition
-	{
-		int transitionType;
-		int startTime;
-		float startVal;
-		float endVal;
-		float time;
-		int endTriggerType;
-	};
-
-	struct __declspec(align(8)) menuData_t
-	{
-		int fullScreen;
-		int fadeCycle;
-		float fadeClamp;
-		float fadeAmount;
-		float fadeInAmount;
-		float blurRadius;
-		MenuEventHandlerSet* onOpen;
-		MenuEventHandlerSet* onCloseRequest;
-		MenuEventHandlerSet* onClose;
-		MenuEventHandlerSet* onESC;
-		MenuEventHandlerSet* onFocusDueToClose;
-		ItemKeyHandler* onKey;
-		Statement_s* visibleExp;
-		const char* allowedBinding;
-		const char* soundName;
-		float focusColor[4];
-		Statement_s* rectXExp;
-		Statement_s* rectYExp;
-		Statement_s* rectWExp;
-		Statement_s* rectHExp;
-		Statement_s* openSoundExp;
-		Statement_s* closeSoundExp;
-		Statement_s* soundLoopExp;
-		int cursorItem[1];
-		menuTransition scaleTransition[1];
-		menuTransition alphaTransition[1];
-		menuTransition xTransition[1];
-		menuTransition yTransition[1];
-		ExpressionSupportingData* expressionData;
-		unsigned char priority;
-	};
-
-	struct __declspec(align(4)) rectDef_s
-	{
-		float x;
-		float y;
-		float w;
-		float h;
-		unsigned __int8 horzAlign;
-		unsigned __int8 vertAlign;
-	};
-
-	struct windowDef_t
-	{
-		const char* name;
-		rectDef_s rect;
-		rectDef_s rectClient;
-		const char* group;
-		int style;
-		int border;
-		int ownerDraw;
-		int ownerDrawFlags;
-		float borderSize;
-		int staticFlags;
-		int dynamicFlags[1];
-		int nextTime;
-		float foreColor[4];
-		float backColor[4];
-		float borderColor[4];
-		float outlineColor[4];
-		float disableColor[4];
-		Material* background;
-	};
-
-	struct columnInfo_s
-	{
-		int xpos;
-		int ypos;
-		int width;
-		int height;
-		int maxChars;
-		int alignment;
-	};
-
-	struct listBoxDef_s
-	{
-		int startPos[1];
-		int endPos[1];
-		int drawPadding;
-		float elementWidth;
-		float elementHeight;
-		int elementStyle;
-		int numColumns;
-		columnInfo_s columnInfo[16];
-		MenuEventHandlerSet* onDoubleClick;
-		int notselectable;
-		int noScrollBars;
-		int usePaging;
-		float selectBorder[4];
-		Material* selectIcon;
-		Statement_s* elementHeightExp;
-	};
-
-	struct editFieldDef_s
-	{
-		float minVal;
-		float maxVal;
-		float stepVal;
-		float range;
-		int maxChars;
-		int maxCharsGotoNext;
-		int maxPaintChars;
-		int paintOffset;
-	};
-
-	struct multiDef_s
-	{
-		const char* dvarList[32];
-		const char* dvarStr[32];
-		float dvarValue[32];
-		int count;
-		int strDef;
-	};
-
-	struct textScrollDef_s
-	{
-		int startTime;
-	};
-
-	struct newsTickerDef_s
-	{
-		int feedId;
-		int speed;
-		int spacing;
-	};
-
-	union itemDefData_t
-	{
-		listBoxDef_s* listBox;
-		editFieldDef_s* editField;
-		multiDef_s* multi;
-		const char* enumDvarName;
-		newsTickerDef_s* ticker;
-		textScrollDef_s* scroll;
-		void* data;
-	};
-
-	enum ItemFloatExpressionTarget
-	{
-		ITEM_FLOATEXP_TGT_RECT_X = 0x0,
-		ITEM_FLOATEXP_TGT_RECT_Y = 0x1,
-		ITEM_FLOATEXP_TGT_RECT_W = 0x2,
-		ITEM_FLOATEXP_TGT_RECT_H = 0x3,
-		ITEM_FLOATEXP_TGT_FORECOLOR_R = 0x4,
-		ITEM_FLOATEXP_TGT_FORECOLOR_G = 0x5,
-		ITEM_FLOATEXP_TGT_FORECOLOR_B = 0x6,
-		ITEM_FLOATEXP_TGT_FORECOLOR_RGB = 0x7,
-		ITEM_FLOATEXP_TGT_FORECOLOR_A = 0x8,
-		ITEM_FLOATEXP_TGT_GLOWCOLOR_R = 0x9,
-		ITEM_FLOATEXP_TGT_GLOWCOLOR_G = 0xA,
-		ITEM_FLOATEXP_TGT_GLOWCOLOR_B = 0xB,
-		ITEM_FLOATEXP_TGT_GLOWCOLOR_RGB = 0xC,
-		ITEM_FLOATEXP_TGT_GLOWCOLOR_A = 0xD,
-		ITEM_FLOATEXP_TGT_BACKCOLOR_R = 0xE,
-		ITEM_FLOATEXP_TGT_BACKCOLOR_G = 0xF,
-		ITEM_FLOATEXP_TGT_BACKCOLOR_B = 0x10,
-		ITEM_FLOATEXP_TGT_BACKCOLOR_RGB = 0x11,
-		ITEM_FLOATEXP_TGT_BACKCOLOR_A = 0x12,
-		ITEM_FLOATEXP_TGT__COUNT = 0x13,
-	};
-
-	struct ItemFloatExpression
-	{
-		ItemFloatExpressionTarget target;
-		Statement_s* expression;
-	};
-
-	struct itemDef_t
-	{
-		windowDef_t window;
-		rectDef_s textRect[1];
-		int type;
-		int dataType;
-		int alignment;
-		int fontEnum;
-		int textAlignMode;
-		float textalignx;
-		float textaligny;
-		float textscale;
-		int textStyle;
-		int gameMsgWindowIndex;
-		int gameMsgWindowMode;
-		const char* text;
-		int itemFlags;
-		menuDef_t* parent;
-		MenuEventHandlerSet* mouseEnterText;
-		MenuEventHandlerSet* mouseExitText;
-		MenuEventHandlerSet* mouseEnter;
-		MenuEventHandlerSet* mouseExit;
-		MenuEventHandlerSet* action;
-		MenuEventHandlerSet* accept;
-		MenuEventHandlerSet* onFocus;
-		MenuEventHandlerSet* hasFocus;
-		MenuEventHandlerSet* leaveFocus;
-		const char* dvar;
-		const char* dvarTest;
-		ItemKeyHandler* onKey;
-		const char* enableDvar;
-		const char* localVar;
-		int dvarFlags;
-		snd_alias_list_t* focusSound;
-		float special;
-		int cursorPos[1];
-		itemDefData_t typeData;
-		int floatExpressionCount;
-		ItemFloatExpression* floatExpressions;
-		Statement_s* visibleExp;
-		Statement_s* disabledExp;
-		Statement_s* textExp;
-		Statement_s* materialExp;
-		float glowColor[4];
-		bool decayActive;
-		int fxBirthTime;
-		int fxLetterTime;
-		int fxDecayStartTime;
-		int fxDecayDuration;
-		int lastSoundPlayedTime;
-		Statement_s* textAlignYExp;
-	};
-
-	struct menuDef_t
-	{
-		menuData_t* data;
-		windowDef_t window;
-		int itemCount;
-		itemDef_t** items;
-	};
-
-	struct MenuList
-	{
-		const char* name;
-		int menuCount;
-		menuDef_t** menus;
-	};
-
-	struct cplane_s
-	{
-		float normal[3];
-		float dist;
-		unsigned char type;
-		//unsigned char pad[3];
-	}; assert_sizeof(cplane_s, 20);
-
-	struct ClipMaterial
-	{
-		const char* name;
-		int surfaceFlags;
-		int contents;
-	}; assert_sizeof(ClipMaterial, 16);
-
-	struct cLeafBrushNodeLeaf_t
-	{
-		unsigned short* brushes;
-	};
-
-	struct cLeafBrushNodeChildren_t
-	{
-		float dist;
-		float range;
-		unsigned short childOffset[2];
-	};
-
-	union cLeafBrushNodeData_t
-	{
-		cLeafBrushNodeLeaf_t leaf;
-		cLeafBrushNodeChildren_t children;
-	};
-
-	struct cLeafBrushNode_s
-	{
-		unsigned char axis;
-		short leafBrushCount;
-		int contents;
-		cLeafBrushNodeData_t data;
-	};
-
-	typedef unsigned short LeafBrush;
-
-	struct BrushesCollisionTree
-	{
-		unsigned int leafbrushNodesCount;
-		cLeafBrushNode_s* leafbrushNodes;
-		unsigned int numLeafBrushes;
-		LeafBrush* leafbrushes;
-	}; assert_sizeof(BrushesCollisionTree, 32);
-
-	union CollisionAabbTreeIndex
-	{
-		int firstChildIndex;
-		int partitionIndex;
-	};
-
-	struct CollisionAabbTree
-	{
-		float midPoint[3];
-		unsigned short materialIndex;
-		unsigned short childCount;
-		float halfSize[3];
-		CollisionAabbTreeIndex u;
-	}; assert_sizeof(CollisionAabbTree, 32);
-
-	struct PatchesCollisionTree
-	{
-		int aabbTreeCount;
-		CollisionAabbTree* aabbTrees;
-	}; assert_sizeof(PatchesCollisionTree, 16);
+	}; static_assert(sizeof(WeaponDef) == 0xF08);
 	
-	struct SModelAabbNode
-	{
-		Bounds bounds;
-		unsigned short firstChild;
-		unsigned short childCount;
-	}; assert_sizeof(SModelAabbNode, 28);
+	static_assert(offsetof(WeaponDef, gunModel) == 0x28);
+	static_assert(offsetof(WeaponDef, handModel) == 0x30);
+	static_assert(offsetof(WeaponDef, szModeName) == 0x48);
+	static_assert(offsetof(WeaponDef, szXAnimsLeftHanded) == 88);
+	static_assert(offsetof(WeaponDef, hideTags) == 0x60);
+	static_assert(offsetof(WeaponDef, attachments) == 104);
+	static_assert(offsetof(WeaponDef, numReloadStateTimerOverrides) == 1480);
+	static_assert(offsetof(WeaponDef, viewFlashADSEffect) == 272);
+	static_assert(offsetof(WeaponDef, viewBodyFlashADSEffect) == 280);
+	static_assert(offsetof(WeaponDef, reticleCenter) == 1120);
+	static_assert(offsetof(WeaponDef, reticleSide) == 1128);
+	static_assert(offsetof(WeaponDef, projTrailEffect) == 3040);
+	static_assert(offsetof(WeaponDef, projBeaconEffect) == 3048);
+	static_assert(offsetof(WeaponDef, projIgnitionEffect) == 3080);
+	static_assert(offsetof(WeaponDef, projIgnitionSound) == 3088);
+	static_assert(offsetof(WeaponDef, accuracyGraphName) == 3280);
+	static_assert(offsetof(WeaponDef, accuracyGraphKnots) == 3296);
+	static_assert(offsetof(WeaponDef, originalAccuracyGraphKnots) == 3312);
+	static_assert(offsetof(WeaponDef, accuracyGraphName[1]) == 3288);
+	static_assert(offsetof(WeaponDef, accuracyGraphKnots[1]) == 3304);
+	static_assert(offsetof(WeaponDef, originalAccuracyGraphKnots[1]) == 3320);
+	static_assert(offsetof(WeaponDef, szScript) == 3448);
+	static_assert(offsetof(WeaponDef, stowTag) == 3688);
 
-	struct SModelsCollisionTree
-	{
-		unsigned short smodelNodeCount;
-		SModelAabbNode* smodelNodes;
-	}; assert_sizeof(SModelsCollisionTree, 16);
+	static_assert(offsetof(WeaponDef, ammoIndex) == 1752);
+	static_assert(offsetof(WeaponDef, standMoveMinSpeed) == 1712);
+	static_assert(offsetof(WeaponDef, weapType) == 1484);
+	static_assert(offsetof(WeaponDef, altWeapon) == 1472);
+	static_assert(offsetof(WeaponDef, clipIndex) == 1760);
+	static_assert(offsetof(WeaponDef, burstFireCooldown) == 1520);
+	static_assert(offsetof(WeaponDef, greebleType) == 1524);
 
-	struct cbrushside_t
+	enum VehicleType
 	{
-		char __pad0[8];
-	}; assert_sizeof(cbrushside_t, 8);
-
-	typedef unsigned char cbrushedge_t;
-
-	struct cbrush_t
-	{
-		unsigned short numsides;
-		unsigned short glassPieceIndex;
-		cbrushside_t* sides;
-		cbrushedge_t* baseAdjacentSide;
-		short axialMaterialNum[2][3];
-		unsigned char firstAdjacentSideOffsets[2][3];
-		unsigned char edgeCount[2][3];
-	}; assert_sizeof(cbrush_t, 48);
-
-	struct BrushesCollisionData
-	{
-		unsigned int numBrushSides;
-		cbrushside_t* brushsides;
-		unsigned int numBrushEdges;
-		cbrushedge_t* brushEdges;
-		unsigned short numBrushes;
-		cbrush_t* brushes;
-		Bounds* brushBounds;
-		int* brushContents;
-	}; assert_sizeof(BrushesCollisionData, 64);
-
-	struct CollisionBorder
-	{
-		float distEq[3];
-		float zBase;
-		float zSlope;
-		float start;
-		float length;
-	}; assert_sizeof(CollisionBorder, 28);
-
-	struct CollisionPartition
-	{
-		unsigned char triCount;
-		unsigned char borderCount;
-		unsigned char firstVertSegment;
-		int firstTri;
-		CollisionBorder* borders;
-	}; assert_sizeof(CollisionPartition, 16);
-
-	struct PatchesCollisionData
-	{
-		unsigned int vertCount;
-		float(*verts)[3];
-		int triCount;
-		unsigned short* triIndices;
-		unsigned char* triEdgeIsWalkable;
-		int borderCount;
-		CollisionBorder* borders;
-		int partitionCount;
-		CollisionPartition* partitions;
-	}; assert_sizeof(PatchesCollisionData, 72);
-
-	struct cStaticModel_s
-	{
-		XModel* xmodel;
-		float origin[3];
-		float invScaledAxis[3][3];
-		Bounds absBounds;
-		char __pad0[8];
-	}; assert_sizeof(cStaticModel_s, 88);
-
-	struct SModelsCollisionData
-	{
-		unsigned int numStaticModels;
-		cStaticModel_s* staticModelList;
-	}; assert_sizeof(SModelsCollisionData, 16);
-
-	struct ClipInfo
-	{
-		int planeCount;
-		cplane_s* planes;
-		unsigned int numMaterials;
-		ClipMaterial* materials;
-		BrushesCollisionTree bCollisionTree;
-		PatchesCollisionTree pCollisionTree;
-		SModelsCollisionTree sCollisionTree;
-		BrushesCollisionData bCollisionData;
-		PatchesCollisionData pCollisionData;
-		SModelsCollisionData sCollisionData;
-	}; assert_sizeof(ClipInfo, 0xF8);
-	assert_offsetof(ClipInfo, bCollisionTree, 32);
-	assert_offsetof(ClipInfo, pCollisionTree, 64);
-	assert_offsetof(ClipInfo, sCollisionTree, 80);
-	assert_offsetof(ClipInfo, bCollisionData, 96);
-	assert_offsetof(ClipInfo, pCollisionData, 160);
-	assert_offsetof(ClipInfo, sCollisionData, 232);
-
-	struct cNode_t
-	{
-		cplane_s* plane;
-		short children[2];
-	}; assert_sizeof(cNode_t, 16);
-
-	struct cLeaf_t
-	{
-		unsigned short firstCollAabbIndex;
-		unsigned short collAabbCount;
-		int brushContents;
-		int terrainContents;
-		Bounds bounds;
-		int leafBrushNode;
-		char __pad0[4];
-	}; assert_sizeof(cLeaf_t, 44);
-
-	struct cmodel_t
-	{
-		Bounds bounds;
-		float radius;
-		ClipInfo* info;
-		cLeaf_t leaf;
-	}; assert_sizeof(cmodel_t, 88);
-
-	struct Stage
-	{
-		const char* name;
-		float origin[3];
-		unsigned short triggerIndex;
-		unsigned char sunPrimaryLightIndex;
-		char __pad0[8];
-	}; assert_sizeof(Stage, 32);
-
-	enum DynEntityType : std::int32_t
-	{
-		DYNENT_TYPE_INVALID = 0x0,
-		DYNENT_TYPE_CLUTTER = 0x1,
-		DYNENT_TYPE_DESTRUCT = 0x2,
-		DYNENT_TYPE_HINGE = 0x3,
-		DYNENT_TYPE_SCRIPTABLEINST = 0x4,
-		DYNENT_TYPE_SCRIPTABLEPHYSICS = 0x5,
-		DYNENT_TYPE_LINKED = 0x6,
-		DYNENT_TYPE_LINKED_NOSHADOW = 0x7,
-		DYNENT_TYPE_COUNT = 0x8,
+		VEH_WHEELS_4 = 0x0,
+		VEH_TANK = 0x1,
+		VEH_PLANE = 0x2,
+		VEH_BOAT = 0x3,
+		VEH_ARTILLERY = 0x4,
+		VEH_HELICOPTER = 0x5,
+		VEH_SNOWMOBILE = 0x6,
+		VEH_SUBMARINE = 0x7,
+		VEH_UGV = 0x8,
+		VEH_TYPE_COUNT = 0x9,
 	};
 
-	struct GfxPlacement
+	enum VehicleAxleType
 	{
-		float quat[4];
-		float origin[3];
+		VEH_AXLE_FRONT = 0x0,
+		VEH_AXLE_REAR = 0x1,
+		VEH_AXLE_ALL = 0x2,
+		VEH_AXLE_COUNT = 0x3,
 	};
 
-	struct DynEntityHingeDef
+	struct VehicleUnknown
 	{
-		float axisOrigin[3];
-		float axisDir[3];
-		bool isLimited;
-		float angleMin;
-		float angleMax;
-		float momentOfInertia;
-		float friction;
-	}; assert_sizeof(DynEntityHingeDef, 44);
+		char __pad[36];
+	};
 
-	struct DynEntityLinkToDef
-	{
-		int anchorIndex;
-		float originOffset[3];
-		float angleOffset[3];
-	}; assert_sizeof(DynEntityLinkToDef, 28);
+	static_assert(sizeof(VehicleUnknown) == 36);
 
-	struct DynEntityDef
+	struct VehiclePhysDef
 	{
-		DynEntityType type;
-		GfxPlacement pose;
-		XModel* baseModel;
-		unsigned short brushModel;
-		unsigned short physicsBrushModel;
-		unsigned short scriptableIndex;
-		unsigned short health;
-		FxEffectDef* destroyFx;
-		snd_alias_list_t* sound;
+		int physicsEnabled;
+		const char* physPresetName;
 		PhysPreset* physPreset;
-		DynEntityHingeDef* hinge;
-		DynEntityLinkToDef* linkTo;
-		PhysMass mass;
-		int contents;
-		char __pad0[8];
-	}; assert_sizeof(DynEntityDef, 136);
-
-	struct DynEntityPose
-	{
-		GfxPlacement pose;
-		float radius;
-		char __pad0[4];
-	}; assert_sizeof(DynEntityPose, 36);
-
-	struct Hinge
-	{
-		float angle;
-		float quat[4];
-		float angularVel;
-		float torqueAccum;
-		bool active;
-		float autoDisableTimeLeft;
-		DynEntityHingeDef* def;
-		PhysPreset* physPreset;
-		float centerOfMassRelToAxisOriginAtAngleZero[3];
+		const char* unkString01;
+		VehicleUnknown* vehicleUnknown01;
+		const char* accelGraphName;
+		VehicleAxleType steeringAxle;
+		VehicleAxleType powerAxle;
+		VehicleAxleType brakingAxle;
+		float floatValues01[53];
 	};
 
-	struct DynEntityClient
-	{
-		__int64 physObjId;
-		unsigned short flags;
-		unsigned short lightingHandle;
-		unsigned short health;
-		Hinge* hinge;
-		XModel* activeModel;
-		int contents;
-	}; assert_sizeof(DynEntityClient, 40);
+	static_assert(offsetof(VehiclePhysDef, physPreset) == 16);
+	static_assert(offsetof(VehiclePhysDef, unkString01) == 24);
+	static_assert(offsetof(VehiclePhysDef, physPresetName) == 8);
+	static_assert(offsetof(VehiclePhysDef, vehicleUnknown01) == 32);
+	static_assert(offsetof(VehiclePhysDef, accelGraphName) == 40);
+	static_assert(sizeof(VehiclePhysDef) == 0x110);
 
-	struct DynEntityColl
+	enum VehicleTurretFireType
 	{
-		unsigned short sector;
-		unsigned short nextEntInSector;
-		float linkMins[2];
-		float linkMaxs[2];
-	}; assert_sizeof(DynEntityColl, 20);
-
-	struct ScriptableMapEnts // TODO:
-	{
-		unsigned int instanceStateSize;
-		unsigned int instanceCount;
-		unsigned int reservedInstanceCount;
-		void* instances; //ScriptableInstance* instances;
-		unsigned int animEntryCount;
-		void* animEntries; //ScriptableAnimationEntry* animEntries;
-		unsigned int replicatedInstanceCount;
-	}; assert_sizeof(ScriptableMapEnts, 48);
-
-	struct grapple_magnet_t
-	{
-		char __pad0[40];
-	}; assert_sizeof(grapple_magnet_t, 40);
-
-	struct grapple_data_t
-	{
-		char __pad0[32];
-		grapple_magnet_t* magnet;
-		unsigned int magnetCount;
-		char __pad1[4];
-	}; assert_sizeof(grapple_data_t, 48);
-
-	struct /*alignas(128)*/ clipMap_t
-	{
-		const char* name; // 0
-		int isInUse; // 8
-		ClipInfo info; // 16
-		ClipInfo* pInfo; // 264
-		unsigned int numNodes; // 272
-		cNode_t* nodes; // 280
-		unsigned int numLeafs; // 288
-		cLeaf_t* leafs; // 296
-		unsigned int numSubModels; // 304
-		cmodel_t* cmodels; // 312
-		MapEnts* mapEnts; // 320
-		Stage* stages; // 328
-		unsigned char stageCount; // 336
-		MapTriggers stageTrigger; // 344
-		unsigned short dynEntCount[2];
-		DynEntityDef* dynEntDefList[2];
-		DynEntityPose* dynEntPoseList[2];
-		DynEntityClient* dynEntClientList[2];
-		DynEntityColl* dynEntCollList[2];
-		unsigned int dynEntAnchorCount; // 464
-		scr_string_t* dynEntAnchorNames; // 472
-		ScriptableMapEnts scriptableMapEnts; // 480
-		grapple_data_t grappleData; // 528
-		unsigned int checksum;
-		char __pad0[60]; // alignment padding
-	}; assert_sizeof(clipMap_t, 0x280);
-	assert_offsetof(clipMap_t, info, 16);
-	assert_offsetof(clipMap_t, pInfo, 264);
-	assert_offsetof(clipMap_t, nodes, 280);
-	assert_offsetof(clipMap_t, leafs, 296);
-	assert_offsetof(clipMap_t, cmodels, 312);
-	assert_offsetof(clipMap_t, stageTrigger, 344);
-	assert_offsetof(clipMap_t, scriptableMapEnts, 480);
-	assert_offsetof(clipMap_t, grappleData, 528);
-
-	enum GfxLightType : std::uint8_t
-	{
-		GFX_LIGHT_TYPE_NONE = 0x0,
-		GFX_LIGHT_TYPE_DIR = 0x1,
-		GFX_LIGHT_TYPE_SPOT = 0x2,
-		GFX_LIGHT_TYPE_OMNI = 0x3,
-		GFX_LIGHT_TYPE_COUNT = 0x4,
-		GFX_LIGHT_TYPE_DIR_SHADOWMAP = 0x4,
-		GFX_LIGHT_TYPE_SPOT_SHADOWMAP = 0x5,
-		GFX_LIGHT_TYPE_OMNI_SHADOWMAP = 0x6,
-		GFX_LIGHT_TYPE_COUNT_WITH_SHADOWMAP_VERSIONS = 0x7,
-		GFX_LIGHT_TYPE_SPOT_SHADOWMAP_CUCOLORIS = 0x7,
-		GFX_LIGHT_TYPE_COUNT_WITH_ALL_VERSIONS = 0x8,
+		VEH_TURRET_SINGLE_FIRE = 0x0,
+		VEH_TURRET_DUAL_FIRE = 0x1,
+		VEH_TURRET_ALT_FIRE = 0x2,
+		VEH_TURRET_FIRE_TYPE_COUNT = 0x3,
 	};
 
-	struct ComPrimaryLight
+	struct VehicleDef
 	{
-		unsigned char type; // 0
-		unsigned char canUseShadowMap; // 1
-		unsigned char exponent; // 2
-		unsigned char unused; // 3 (used)
-		char __pad0[4]; // 4
-		float color[3]; // 8 12 16
-		float dir[3]; // 20 24 28
-		float up[3]; // 32 36 40
-		float origin[3]; // 44 48 52
-		char __pad1[24];
-		float radius; // 80
-		float cosHalfFovOuter; // 84
-		float cosHalfFovInner; // 88
-		float cosHalfFovExpanded; // 92
-		float rotationLimit; // 96
-		float translationLimit; // 100
-		float cucRotationOffsetRad; // 104
-		float cucRotationSpeedRad; // 108
-		float cucScrollVector[2]; // 112 116
-		float cucScaleVector[2]; // 120 124
-		float cucTransVector[2]; // 128 132
-		const char* defName; // 136
-	}; assert_sizeof(ComPrimaryLight, 144);
-	assert_offsetof(ComPrimaryLight, defName, 136);
-	assert_offsetof(ComPrimaryLight, cosHalfFovExpanded, 92);
-
-	struct ComPrimaryLightEnv
-	{
-		unsigned short primaryLightIndices[4];
-		unsigned char numIndices;
-	}; assert_sizeof(ComPrimaryLightEnv, 10);
-
-	struct ComWorld
-	{
-		const char* name;
-		int isInUse;
-		unsigned int primaryLightCount;
-		ComPrimaryLight* primaryLights;
-		unsigned int primaryLightEnvCount;
-		ComPrimaryLightEnv* primaryLightEnvs;
-	}; assert_sizeof(ComWorld, 0x28);
-
-	struct G_GlassPiece
-	{
-		unsigned short damageTaken;
-		unsigned short collapseTime;
-		int lastStateChangeTime;
-		unsigned char impactDir;
-		unsigned char impactPos[2];
+		const char* internalName;
+		VehicleType vehicleType;
+		const char* useHintString;
+		int health;
+		float floatValues01[37]; // 184
+		int intValues01[8];
+		VehiclePhysDef vehPhysDef;
+		float floatValues02[12]; // 48
+		const char* unkString01;
+		FxEffectDef* effect01; // 536
+		FxEffectDef* effect02;
+		FxEffectDef* effect03;
+		FxEffectDef* effect04;
+		FxEffectDef* effect05;
+		float floatValues03[7]; // 168
+		int intValues02[1];
+		float floatValues04[32]; // 168
+		int vehHelicopterSoftCollisions;
+		int vehHelicopterUseGroundFX;
+		FxEffectDef* vehHelicopterGroundFx;
+		FxEffectDef* vehHelicopterGroundWaterFx;
+		float floatValues05[78];
+		const char* unkString02;
+		float floatValues06[82];
+		const char* turretWeaponName;
+		WeaponDef* turretWeapon;
+		float turretHorizSpanLeft;
+		float turretHorizSpanRight;
+		float turretVertSpanUp;
+		float turretVertSpanDown;
+		float turretHorizResistLeft;
+		float turretHorizResistRight;
+		float turretVertResistUp;
+		float turretVertResistDown;
+		float turretRotRate;
+		VehicleTurretFireType turretFireType;
+		snd_alias_list_t* turretSpinSnd;
+		snd_alias_list_t* turretStopSnd;
+		int trophyEnabled;
+		float trophyRadius;
+		float trophyInactiveRadius;
+		int trophyAmmoCount;
+		float trophyReloadTime;
+		scr_string_t trophyTags[4];
+		FxEffectDef* trophyExplodeFx;
+		FxEffectDef* trophyFlashFx;
+		Material* compassFriendlyIcon;
+		Material* compassEnemyIcon;
+		Material* compassFriendlyAltIcon;
+		Material* compassEnemyAltIcon;
+		int compassIconWidth;
+		int compassIconHeight;
+		snd_alias_list_t* idleLowSnd;
+		snd_alias_list_t* idleHighSnd;
+		snd_alias_list_t* engineLowSnd;
+		snd_alias_list_t* engineHighSnd;
+		snd_alias_list_t* sound01; // rename
+		float engineSndSpeed;
+		scr_string_t audioOriginTag;
+		snd_alias_list_t* idleLowSndAlt;
+		snd_alias_list_t* idleHighSndAlt;
+		snd_alias_list_t* engineLowSndAlt;
+		snd_alias_list_t* engineHighSndAlt;
+		float engineSndSpeedAlt;
+		scr_string_t audioOriginTagAlt;
+		snd_alias_list_t* turretSpinSndAlt;
+		snd_alias_list_t* turretStopSndAlt;
+		snd_alias_list_t* engineStartUpSnd;
+		int engineStartUpLength;
+		snd_alias_list_t* engineShutdownSnd;
+		snd_alias_list_t* engineIdleSnd;
+		snd_alias_list_t* engineSustainSnd;
+		snd_alias_list_t* engineRampUpSnd;
+		int engineRampUpLength;
+		snd_alias_list_t* engineRampDownSnd;
+		int engineRampDownLength;
+		snd_alias_list_t* suspensionSoftSnd;
+		float suspensionSoftCompression;
+		snd_alias_list_t* suspensionHardSnd;
+		float suspensionHardCompression;
+		snd_alias_list_t* collisionSnd;
+		float collisionBlendSpeed;
+		snd_alias_list_t* speedSnd;
+		float speedSndBlendSpeed;
+		const char* surfaceSndPrefix;
+		snd_alias_list_t* surfaceSnds[53];
+		float surfaceSndBlendSpeed;
+		float slideVolume;
+		float slideBlendSpeed;
+		float inAirPitch;
+		const char* soundTriggerOverrideZone;
+		bool soundTriggerOverrideReverb;
+		bool soundTriggerOverrideMix;
+		bool soundTriggerOverrideFilter;
+		bool soundTriggerOverrideOcclusion;
+		bool soundTriggerOverrideAmbient;
+		bool soundTriggerOverrideAmbientEvents;
+		bool soundTriggerOverrideADSR;
 	};
 
-	struct G_GlassName
-	{
-		char* nameStr;
-		scr_string_t name;
-		unsigned short pieceCount;
-		unsigned short* pieceIndices;
-	}; assert_sizeof(G_GlassName, 24);
+	static_assert(offsetof(VehicleDef, unkString01) == 528);
+	static_assert(offsetof(VehicleDef, unkString02) == 1072);
+	static_assert(offsetof(VehicleDef, turretWeaponName) == 1408);
+	static_assert(offsetof(VehicleDef, turretSpinSnd) == 1464);
+	static_assert(offsetof(VehicleDef, turretStopSnd) == 1472);
+	static_assert(offsetof(VehicleDef, effect01) == 536);
+	static_assert(offsetof(VehicleDef, compassFriendlyIcon) == 1536);
+	static_assert(offsetof(VehicleDef, compassEnemyAltIcon) == 1560);
+	//static_assert(offsetof(VehicleDef, effect07) == 752);
+	static_assert(offsetof(VehicleDef, trophyTags) == 1500);
+	static_assert(offsetof(VehicleDef, trophyExplodeFx) == 1520);
+	static_assert(offsetof(VehicleDef, idleLowSnd) == 1576);
+	static_assert(offsetof(VehicleDef, sound01) == 1608);
+	static_assert(offsetof(VehicleDef, audioOriginTag) == 1620);
+	static_assert(offsetof(VehicleDef, idleLowSndAlt) == 1624);
+	static_assert(offsetof(VehicleDef, engineHighSndAlt) == 1648);
+	static_assert(offsetof(VehicleDef, audioOriginTagAlt) == 1660);
+	static_assert(offsetof(VehicleDef, turretSpinSndAlt) == 1664);
+	static_assert(offsetof(VehicleDef, engineStartUpSnd) == 1680);
+	static_assert(offsetof(VehicleDef, engineShutdownSnd) == 1696);
+	static_assert(offsetof(VehicleDef, engineIdleSnd) == 1704);
+	static_assert(offsetof(VehicleDef, engineSustainSnd) == 1712);
+	static_assert(offsetof(VehicleDef, engineRampUpSnd) == 1720);
+	static_assert(offsetof(VehicleDef, engineRampDownSnd) == 1736);
+	static_assert(offsetof(VehicleDef, suspensionSoftSnd) == 1752);
+	static_assert(offsetof(VehicleDef, suspensionHardSnd) == 1768);
+	static_assert(offsetof(VehicleDef, collisionSnd) == 1784);
+	static_assert(offsetof(VehicleDef, speedSnd) == 1800);
+	static_assert(offsetof(VehicleDef, surfaceSndPrefix) == 1816);
+	static_assert(offsetof(VehicleDef, surfaceSnds) == 1824);
 
-	struct G_GlassData
-	{
-		G_GlassPiece* glassPieces;
-		unsigned int pieceCount;
-		unsigned short damageToWeaken;
-		unsigned short damageToDestroy;
-		unsigned int glassNameCount;
-		G_GlassName* glassNames;
-		unsigned char pad[108];
-	}; assert_sizeof(G_GlassData, 0x90);
+#define sizeofmember(__struct__, __member__) sizeof(reinterpret_cast<__struct__*>(0)->__member__)
 
-	struct GlassWorld
-	{
-		const char* name;
-		G_GlassData* g_glassData;
-	}; assert_sizeof(GlassWorld, 0x10);
-
-	struct FxGlassDef
-	{
-		float halfThickness;
-		float texVecs[2][2];
-		GfxColor color;
-		Material* material;
-		Material* materialShattered;
-		PhysPreset* physPreset;
-		FxEffectDef* pieceBreakEffect;
-		FxEffectDef* shatterEffect;
-		FxEffectDef* shatterSmallEffect;
-		FxEffectDef* crackDecalEffect;
-		snd_alias_list_t* damagedSound;
-		snd_alias_list_t* destroyedSound;
-		snd_alias_list_t* destroyedQuietSound;
-		char __pad[8];
-		int numCrackRings;
-		bool isOpaque;
-	}; assert_sizeof(FxGlassDef, 120);
-
-	struct FxSpatialFrame
-	{
-		float quat[4];
-		float origin[3];
-	};
-
-	struct $03A8A7B39FA20F64B5AB79125E07CD62
-	{
-		FxSpatialFrame frame;
-		float radius;
-	};
-
-	union FxGlassPiecePlace
-	{
-		$03A8A7B39FA20F64B5AB79125E07CD62 __s0;
-		unsigned int nextFree;
-	};
-
-	struct FxGlassPieceState
-	{
-		float texCoordOrigin[2];
-		unsigned int supportMask;
-		unsigned short initIndex;
-		unsigned short geoDataStart;
-		unsigned short lightingIndex;
-		unsigned char defIndex;
-		unsigned char pad[3];
-		unsigned char vertCount;
-		unsigned char holeDataCount;
-		unsigned char crackDataCount;
-		unsigned char fanDataCount;
-		unsigned short flags;
-		float areaX2;
-	}; assert_sizeof(FxGlassPieceState, 32);
-
-	struct FxGlassPieceDynamics
-	{
-		int fallTime;
-		__int64 physObjId;
-		__int64 physJointId;
-		float vel[3];
-		float avel[3];
-	}; assert_sizeof(FxGlassPieceDynamics, 48);
-
-	struct FxGlassVertex
-	{
-		short x;
-		short y;
-	};
-
-	struct FxGlassHoleHeader
-	{
-		unsigned short uniqueVertCount;
-		unsigned char touchVert;
-		unsigned char pad[1];
-	};
-
-	struct FxGlassCrackHeader
-	{
-		unsigned short uniqueVertCount;
-		unsigned char beginVertIndex;
-		unsigned char endVertIndex;
-	};
-
-	union FxGlassGeometryData
-	{
-		FxGlassVertex vert;
-		FxGlassHoleHeader hole;
-		FxGlassCrackHeader crack;
-		unsigned char asBytes[4];
-		short anonymous[2];
-	}; assert_sizeof(FxGlassGeometryData, 4);
-
-	struct FxGlassInitPieceState
-	{
-		FxSpatialFrame frame;
-		float radius;
-		float texCoordOrigin[2];
-		unsigned int supportMask;
-		float areaX2;
-		unsigned short lightingIndex;
-		unsigned char defIndex;
-		unsigned char vertCount;
-		unsigned char fanDataCount;
-		unsigned char pad[1];
-	}; assert_sizeof(FxGlassInitPieceState, 56);
-
-	struct FxGlassSystem
-	{
-		int time;
-		int prevTime;
-		unsigned int defCount;
-		unsigned int pieceLimit;
-		unsigned int pieceWordCount;
-		unsigned int initPieceCount;
-		unsigned int cellCount;
-		unsigned int activePieceCount;
-		unsigned int firstFreePiece;
-		unsigned int geoDataLimit;
-		unsigned int geoDataCount;
-		unsigned int initGeoDataCount;
-		FxGlassDef* defs;
-		FxGlassPiecePlace* piecePlaces;
-		FxGlassPieceState* pieceStates;
-		FxGlassPieceDynamics* pieceDynamics;
-		FxGlassGeometryData* geoData;
-		unsigned int* isInUse;
-		unsigned int* cellBits;
-		unsigned char* visData;
-		float(*linkOrg)[3];
-		float* halfThickness;
-		unsigned short* lightingHandles;
-		FxGlassInitPieceState* initPieceStates;
-		bool needToCompactData;
-		unsigned char initCount;
-		float effectChanceAccum;
-		int lastPieceDeletionTime;
-		FxGlassGeometryData* initGeoData;
-	};
-	assert_offsetof(FxGlassSystem, initGeoData, 160);
-
-	struct FxWorld
-	{
-		const char* name;
-		FxGlassSystem glassSys;
-	}; assert_sizeof(FxWorld, 0xB0);
-
-	struct GfxSky
-	{
-		int skySurfCount;
-		int* skyStartSurfs;
-		GfxImage* skyImage;
-		unsigned char skySamplerState;
-		char __pad0[24];
-	}; assert_sizeof(GfxSky, 56);
-
-	struct GfxWorldDpvsPlanes
-	{
-		int cellCount;
-		cplane_s* planes;
-		unsigned short* nodes;
-		unsigned int* sceneEntCellBits;
-	}; assert_sizeof(GfxWorldDpvsPlanes, 32);
-
-	struct GfxCellTreeCount
-	{
-		int aabbTreeCount;
-	};
-
-	struct GfxAabbTree
-	{
-		Bounds bounds;
-		unsigned short childCount;
-		unsigned short surfaceCount;
-		unsigned short startSurfIndex; //unsigned int startSurfIndex;
-		unsigned short smodelIndexCount;
-		unsigned short* smodelIndexes;
-		int childrenOffset;
-	}; assert_sizeof(GfxAabbTree, 48);
-	assert_offsetof(GfxAabbTree, smodelIndexCount, 30);
-	assert_offsetof(GfxAabbTree, smodelIndexes, 32);
-
-	struct GfxCellTree
-	{
-		GfxAabbTree* aabbTree;
-	};
-
-	struct GfxPortal;
-	struct GfxPortalWritable
-	{
-		bool isQueued;
-		bool isAncestor;
-		unsigned char recursionDepth;
-		unsigned char hullPointCount;
-		float(*hullPoints)[2];
-		GfxPortal* queuedParent;
-	};
-
-	struct DpvsPlane
-	{
-		float coeffs[4];
-	};
-
-	struct GfxPortal
-	{
-		GfxPortalWritable writable;
-		DpvsPlane plane;
-		float(*vertices)[3];
-		unsigned short cellIndex;
-		unsigned short closeDistance;
-		unsigned char vertexCount;
-		float hullAxis[2][3];
-	}; assert_sizeof(GfxPortal, 80);
-	assert_offsetof(GfxPortal, vertices, 40);
-	assert_offsetof(GfxPortal, vertexCount, 52);
-
-	struct GfxCell
-	{
-		Bounds bounds;
-		short portalCount;
-		unsigned char reflectionProbeCount;
-		unsigned char reflectionProbeReferenceCount;
-		GfxPortal* portals;
-		unsigned char* reflectionProbes;
-		unsigned char* reflectionProbeReferences;
-	}; assert_sizeof(GfxCell, 56);
-	assert_offsetof(GfxCell, portalCount, 24);
-	assert_offsetof(GfxCell, reflectionProbeCount, 26);
-	assert_offsetof(GfxCell, reflectionProbeReferenceCount, 27);
-	assert_offsetof(GfxCell, portals, 32);
-	assert_offsetof(GfxCell, reflectionProbes, 40);
-	assert_offsetof(GfxCell, reflectionProbeReferences, 48);
-
-	struct GfxPortalGroupInfo
-	{
-		char __pad0[4];
-	};
-
-	struct GfxPortalGroup
-	{
-		const char* group;
-		GfxPortalGroupInfo* info;
-		char __pad0[4];
-		int infoCount;
-	}; assert_sizeof(GfxPortalGroup, 24);
-	assert_offsetof(GfxPortalGroup, infoCount, 20);
-
-	struct GfxReflectionProbeVolume
-	{
-		short* data;
-		int count;
-	}; assert_sizeof(GfxReflectionProbeVolume, 16);
-
-	struct GfxReflectionProbe
-	{
-		float origin[3];
-		GfxReflectionProbeVolume* probeVolumes;
-		unsigned int probeVolumeCount;
-	}; assert_sizeof(GfxReflectionProbe, 32);
-
-	struct GfxReflectionProbeReferenceOrigin
-	{
-		float origin[3];
-	};
-
-	struct GfxReflectionProbeReference
-	{
-		unsigned char index;
-	};
-
-	struct GfxRawTexture
-	{
-		char __pad0[32];
-	}; assert_sizeof(GfxRawTexture, 32);
-
-	struct GfxLightmapArray
-	{
-		GfxImage* primary;
-		GfxImage* secondary;
-	};
-
-	struct GfxWorldVertex // union, multiple types?
-	{
-		float xyz[3];
-		float binormalSign;
-		GfxColor color;
-		float texCoord[2];
-		float lmapCoord[2];
-		PackedUnitVec normal;
-		PackedUnitVec tangent;
-	}; assert_sizeof(GfxWorldVertex, 44);
-
-	struct GfxWorldVertexData
-	{
-		GfxWorldVertex* vertices;
-		ID3D11Buffer* worldVb;
-		ID3D11ShaderResourceView* worldVbView;
-	}; assert_sizeof(GfxWorldVertexData, 24);
-
-	struct GfxWorldVertexLayerData
-	{
-		unsigned char* data;
-		ID3D11Buffer* layerVb;
-		ID3D11ShaderResourceView* layerVbView;
-	}; assert_sizeof(GfxWorldVertexLayerData, 24);
-
-	struct GfxDisplacementParms
-	{
-		char __pad0[16];
-	}; assert_sizeof(GfxDisplacementParms, 16);
-
-	struct GfxWorldDraw
-	{
-		unsigned int reflectionProbeCount;
-		GfxImage** reflectionProbes;
-		GfxReflectionProbe* reflectionProbeOrigins;
-		GfxRawTexture* reflectionProbeTextures;
-		unsigned int reflectionProbeReferenceCount;
-		GfxReflectionProbeReferenceOrigin* reflectionProbeReferenceOrigins;
-		GfxReflectionProbeReference* reflectionProbeReferences;
-		int lightmapCount;
-		GfxLightmapArray* lightmaps;
-		GfxRawTexture* lightmapPrimaryTextures;
-		GfxRawTexture* lightmapSecondaryTextures;
-		GfxImage* lightmapOverridePrimary;
-		GfxImage* lightmapOverrideSecondary;
-		char __pad0[20];
-		unsigned int trisType;
-		unsigned int vertexCount;
-		GfxWorldVertexData vd;
-		unsigned int vertexLayerDataSize;
-		GfxWorldVertexLayerData vld;
-		unsigned int indexCount;
-		unsigned short* indices;
-		ID3D11Buffer* indexBuffer;
-		ID3D11ShaderResourceView* indexBufferView;
-		int displacementParmsCount;
-		GfxDisplacementParms* displacementParms;
-		ID3D11Buffer* displacementParmsBuffer;
-		ID3D11ShaderResourceView* displacementParmsBufferView;
-	}; assert_sizeof(GfxWorldDraw, 256);
-	assert_offsetof(GfxWorldDraw, reflectionProbeTextures, 24);
-	assert_offsetof(GfxWorldDraw, lightmaps, 64);
-	assert_offsetof(GfxWorldDraw, lightmapOverrideSecondary, 96);
-	assert_offsetof(GfxWorldDraw, vertexCount, 128);
-	assert_offsetof(GfxWorldDraw, vd, 136);
-	assert_offsetof(GfxWorldDraw, vld, 168);
-	assert_offsetof(GfxWorldDraw, indexCount, 192);
-	assert_offsetof(GfxWorldDraw, indices, 200);
-	assert_offsetof(GfxWorldDraw, displacementParmsCount, 224);
-	assert_offsetof(GfxWorldDraw, displacementParms, 232);
-
-	struct GfxLightGrid
-	{
-		char __pad0[1080];
-		// TODO:
-	}; assert_sizeof(GfxLightGrid, 1080);
-
-	struct GfxBrushModel
-	{
-		char __pad0[96];
-		// TODO:
-	}; assert_sizeof(GfxBrushModel, 96);
-
-	struct MaterialMemory
-	{
-		Material* material;
-		int memory;
-	};  assert_sizeof(MaterialMemory, 16);
-
-	struct sunflare_t
-	{
-		bool hasValidData;
-		Material* spriteMaterial;
-		Material* flareMaterial;
-		float spriteSize;
-		float flareMinSize;
-		float flareMinDot;
-		float flareMaxSize;
-		float flareMaxDot;
-		float flareMaxAlpha;
-		int flareFadeInTime;
-		int flareFadeOutTime;
-		float blindMinDot;
-		float blindMaxDot;
-		float blindMaxDarken;
-		int blindFadeInTime;
-		int blindFadeOutTime;
-		float glareMinDot;
-		float glareMaxDot;
-		float glareMaxLighten;
-		int glareFadeInTime;
-		int glareFadeOutTime;
-		float sunFxPosition[3];
-	}; assert_sizeof(sunflare_t, 112);
-
-	struct XModelDrawInfo
-	{
-		unsigned char hasGfxEntIndex;
-		unsigned char lod;
-		unsigned short surfId;
-	};
-
-	struct GfxSceneDynModel
-	{
-		XModelDrawInfo info;
-		unsigned short dynEntId;
-	}; assert_sizeof(GfxSceneDynModel, 6);
-
-	struct BModelDrawInfo
-	{
-		unsigned short surfId;
-	};
-
-	struct GfxSceneDynBrush
-	{
-		BModelDrawInfo info;
-		unsigned short dynEntId;
-	}; assert_sizeof(GfxSceneDynBrush, 4);
-
-	struct GfxShadowGeometry
-	{
-		unsigned short surfaceCount;
-		unsigned short smodelCount;
-		unsigned int* sortedSurfIndex;
-		unsigned short* smodelIndex;
-	}; assert_sizeof(GfxShadowGeometry, 24);
-
-	struct GfxLightRegionAxis
-	{
-		float dir[3];
-		float midPoint;
-		float halfSize;
-	}; assert_sizeof(GfxLightRegionAxis, 20);
-
-	struct GfxLightRegionHull
-	{
-		float kdopMidPoint[9];
-		float kdopHalfSize[9];
-		unsigned int axisCount;
-		GfxLightRegionAxis* axis;
-	}; assert_sizeof(GfxLightRegionHull, 88);
-
-	struct GfxLightRegion
-	{
-		unsigned int hullCount;
-		GfxLightRegionHull* hulls;
-	}; assert_sizeof(GfxLightRegion, 16);
-
-	struct GfxWorldDpvsStatic
-	{
-		char __pad0[784];
-		// TODO:
-	}; assert_sizeof(GfxWorldDpvsStatic, 784);
-
-	struct GfxWorldDpvsDynamic
-	{
-		char __pad0[96];
-		// TODO:
-	}; assert_sizeof(GfxWorldDpvsDynamic, 96);
-
-	struct GfxHeroOnlyLight
-	{
-		unsigned char type;
-		unsigned char unused[3];
-		float color[3];
-		float dir[3];
-		float up[3];
-		float origin[3];
-		float radius;
-		float cosHalfFovOuter;
-		float cosHalfFovInner;
-		int exponent;
-	}; assert_sizeof(GfxHeroOnlyLight, 68);
-
-	struct umbraTomePtr_t
-	{
-		void* umbraTome;
-	};
-
-	struct GfxBuildInfo
-	{
-		const char* a;
-		const char* b;
-		const char* c;
-		const char* d;
-	}; assert_sizeof(GfxBuildInfo, 32);
-
-	struct GfxWorld
-	{
-		const char* name; // 0
-		const char* baseName; // 8
-		unsigned int bspVersion; // 16
-		int planeCount; // 20
-		int nodeCount; // 24
-		unsigned int surfaceCount; // 28
-		int skyCount; // 32
-		GfxSky* skies; // 40
-		//unsigned int lastSunPrimaryLightIndex; // 52
-		//unsigned int primaryLightCount; // 56
-		char __pad0[48];
-		GfxWorldDpvsPlanes dpvsPlanes; // 96
-		GfxCellTreeCount* aabbTreeCounts; // 128
-		GfxCellTree* aabbTrees; // 136
-		GfxCell* cells; // 144
-		GfxPortalGroup* portalGroups; // 152
-		int unk_vec4_count_0; // 160
-		char __pad1[4];
-		vec4_t* unk_vec4_0; // 168
-		GfxWorldDraw draw; // 176
-		GfxLightGrid lightGrid; // 432
-		int modelCount; // 1512
-		GfxBrushModel* models; // 1520
-		char __pad2[52];
-		int materialMemoryCount; // 1580
-		MaterialMemory* materialMemory; // 1584
-		sunflare_t sun; // 1592
-		float outdoorLookupMatrix[4][4];
-		GfxImage* outdoorImage; // 1768
-		unsigned int* cellCasterBits; // 1776
-		unsigned int* cellHasSunLitSurfsBits; // 1784
-		GfxSceneDynModel* sceneDynModel; // 1792
-		GfxSceneDynBrush* sceneDynBrush; // 1800
-		unsigned int* primaryLightEntityShadowVis; // 1808
-		unsigned int* primaryLightDynEntShadowVis[2]; // 1816 1824
-		unsigned short* nonSunPrimaryLightForModelDynEnt; // 1832
-		GfxShadowGeometry* shadowGeom; // 1840
-		GfxShadowGeometry* shadowGeomOptimized; // 1848
-		GfxLightRegion* lightRegion; // 1856
-		GfxWorldDpvsStatic dpvs; // 1864
-		GfxWorldDpvsDynamic dpvsDyn; // 2648
-		unsigned int mapVtxChecksum;
-		unsigned int heroOnlyLightCount; // 2748
-		GfxHeroOnlyLight* heroOnlyLights; // 2752
-		unsigned int umbraDataCount; // 2764
-		char* umbraData; // 2768
-		umbraTomePtr_t* umbraTomePtr; // 2776
-		unsigned int mdaoVolumesCount; // 2784
-		MdaoVolume* mdaoVolumes; // 2792
-		char __pad3[32];
-		GfxBuildInfo buildInfo; // 2832
-	}; assert_sizeof(GfxWorld, 0xB30);
-	assert_offsetof(GfxWorld, dpvsPlanes, 96);
-	assert_offsetof(GfxWorld, aabbTreeCounts, 128);
-	assert_offsetof(GfxWorld, cells, 144);
-	assert_offsetof(GfxWorld, portalGroups, 152);
-	assert_offsetof(GfxWorld, unk_vec4_count_0, 160);
-	assert_offsetof(GfxWorld, unk_vec4_0, 168);
-	assert_offsetof(GfxWorld, draw, 176);
-	assert_offsetof(GfxWorld, lightGrid, 432);
-	assert_offsetof(GfxWorld, modelCount, 1512);
-	assert_offsetof(GfxWorld, models, 1520);
-	assert_offsetof(GfxWorld, materialMemoryCount, 1580);
-	assert_offsetof(GfxWorld, materialMemory, 1584);
-	assert_offsetof(GfxWorld, sun, 1592);
-	assert_offsetof(GfxWorld, outdoorImage, 1768);
-	assert_offsetof(GfxWorld, cellCasterBits, 1776);
-	assert_offsetof(GfxWorld, cellHasSunLitSurfsBits, 1784);
-	assert_offsetof(GfxWorld, dpvs, 1864);
-	assert_offsetof(GfxWorld, dpvsDyn, 2648);
-	assert_offsetof(GfxWorld, heroOnlyLightCount, 2748);
-	assert_offsetof(GfxWorld, heroOnlyLights, 2752);
-	assert_offsetof(GfxWorld, umbraData, 2768);
-	assert_offsetof(GfxWorld, umbraTomePtr, 2776);
-	assert_offsetof(GfxWorld, mdaoVolumesCount, 2784);
-	assert_offsetof(GfxWorld, mdaoVolumes, 2792);
-	assert_offsetof(GfxWorld, mdaoVolumes, 2792);
-	assert_offsetof(GfxWorld, buildInfo, 2832);
-
-	struct GfxLightImage
-	{
-		GfxImage* image;
-		unsigned char samplerState;
-	};
-
-	struct GfxLightDef
-	{
-		const char* name;
-		GfxLightImage attenuation;
-		GfxLightImage cucoloris;
-		int lmapLookupStart;
-	}; assert_sizeof(GfxLightDef, 0x30);
+	static_assert(sizeofmember(VehicleDef, surfaceSnds) == 0x1A8);
+	static_assert(offsetof(VehicleDef, soundTriggerOverrideZone) == 2264);
+	static_assert(sizeof(VehicleDef) == 0x8E8);
 
 	union XAssetHeader
 	{
@@ -5213,58 +3553,28 @@ namespace zonetool
 		MaterialTechniqueSet* techniqueSet;
 		GfxImage* image;
 		snd_alias_list_t* sound;
-		// submix
 		SndCurve* sndCurve;
 		SndCurve* lpfCurve;
 		SndCurve* reverbCurve;
 		SndContext* sndContext;
 		LoadedSound* loadSnd;
-		clipMap_t* clipMap;
-		ComWorld* comWorld;
-		GlassWorld* glassWorld;
-		// aipaths
-		// vehicle track
-		MapEnts* mapEnts;
-		FxWorld* fxWorld;
-		GfxWorld* gfxWorld;
-		GfxLightDef* lightDef;
-		// ui map
-		MenuList* menuList;
-		menuDef_t* menu;
-		// anim class
 		LocalizeEntry* localize;
+		MapEnts* mapEnts;
+		GfxLightDef* lightDef;
 		WeaponAttachment* attachment;
 		WeaponDef* weapon;
-		// snd driver globals
+		VehicleDef* vehicle;
 		FxEffectDef* fx;
-		// impact fx
-		// surface fx
-		// ai type
-		// mp type
-		// character
-		// xmodel alias
 		RawFile* rawfile;
 		ScriptFile* scriptfile;
 		StringTable* stringTable;
-		// leaderboard
-		// virtual leaderboard
 		StructuredDataDefSet* structuredDataDefSet;
-		// ddl
-		// proto
-		TracerDef* tracerDef;
-		// vehicle
-		// addon map ents
 		NetConstStrings* netConstStrings;
-		// reverb preset
+		TracerDef* tracerDef;
 		LuaFile* luaFile;
-		// scriptable
-		// equipment snd table
-		// vector field
 		DopplerPreset* doppler;
 		FxParticleSimAnimation* particleSimAnimation;
-		// laser
 		SkeletonScript* skeletonScript;
-		// clut
 		TTFDef* ttfDef;
 	};
 
@@ -5354,7 +3664,7 @@ namespace zonetool
 		DB_ZONE_BASEMAP = 0x20,
 		DB_ZONE_TRANSIENT_POOL = 0x40,
 		DB_ZONE_TRANSIENT_MASK = 0x40,
-		DB_ZONE_CUSTOM = 0x400 // added for custom zone loading
+		DB_ZONE_CUSTOM = 0x1000 // added for custom zone loading
 	};
 
 	struct XZoneInfo

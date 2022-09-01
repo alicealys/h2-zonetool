@@ -56,7 +56,7 @@ namespace zonetool
 		asset->tagPositions = read.read_array<XModelTagPos>();
 		asset->partClassification = read.read_array<unsigned char>();
 		asset->baseMat = read.read_array<DObjAnimMat>();
-		asset->reactiveMotionParts = read.read_array<ReactiveMotionModelPart>();
+		//asset->reactiveMotionParts = read.read_array<ReactiveMotionModelPart>();
 		asset->reactiveMotionTweaks = read.read_single<ReactiveMotionModelTweaks>();
 		asset->collSurfs = read.read_array<XModelCollSurf_s>();
 		asset->boneInfo = read.read_array<XBoneInfo>();
@@ -244,7 +244,12 @@ namespace zonetool
 			for (unsigned char i = 0; i < data->numBonePhysics; i++)
 			{
 				zone->add_asset_of_type(ASSET_TYPE_PHYSPRESET, data->bonePhysics[i].physPreset->name);
-				zone->add_asset_of_type(ASSET_TYPE_PHYSCONSTRAINT, data->bonePhysics[i].physContraint->name);
+
+				if (data->bonePhysics[i].physContraint)
+				{
+					zone->add_asset_of_type(ASSET_TYPE_PHYSCONSTRAINT, data->bonePhysics[i].physContraint->name);
+				}
+
 				zone->add_asset_of_type(ASSET_TYPE_PHYSCOLLMAP, data->bonePhysics[i].physCollmap->name);
 			}
 		}
@@ -311,12 +316,12 @@ namespace zonetool
 			ZoneBuffer::clear_pointer(&dest->baseMat);
 		}
 
-		if (data->reactiveMotionParts)
+		/*if (data->reactiveMotionParts)
 		{
 			buf->align(15);
 			buf->write(data->reactiveMotionParts, data->numReactiveMotionParts);
 			ZoneBuffer::clear_pointer(&dest->reactiveMotionParts);
-		}
+		}*/
 
 		if (data->reactiveMotionTweaks)
 		{
@@ -439,8 +444,13 @@ namespace zonetool
 			{
 				dest_bonePhysics[i].physPreset = reinterpret_cast<PhysPreset*>(zone->get_asset_pointer(
 					ASSET_TYPE_PHYSPRESET, data->bonePhysics[i].physPreset->name));
-				dest_bonePhysics[i].physContraint = reinterpret_cast<PhysConstraint*>(zone->get_asset_pointer(
-					ASSET_TYPE_PHYSCONSTRAINT, data->bonePhysics[i].physContraint->name));
+
+				if (data->bonePhysics[i].physContraint)
+				{
+					dest_bonePhysics[i].physContraint = reinterpret_cast<PhysConstraint*>(zone->get_asset_pointer(
+						ASSET_TYPE_PHYSCONSTRAINT, data->bonePhysics[i].physContraint->name));
+				}
+
 				dest_bonePhysics[i].physCollmap = reinterpret_cast<PhysCollmap*>(zone->get_asset_pointer(
 					ASSET_TYPE_PHYSCOLLMAP, data->bonePhysics[i].physCollmap->name));
 			}
@@ -479,7 +489,7 @@ namespace zonetool
 		dump.dump_array(asset->tagPositions, asset->numBones - asset->numRootBones);
 		dump.dump_array(asset->partClassification, asset->numBones);
 		dump.dump_array(asset->baseMat, asset->numBones);
-		dump.dump_array(asset->reactiveMotionParts, asset->numReactiveMotionParts);
+		//dump.dump_array(asset->reactiveMotionParts, asset->numReactiveMotionParts);
 		dump.dump_single(asset->reactiveMotionTweaks);
 		dump.dump_array(asset->collSurfs, asset->numCollSurfs);
 		dump.dump_array(asset->boneInfo, asset->numBones);

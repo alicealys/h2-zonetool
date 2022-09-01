@@ -127,22 +127,6 @@ namespace zonetool
 	LoadedSound* ILoadedSound::parse(const std::string& name, ZoneMemory* mem)
 	{
 		auto path = "loaded_sound\\"s + name;
-		if (filesystem::file(path).exists())
-		{
-			auto fpath = std::filesystem::path(path);
-			if (fpath.has_extension())
-			{
-				auto ext = fpath.extension();
-				if (ext == ".wav")
-				{
-					return parse_wav(name.substr(0, name.length() - 4), mem);
-				}
-				else if (ext == ".flac")
-				{
-					return parse_flac(name.substr(0, name.length() - 5), mem);
-				}
-			}
-		}
 		if (filesystem::file(path + ".wav").exists())
 		{
 			return parse_wav(name, mem);
@@ -241,29 +225,31 @@ namespace zonetool
 			// dump data from soundfile
 			if (asset->filename.fileIndex)
 			{
-				auto soundfile_path = utils::string::va("soundfile%d.pak", asset->filename.fileIndex);
-				auto soundfile = filesystem::file(soundfile_path);
-				soundfile.open("rb", false, true);
+				const auto db_fs = game::DB_FSInitialize();
+				const auto soundfile_path = utils::string::va("soundfile%d.pak", asset->filename.fileIndex);
+				const auto soundfile = db_fs->vftbl->OpenFile(db_fs, game::Sys_Folder::SF_PAKFILE, soundfile_path);
+				const auto _0 = gsl::finally([&]
+				{
+					db_fs->vftbl->Close(db_fs, soundfile);
+				});
 
-				auto* fp = soundfile.get_fp();
-				if (fp)
+				if (soundfile)
 				{
 					// get data from sound pak
 
 					bool flac_data = true;
 
-					size_t snd_data_offset = asset->filename.info.packed.offset;
-					size_t snd_data_size = asset->filename.info.packed.length;
+					auto snd_data_offset = asset->filename.info.packed.offset;
+					auto snd_data_size = asset->filename.info.packed.length;
 
 					std::vector<std::uint8_t> snd_data;
 					snd_data.resize(snd_data_size);
 
 					// get data from offset
-					fseek(fp, static_cast<long>(snd_data_offset), SEEK_SET);
-					fread(snd_data.data(), snd_data_size, 1, fp);
+					db_fs->vftbl->Read(db_fs, soundfile, snd_data_offset, snd_data_size, snd_data.data());
 
 					// check if data is in fLaC format, otherwise it's in WAVE format
-					if (!strncmp(reinterpret_cast<char*>(snd_data.data()), "fLaC", 4))
+					if (!std::strncmp(reinterpret_cast<char*>(snd_data.data()), "fLaC", 4))
 					{
 						flac_data = true;
 					}
@@ -278,8 +264,7 @@ namespace zonetool
 						snd_data.resize(snd_data_size);
 
 						// get data from offset
-						fseek(fp, static_cast<long>(snd_data_offset), SEEK_SET);
-						fread(snd_data.data(), snd_data_size, 1, fp);
+						db_fs->vftbl->Read(db_fs, soundfile, snd_data_offset, snd_data_size, snd_data.data());
 
 						if (strncmp(reinterpret_cast<char*>(snd_data.data()), "RIFF", 4))
 						{

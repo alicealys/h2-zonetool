@@ -329,6 +329,64 @@ namespace zonetool
 			}
 		};
 
+		// zonetool/iw4/addonmapents.cpp
+		class native_reader
+		{
+		public:
+			native_reader(char* data, ZoneMemory* mem)
+				: data_(data)
+				  , memory(mem)
+			{
+			}
+
+			template <typename T>
+			T read()
+			{
+				const auto value = *reinterpret_cast<T*>(this->data_);
+				this->data_ += sizeof(T);
+				return value;
+			}
+
+			std::uint32_t read_int()
+			{
+				const auto type = this->read<char>();
+				if (type != 0)
+				{
+					throw std::runtime_error("asset_reader: invalid type for int\n");
+				}
+
+				return this->read<int>();
+			}
+
+			template <typename T>
+			T* read_array()
+			{
+				const auto type = this->read<char>();
+				if (type != 3)
+				{
+					throw std::runtime_error("asset_reader: invalid type for array\n");
+				}
+
+				const auto size = this->read<int>();
+				if (size <= 0)
+				{
+					printf("asset_reader: array size <= 0\n");
+					return nullptr;
+				}
+
+				const auto array_ = memory->Alloc<T>(size);
+				const auto total_size = sizeof(T) * size;
+				std::memcpy(array_, this->data_, total_size);
+				this->data_ += total_size;
+
+				return array_;
+			}
+
+		private:
+			char* data_ = nullptr;
+			ZoneMemory* memory;
+		};
+
 		class reader
 		{
 		private:

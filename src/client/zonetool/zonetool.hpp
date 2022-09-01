@@ -12,6 +12,7 @@
 
 #include "utils/utils.hpp"
 
+#include "assets/addonmapents.hpp"
 #include "assets/dopplerpreset.hpp"
 #include "assets/fxeffectdef.hpp"
 #include "assets/fxparticlesimanimation.hpp"
@@ -44,6 +45,7 @@
 #include "assets/ttf.hpp"
 #include "assets/weaponattachment.hpp"
 #include "assets/weapondef.hpp"
+#include "assets/vehicledef.hpp"
 #include "assets/xanim.hpp"
 #include "assets/xmodel.hpp"
 #include "assets/xsurface.hpp"
@@ -54,9 +56,6 @@
 #include "assets/pixelshader.hpp"
 #include "assets/vertexdecl.hpp"
 #include "assets/vertexshader.hpp"
-
-#include "assets/menudef.hpp"
-#include "assets/menulist.hpp"
 
 #include "zone.hpp"
 
@@ -74,6 +73,8 @@ namespace zonetool
 		}
 		return header;
 	}
+
+	void build_zone(const std::string&);
 
 	void initialize();
 	void start();

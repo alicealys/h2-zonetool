@@ -3,6 +3,436 @@
 
 namespace zonetool
 {
+	namespace
+	{
+		std::unordered_map<std::string, unsigned> token_map =
+		{
+			// built-in entity fields
+			{"code_classname", 172},
+			{"classname", 170},
+			{"model", 669},
+			{"count", 216},
+			{"health", 486},
+			{"dmg", 293},
+			{"maxhealth", 626},
+			{"anglelerprate", 64},
+			{"activator", 19},
+			{"slidevelocity", 974},
+			{"disableplayeradsloscheck", 291},
+			{"accuracy", 10},
+			{"lookforward", 604},
+			{"lookright", 605},
+			{"lookup", 607},
+			{"fovcosine", 411},
+			{"fovcosinebusy", 412},
+			{"fovcosinez", 413},
+			{"upaimlimit", 1252},
+			{"downaimlimit", 307},
+			{"rightaimlimit", 894},
+			{"leftaimlimit", 590},
+			{"maxsightdistsqrd", 628},
+			{"sightlatency", 967},
+			{"defaultsightlatency", 968},
+			{"ignoreclosefoliage", 508},
+			{"interval", 525},
+			{"teammovewaittime", 1199},
+			{"damagetaken", 257},
+			{"damagedir", 252},
+			{"damageyaw", 259},
+			{"damagelocation", 253},
+			{"damageweapon", 258},
+			{"damagemod", 254},
+			{"proneok", 841},
+			{"walkdistfacingmotion", 1299},
+			{"walkdist", 1298},
+			{"desiredangle", 278},
+			{"pacifist", 744},
+			{"pacifistwait", 745},
+			{"footstepdetectdist", 398},
+			{"footstepdetectdistwalk", 400},
+			{"footstepdetectdistsprint", 399},
+			{"reactiontargetpos", 859},
+			{"newenemyreactiondistsq", 686},
+			{"ignoreexplosionevents", 509},
+			{"ignoresuppression", 513},
+			{"suppressionwait", 1060},
+			{"suppressionduration", 1056},
+			{"suppressionstarttime", 1058},
+			{"suppressionmeter", 1057},
+			{"ignoreplayersuppression", 514},
+			{"name", 680},
+			{"weapon", 1302},
+			{"dontavoidplayer", 304},
+			{"grenadeawareness", 465},
+			{"grenade", 458},
+			{"grenadeweapon", 470},
+			{"grenadeammo", 464},
+			{"grenadetargetpos", 467},
+			{"grenadetargetvalid", 468},
+			{"grenadetossvel", 469},
+			{"favoriteenemy", 377},
+			{"highlyawareradius", 495},
+			{"minpaindamage", 642},
+			{"allowpain", 52},
+			{"allowdeath", 49},
+			{"delayeddeath", 274},
+			{"diequietly", 287},
+			{"forceragdollimmediate", 405},
+			{"providecoveringfire", 842},
+			{"doingambush", 302},
+			{"combatmode", 199},
+			{"alertlevel", 38},
+			{"alertlevelint", 39},
+			{"useable", 1257},
+			{"ignoretriggers", 515},
+			{"pushable", 846},
+			{"script_pushable", 926},
+			{"dropweapon", 309},
+			{"drawoncompass", 308},
+			{"groundtype", 474},
+			{"anim_pose", 68},
+			{"goalradius", 452},
+			{"goalheight", 450},
+			{"goalpos", 451},
+			{"nodeoffsetpos", 705},
+			{"ignoreforfixednodesafecheck", 510},
+			{"fixednode", 381},
+			{"fixednodesaferadius", 382},
+			{"pathgoalpos", 762},
+			{"pathrandompercent", 764},
+			{"usechokepoints", 1258},
+			{"stopanimdistsq", 1044},
+			{"lastenemysightpos", 584},
+			{"pathenemylookahead", 761},
+			{"pathenemyfightdist", 760},
+			{"meleeattackdist", 633},
+			{"movemode", 675},
+			{"script_move_distance_override", 31298},
+			{"usecombatscriptatcover", 1259},
+			{"safetochangescript", 906},
+			{"keepclaimednode", 561},
+			{"keepclaimednodeifvalid", 562},
+			{"keepnodeduringscriptedanim", 563},
+			{"dodangerreact", 295},
+			{"dangerreactduration", 260},
+			{"nododgemove", 706},
+			{"noteammove", 707},
+			{"leanamount", 587},
+			{"pitchamount", 788},
+			{"turnrate", 1230},
+			{"turnanimactive", 1229},
+			{"badplaceawareness", 107},
+			{"damageshield", 256},
+			{"nogrenadereturnthrow", 709},
+			{"noattackeraccuracymod", 698},
+			{"frontshieldanglecos", 426},
+			{"lookaheaddir", 601},
+			{"lookaheaddist", 602},
+			{"lookaheadhitsstairs", 603},
+			{"velocity", 1283},
+			{"prevanimdelta", 821},
+			{"exposedduration", 356},
+			{"requestarrivalnotify", 875},
+			{"scriptedarrivalent", 938},
+			{"goingtoruntopos", 455},
+			{"engagemindist", 334},
+			{"engageminfalloffdist", 335},
+			{"engagemaxdist", 332},
+			{"engagemaxfalloffdist", 333},
+			{"usingcovermoveup", 42987},
+			{"finalaccuracy", 378},
+			{"facemotion", 373},
+			{"gunblockedbywall", 475},
+			{"relativedir", 866},
+			{"lockorientation", 597},
+			{"maxfaceenemydist", 625},
+			{"stairsstate", 1012},
+			{"script", 912},
+			{"prevscript", 823},
+			{"headicon", 483},
+			{"headiconteam", 484},
+			{"coversearchinterval", 219},
+			{"threatupdateinterval", 37018},
+			{"canclimbladders", 150},
+			{"swimmer", 1063},
+			{"space", 986},
+			{"doghandler", 301},
+			{"sharpturnlookaheaddist", 961},
+			{"postsharpturnlookaheaddist", 813},
+			{"sharpturntooclosetodestdist", 963},
+			{"usepathsmoothingvalues", 1262},
+			{"pathlookaheaddist", 763},
+			{"maxturnspeed", 629},
+			{"sharpturn", 960},
+			{"disablesightandthreatupdate", 54743},
+			{"team", 1194},
+			{"threatbias", 1204},
+			{"threatbiasgroup", 1205},
+			{"node", 700},
+			{"prevnode", 822},
+			{"enemy", 322},
+			{"syncedmeleetarget", 1065},
+			{"lastattacker", 583},
+			{"lastpusher", 42997},
+			{"ignoreme", 511},
+			{"ignoreall", 507},
+			{"maxvisibledist", 630},
+			{"surprisedbymedistsq", 1062},
+			{"attackeraccuracy", 86},
+			{"ignorerandombulletdamage", 512},
+			{"dodamagetoall", 294},
+			{"turretinvulnerability", 1240},
+			{"useorcaavoidance", 1261},
+			{"reciprocality", 863},
+			{"avoidanceboundshalfsize", 94},
+			{"onlygoodnearestnodes", 735},
+			{"playername", 803},
+			{"deathinvulnerabletime", 266},
+			{"criticalbulletdamagedist", 222},
+			{"attackercount", 87},
+			{"damagemultiplier", 255},
+			{"laststand", 586},
+			{"motiontrackerenabled", 672},
+			{"veh_speed", 1276},
+			{"veh_pathspeed", 1273},
+			{"veh_transmission", 1279},
+			{"veh_pathdir", 1272},
+			{"veh_pathtype", 1274},
+			{"veh_topspeed", 1278},
+			{"veh_brake", 1266},
+			{"veh_throttle", 1277},
+			{"x", 1331},
+			{"y", 1339},
+			{"z", 1342},
+			{"fontscale", 393},
+			{"font", 392},
+			{"alignx", 44},
+			{"aligny", 45},
+			{"horzalign", 499},
+			{"vertalign", 1284},
+			{"color", 196},
+			{"alpha", 55},
+			{"label", 578},
+			{"sort", 983},
+			{"foreground", 408},
+			{"lowresbackground", 612},
+			{"hidewhendead", 491},
+			{"hidewheninmenu", 493},
+			{"glowcolor", 445},
+			{"glowalpha", 444},
+			{"positioninworld", 812},
+			{"relativeoffset", 867},
+			{"enablehudlighting", 315},
+			{"enableinputprogressicon", 42996},
+			{"rotation", 902},
+			{"targetname", 1193},
+			{"target", 1191},
+			{"animscript", 71},
+			{"script_linkname", 920},
+			{"script_noteworthy", 922},
+			{"origin", 740},
+			{"angles", 65},
+			{"minusedistsq", 643},
+			{"parentname", 749},
+			{"spawnflags", 989},
+			{"type", 1244},
+			{"owner", 743},
+			{"radius", 851},
+			{"customangles", 9555},
+			{"speed", 997},
+			{"lookahead", 600},
+
+			// mapent keys
+			{"code_classname", 172},
+			{"classname", 170},
+			{"origin", 740},
+			{"model", 669},
+			{"spawnflags", 989},
+			{"target", 1191},
+			{"targetname", 1193},
+			{"count", 216},
+			{"rotation", 902},
+			{"animscript", 71},
+			{"script_linkname", 920},
+			{"script_noteworthy", 922},
+			{"angles", 65},
+			{"parentname", 749},
+			{"type", 1244},
+			{"owner", 743},
+			{"radius", 851},
+			{"height", 488},
+			{"customangles", 9555},
+			{"speed", 997},
+			{"lookahead", 600},
+
+			{"_color", 1398},
+			{"skycolor", 34255},
+			{"suncolor", 1049},
+			{"sundirection", 1050},
+			{"modelscale", 23881},
+			{"export", 13703},
+			{"animation", 70},
+			{"spammed_model", 49508},
+			{"vehicletype", 1282},
+
+			{"script_flag", 31190},
+			{"script_flag_true", 31196},
+			{"script_stealth_function", 31462},
+			{"script_stealth", 31460},
+			{"script_deathflag", 31114},
+			{"script_forcespawn", 31214},
+			{"script_stealthgroup", 31463},
+			{"script_delay", 916},
+			{"script_color_allies", 31096},
+			{"script_patroller", 31391},
+			{"script_idlereach", 31253},
+			{"script_linkto", 31273},
+			{"script_animation", 31039},
+			{"script_startinghealth", 31454},
+			{"script_pet", 9},
+			{"script_goalheight", 31236},
+			{"script_parameters", 31388},
+			{"script_combatmode", 31102},
+			{"script_ammo_clip", 31034},
+			{"script_moveoverride", 31299},
+			{"script_forcegoal", 31212},
+			{"script_ammo_max", 31036},
+			{"script_vehicleride", 31516},
+			{"script_idleanim", 31252},
+			{"script_chatgroup", 31092},
+			{"script_vehicle_anim", 40318},
+			{"script_vehicledetour", 31510},
+			{"script_vehiclegroupdelete", 31514},
+			{"script_flag_wait", 31197},
+			{"script_emptyspawner", 31161},
+			{"script_aigroup", 31025},
+			{"script_group", 31245},
+			{"script_index", 31259},
+			{"script_delay_post", 31122},
+			{"script_killspawner", 31264},
+			{"script_goalvolume", 31238},
+			{"script_drone", 31152},
+			{"script_health", 31247},
+			{"script_friendname", 31217},
+			{"script_airspeed", 31027},
+			{"script_missiles", 31293},
+			{"script_spotlight", 31447},
+			{"script_team", 31474},
+			{"script_ai_invulnerable", 31024},
+			{"script_mp_style_helicopter", 31353},
+			{"script_startingposition", 31455},
+			{"script_vehicle_selfremove", 31507},
+			{"script_stopnode", 31464},
+			{"script_unload", 31497},
+
+			{"script_specialops", 0xEFFF}, // custom, defined in h2-mod/src/client/component/mapents.cpp
+		};
+
+		std::string convert_mapents(const std::string& source)
+		{
+			std::string out_buffer{};
+			const auto lines = utils::string::split(source, '\n');
+
+			bool in_map_ent = false;
+			bool empty = false;
+			int line_index{};
+			for (const auto& line : lines)
+			{
+				const auto _0 = gsl::finally([&]()
+				{
+					line_index++;
+				});
+
+				if (line[0] == '{' && !in_map_ent)
+				{
+					in_map_ent = true;
+					out_buffer.append("{\n");
+					continue;
+				}
+
+				if (line[0] == '{' && in_map_ent)
+				{
+					throw std::runtime_error(utils::string::va("[addon_map_ents parser] '{' on line %i\n", line_index));
+				}
+
+				if (line[0] == '}' && in_map_ent)
+				{
+					if (empty)
+					{
+						out_buffer.append("\n}\n");
+					}
+					else if (line_index < static_cast<int>(lines.size()) - 1)
+					{
+						out_buffer.append("}\n");
+					}
+					else
+					{
+						out_buffer.append("}\0");
+					}
+
+					in_map_ent = false;
+					continue;
+				}
+
+				if (line[0] == '}' && !in_map_ent)
+				{
+					throw std::runtime_error(utils::string::va("[addon_map_ents parser] Unexpected '}' on line %i\n", line_index));
+				}
+
+				std::regex expr(R"~((.+) "(.*)")~");
+				std::smatch match{};
+				if (!std::regex_search(line, match, expr))
+				{
+					printf("[addon_map_ents parser] Failed to parse line %i\n", line_index);
+					continue;
+				}
+
+				auto key = utils::string::to_lower(match[1].str());
+				const auto value = match[2].str();
+
+				if (key.size() <= 0 || value.size() <= 0)
+				{
+					printf("[addon_map_ents parser] Invalid key/value ('%s' '%s') pair on line %i\n", key.data(), value.data(), line_index);
+					continue;
+				}
+
+				empty = false;
+
+				auto key_id = std::atoi(key.data());
+				if (key_id != 0)
+				{
+					out_buffer.append(utils::string::va("%i \"%s\"\n", key_id, value.data()));
+					continue;
+				}
+
+				if (key.size() < 3 || (!key.starts_with("\"") || !key.ends_with("\"")))
+				{
+					printf("[addon_map_ents parser] Bad key '%s' on line %i\n", key.data(), line_index);
+					continue;
+				}
+
+				const auto key_ = key.substr(1, key.size() - 2);
+				if (token_map.find(key_) == token_map.end())
+				{
+					printf("[addon_map_ents parser] Key '%s' not found, on line %i\n", key_.data(), line_index);
+					continue;
+				}
+
+				out_buffer.append(utils::string::va("%i \"%s\"\n", token_map[key_], value.data()));
+			}
+
+			return out_buffer;
+		}
+
+	}
+
+	void IMapEnts::convert_ents(MapEnts* ents, ZoneMemory* mem)
+	{
+		const auto str = convert_mapents(ents->entityString);
+		ents->entityString = mem->StrDup(str);
+		ents->numEntityChars = static_cast<int>(str.size());
+	}
+
 	void IMapEnts::add_script_string(scr_string_t* ptr, std::string str)
 	{
 		for (std::uint32_t i = 0; i < this->script_strings.size(); i++)
@@ -188,6 +618,8 @@ namespace zonetool
 		ents->name = mem->StrDup(name);
 
 		parse_entityStrings(mem, name, &ents->entityString, &ents->numEntityChars);
+		convert_ents(ents, mem);
+
 		parse_triggers(mem, name, &ents->trigger);
 		parse_clientTriggers(mem, name, &ents->clientTrigger);
 		parse_clientBlendTriggers(mem, name, &ents->clientTriggerBlend);

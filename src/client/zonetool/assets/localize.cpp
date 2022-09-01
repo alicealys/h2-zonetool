@@ -3,6 +3,56 @@
 
 namespace zonetool
 {
+	bool ILocalize::parse_localizedstrings_json(IZone* zone, const std::string& file_name)
+	{
+		const auto path = "localizedstrings\\"s + file_name + ".json";
+		auto file = filesystem::file(path);
+		file.open("rb");
+
+		auto* fp = file.get_fp();
+
+		if (fp == nullptr)
+		{
+			return false;
+		}
+
+		const auto size = file.size();
+		const auto bytes = file.read_bytes(size);
+		const auto localize = json::parse(bytes);
+
+		ZONETOOL_INFO("Parsing localizedstrings \"%s.json\"...", file_name.data());
+		if (!localize.is_object())
+		{
+			ZONETOOL_ERROR("Localized strings json file should be an object!");
+		}
+
+		for (const auto& [key, value] : localize.items())
+		{
+			const auto value_str = value.get<std::string>();
+
+			LocalizeEntry loc{};
+			loc.name = key.data();
+			loc.value = value_str.data();
+
+			auto type = zone->get_type_by_name("localize");
+			if (type == -1)
+			{
+				ZONETOOL_ERROR("Could not translate typename localize to an integer!");
+			}
+			try
+			{
+				zone->add_asset_of_type_by_pointer(type, &loc);
+			}
+			catch (const std::exception& e)
+			{
+				ZONETOOL_FATAL("A fatal exception occured while adding localizedstring: \"%s\" from file: \"%s\", exception was: \n%s",
+					key.data(), path.data(), e.what());
+			}
+		}
+
+		return true;
+	}
+
 	bool ILocalize::parse_localizedstrings_file(IZone* zone, const std::string& file_name)
 	{
 		const auto path = "localizedstrings\\"s + file_name + ".str";

@@ -3,18 +3,19 @@
 
 namespace zonetool
 {
-	class ILocalize : public IAsset
+	class IVehicleDef : public IAsset
 	{
 	private:
 		std::string name_;
-		LocalizeEntry* asset_ = nullptr;
+		VehicleDef* asset_ = nullptr;
+
+		std::vector<std::pair<scr_string_t*, std::string>> script_strings;
+		void add_script_string(scr_string_t* ptr, std::string str);
+		std::string get_script_string(scr_string_t* ptr);
 
 	public:
-		static bool parse_localizedstrings_json(IZone* zone, const std::string& file_name);
-		static bool parse_localizedstrings_file(IZone* zone, const std::string& file_name);
-		LocalizeEntry* parse(const std::string& name, ZoneMemory* mem);
+		VehicleDef* parse(const std::string& name, ZoneMemory* mem);
 
-		void init(void* asset, ZoneMemory* mem) override;
 		void init(const std::string& name, ZoneMemory* mem) override;
 		void prepare(ZoneBuffer* buf, ZoneMemory* mem) override;
 		void load_depending(IZone* zone) override;
@@ -25,6 +26,6 @@ namespace zonetool
 		std::int32_t type() override;
 		void write(IZone* zone, ZoneBuffer* buffer) override;
 
-		static void dump(LocalizeEntry* asset);
+		static void dump(VehicleDef* asset);
 	};
 }

@@ -38,7 +38,7 @@ namespace exception
 			utils::thread::suspend_other_threads();
 			show_mouse_cursor();
 
-			MessageBoxA(nullptr, error_str.data(), "H1-ZoneTool ERROR", MB_ICONERROR);
+			MessageBoxA(nullptr, error_str.data(), "H2-ZoneTool ERROR", MB_ICONERROR);
 			TerminateProcess(GetCurrentProcess(), exception_data.code);
 		}
 
@@ -80,7 +80,7 @@ namespace exception
 				info.append("\r\n");
 			};
 
-			line("H1-ZoneTool Crash Dump");
+			line("H2-ZoneTool Crash Dump");
 			line("");
 			line("Version: "s + VERSION);
 			line("Timestamp: "s + get_timestamp());
@@ -102,13 +102,13 @@ namespace exception
 
 		void write_minidump(const LPEXCEPTION_POINTERS exceptioninfo)
 		{
-			const std::string crash_name = utils::string::va("minidumps/h1-zonetool-crash-%s.zip",
+			const std::string crash_name = utils::string::va("minidumps/h2-zonetool-crash-%s.zip",
 			                                                 get_timestamp().data());
 
 			utils::compression::zip::archive zip_file{};
 			zip_file.add("crash.dmp", create_minidump(exceptioninfo));
 			zip_file.add("info.txt", generate_crash_info(exceptioninfo));
-			zip_file.write(crash_name, "H1-ZoneTool Crash Dump");
+			zip_file.write(crash_name, "H2-ZoneTool Crash Dump");
 		}
 
 		bool is_harmless_error(const LPEXCEPTION_POINTERS exceptioninfo)

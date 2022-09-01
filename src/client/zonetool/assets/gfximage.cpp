@@ -607,7 +607,7 @@ namespace zonetool
 
 	GfxImage* IGfxImage::parse(const std::string& name, ZoneMemory* mem)
 	{
-		auto path = "images\\" + clean_name(name) + ".h1Image";
+		auto path = "images\\" + clean_name(name) + ".h2Image";
 
 		assetmanager::reader read(mem);
 		if (!read.open(path))
@@ -785,7 +785,7 @@ namespace zonetool
 		dump_image_dds(asset);
 #endif
 
-		auto path = "images\\"s + clean_name(asset->name) + ".h1Image"s;
+		auto path = "images\\"s + clean_name(asset->name) + ".h2Image"s;
 		assetmanager::dumper write;
 		if (!write.open(path))
 		{
@@ -809,8 +809,8 @@ namespace zonetool
 
 		if (asset->streamed)
 		{
-			auto streamFileIndex = *reinterpret_cast<unsigned int*>(0x143274884);
-			auto streamFiles = reinterpret_cast<XStreamFile*>(0x1432748B0);
+			auto streamFileIndex = *reinterpret_cast<unsigned int*>(0x1420B27F4);
+			auto streamFiles = reinterpret_cast<XStreamFile*>(0x1420B2820);
 
 			for (auto i = 0u; i < 4; i++)
 			{
