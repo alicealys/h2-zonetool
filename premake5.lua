@@ -216,7 +216,7 @@ newaction {
 
 dependencies.load()
 
-workspace "h1-zonetool"
+workspace "h2-zonetool"
 startproject "client"
 location "./build"
 objdir "%{wks.location}/obj"
@@ -277,7 +277,7 @@ project "client"
 kind "ConsoleApp"
 language "C++"
 
-targetname "h1-zonetool"
+targetname "h2-zonetool"
 
 pchheader "std_include.hpp"
 pchsource "src/client/std_include.cpp"
@@ -295,14 +295,6 @@ dependson {"tlsdll"}
 links {"common"}
 
 prebuildcommands {"pushd %{_MAIN_SCRIPT_DIR}", "tools\\premake5 generate-buildinfo", "popd"}
-
-if COMPUTER_NAME == "PC-JOEL" then
-	debugdir "E:\\Steam\\steamapps\\common\\Call of Duty Modern Warfare Remastered"
-	debugcommand "E:\\Steam\\steamapps\\common\\Call of Duty Modern Warfare Remastered\\$(TargetName)$(TargetExt)"
-end
-postbuildcommands {
-	"if \"%COMPUTERNAME%\" == \"PC-JOEL\" ( copy /y \"$(OutDir)$(TargetName)$(TargetExt)\" \"E:\\Steam\\steamapps\\common\\Call of Duty Modern Warfare Remastered\\$(TargetName)$(TargetExt)\" )",
-}
 
 if _OPTIONS["copy-to"] then
 	postbuildcommands {"copy /y \"$(TargetPath)\" \"" .. _OPTIONS["copy-to"] .. "\""}
