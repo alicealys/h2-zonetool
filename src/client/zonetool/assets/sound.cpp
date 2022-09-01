@@ -379,7 +379,12 @@ namespace zonetool
 		SOUND_CHAR(polyEntityType);
 		SOUND_CHAR(polyGlobalType);
 
+		SOUND_FLOAT(envelopMin);
+		SOUND_FLOAT(envelopMax);
+		SOUND_FLOAT(envelopPercentage);
+
 		SOUND_FLOAT(reverbWetMixOverride);
+		SOUND_FLOAT(reverbMultiplier);
 
 		SOUND_FLOAT(smartPanDistance2d);
 		SOUND_FLOAT(smartPanDistance3d);
@@ -449,14 +454,9 @@ namespace zonetool
 		if (!snd_unknown.is_null())
 		{
 			auto pad0 = nlohmann::get_object_bytes(snd_unknown["pad"][0]);
-			auto pad1 = nlohmann::get_object_bytes(snd_unknown["pad"][1]);
-			auto pad2 = nlohmann::get_object_bytes(snd_unknown["pad"][2]);
 			memcpy(asset->__pad0, pad0.data(), pad0.size());
-			memcpy(asset->__pad1, pad1.data(), pad1.size());
-			memcpy(asset->__pad2, pad2.data(), pad2.size());
 			asset->u1 = snd_unknown["u1"].get<char>();
-			asset->u4 = snd_unknown["u4"].get<float>();
-			asset->u6 = snd_unknown["u6"].get<float>();
+			asset->u2 = snd_unknown["u2"].get<float>();
 		}
 	}
 
@@ -828,7 +828,7 @@ namespace zonetool
 		SOUND_DUMP_FLOAT(distMax);
 		SOUND_DUMP_FLOAT(velocityMin);
 		SOUND_DUMP_FLOAT(probability);
-		SOUND_DUMP_CHAR(sequence);
+		SOUND_DUMP_INT(sequence);
 		SOUND_DUMP_INT(startDelay);
 
 		SOUND_DUMP_CHAR(masterPriority);
@@ -844,7 +844,12 @@ namespace zonetool
 		SOUND_DUMP_CHAR(polyEntityType);
 		SOUND_DUMP_CHAR(polyGlobalType);
 
+		SOUND_DUMP_FLOAT(envelopMin);
+		SOUND_DUMP_FLOAT(envelopMax);
+		SOUND_DUMP_FLOAT(envelopPercentage);
+
 		SOUND_DUMP_FLOAT(reverbWetMixOverride);
+		SOUND_DUMP_FLOAT(reverbMultiplier);
 
 		SOUND_DUMP_FLOAT(smartPanDistance2d);
 		SOUND_DUMP_FLOAT(smartPanDistance3d);
@@ -903,11 +908,8 @@ namespace zonetool
 
 		// dump all unknown things too
 		sound["unknown"]["pad"][0] = json::binary(std::vector<std::uint8_t>(asset->__pad0, asset->__pad0 + sizeof(asset->__pad0)));
-		sound["unknown"]["pad"][1] = json::binary(std::vector<std::uint8_t>(asset->__pad1, asset->__pad1 + sizeof(asset->__pad1)));
-		sound["unknown"]["pad"][2] = json::binary(std::vector<std::uint8_t>(asset->__pad2, asset->__pad2 + sizeof(asset->__pad2)));
 		sound["unknown"]["u1"] = asset->u1;
-		sound["unknown"]["u4"] = asset->u4;
-		sound["unknown"]["u6"] = asset->u6;
+		sound["unknown"]["u2"] = asset->u2;
 	}
 
 	void ISound::json_dump(snd_alias_list_t* asset)

@@ -867,31 +867,31 @@ namespace zonetool
 		char u1; // value: 0-4
 		//char __padding2[3]; // padding
 		SndContext* sndContext;
-		unsigned char sequence;
-		//char __padding3[3]; // padding
+		int sequence;
 		float lfePercentage;
 		float centerPercentage;
 		int startDelay;
 		SndCurve* sndCurve;
-		char __pad1[8]; // unknown
+		float envelopMin;
+		float envelopMax;
 		SndCurve* lpfCurve;
 		SndCurve* reverbSendCurve;
 		SpeakerMap* speakerMap;
 		float reverbWetMixOverride;
-		float u4;
+		float reverbMultiplier;
 		float smartPanDistance2d;
 		float smartPanDistance3d;
 		float smartPanAttenuation3d;
-		char __pad2[4]; // unknown
+		float envelopPercentage;
 		short stereo3dAngle;
-		//char __padding4[2]; // padding
+		//char __padding3[3]; // padding
 		float stereo3dStart;
 		float stereo3dEnd;
 		unsigned char allowDoppler;
-		//char __padding5[3]; // padding
+		//char __padding4[3]; // padding
 		DopplerPreset* dopplerPreset;
-		float u6;
-		//char __padding6[4]; // padding
+		float u2;
+		//char __padding5[4]; // padding
 	}; assert_sizeof(snd_alias_t, 0xF8);
 	assert_offsetof(snd_alias_t, soundFile, 32);
 	assert_offsetof(snd_alias_t, sndContext, 128);
