@@ -3,6 +3,43 @@
 
 namespace zonetool
 {
+	namespace
+	{
+		std::vector<std::string> csv_split(const std::string& src)
+		{
+			std::vector<std::string> res;
+			std::string buffer;
+			auto in_quote = false;
+
+			for (auto i = 0; i < src.size(); i++)
+			{
+				const auto c = src[i];
+				if (c == '"')
+				{
+					in_quote = !in_quote;
+					continue;
+				}
+
+				if (c != ',' || in_quote)
+				{
+					buffer.push_back(src[i]);
+				}
+				else if (c == ',' && !in_quote)
+				{
+					res.push_back(buffer);
+					buffer.clear();
+				}
+			}
+
+			if (!buffer.empty())
+			{
+				res.push_back(buffer);
+			}
+
+			return res;
+		}
+	}
+
 	// LEGACY ZONETOOL CODE, FIX ME!
 	class CSV
 	{
@@ -43,7 +80,12 @@ namespace zonetool
 						row.replace(pos, 2, "\t");
 					}
 
-					_data.push_back(utils::string::split(row, sep));
+					if (row.size() && row[row.size() - 1] == '\r')
+					{
+						row.pop_back();
+					}
+
+					_data.push_back(csv_split(row));
 				}
 			}
 
@@ -202,20 +244,35 @@ namespace zonetool
 		auto file = filesystem::file(asset->name);
 		file.open("wb");
 
-		if (file.get_fp())
+		if (!file.get_fp())
 		{
-			for (int row = 0; row < asset->rowCount; row++)
+			file.close();
+			return;
+		}
+
+		for (auto row = 0; row < asset->rowCount; row++)
+		{
+			for (auto column = 0; column < asset->columnCount; column++)
 			{
-				for (int column = 0; column < asset->columnCount; column++)
+				const auto index = (row * asset->columnCount) + column;
+				const auto string_value = asset->values[index].string;
+				const auto last_char = (column == asset->columnCount - 1) ? "\n" : ",";
+
+				if (string_value == nullptr)
 				{
-					fprintf(
-						file.get_fp(),
-						"%s%s",
-						(asset->values[(row * asset->columnCount) + column].string)
-						? asset->values[(row * asset->columnCount) + column].string
-						: "",
-						(column == asset->columnCount - 1) ? "\n" : ","
-					);
+					std::fprintf(file.get_fp(), last_char);
+				}
+				else
+				{
+					std::string str = string_value;
+					if (str.contains(','))
+					{
+						str.insert(str.begin(), '"');
+						str.insert(str.end(), '"');
+					}
+
+					str = std::regex_replace(str, std::regex("\n"), "\\n");
+					std::fprintf(file.get_fp(), "%s%s", str.data(), last_char);
 				}
 			}
 		}
