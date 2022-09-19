@@ -22,6 +22,11 @@ namespace zonetool
 			component_loader::pre_destroy();
 			exit(0);
 		}
+
+		void* pmem_alloc_stub(unsigned __int64 size, unsigned __int64 alignment, unsigned int type, int source)
+		{
+			return _aligned_malloc(size, alignment);
+		}
 	}
 
 	void sync_gpu_stub()
@@ -169,6 +174,8 @@ namespace zonetool
 			utils::hook::set<uint8_t>(0x14041CC70, 0xC3); // DB_EnterStreamingTabulate
 
 			zonetool::initialize();
+
+			utils::hook::jump(0x14061E680, pmem_alloc_stub);
 		}
 	};
 }

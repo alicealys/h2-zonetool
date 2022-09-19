@@ -294,6 +294,7 @@ namespace zonetool
 			{"script_parameters", 31388},
 			{"script_combatmode", 31102},
 			{"script_ammo_clip", 31034},
+			{"script_ammo_extra", 31035},
 			{"script_moveoverride", 31299},
 			{"script_forcegoal", 31212},
 			{"script_ammo_max", 31036},

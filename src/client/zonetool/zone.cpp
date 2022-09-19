@@ -544,7 +544,7 @@ namespace zonetool
 		std::string path = output_folder + "/" + this->name_ + ".ff";
 		fastfile.save(path);
 
-		ZONETOOL_INFO("Successfully compiled fastfile \"%s\"!", this->name_.data());
+		ZONETOOL_INFO("Successfully compiled fastfile \"%s\" (%s)!", this->name_.data(), path.data());
 		ZONETOOL_INFO("Compiling took %llu msec.", (GetTickCount64() - startTime));
 	}
 

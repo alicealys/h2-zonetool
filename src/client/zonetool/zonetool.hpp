@@ -74,8 +74,6 @@ namespace zonetool
 		return header;
 	}
 
-	void build_zone(const std::string&);
-
 	void initialize();
 	void start();
 }

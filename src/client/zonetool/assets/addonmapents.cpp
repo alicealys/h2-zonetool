@@ -1,6 +1,8 @@
 #include <std_include.hpp>
 #include "addonmapents.hpp"
 
+#include <utils/io.hpp>
+
 namespace zonetool
 {
 	void IAddonMapEnts::add_script_string(scr_string_t* ptr, std::string str)
@@ -30,17 +32,12 @@ namespace zonetool
 	void IAddonMapEnts::parse_triggers(ZoneMemory* mem, std::string name, MapTriggers* trigger)
 	{
 		const auto path = name + ".triggers"s;
-		filesystem::file file(path);
-		file.open("r");
-
-		const auto size = file.size();
-		const auto bytes = file.read_bytes(size);
+		const auto file_path = filesystem::get_file_path(path);
+		auto data = utils::io::read_file(file_path + path);
 
 		// IW4 ZoneTool triggers
-		if (bytes.size() && bytes[0] == 0)
+		if (data.size() && data[0] == 0)
 		{
-			std::string data{bytes.begin(), bytes.end()};
-
 			assetmanager::native_reader reader(data.data(), mem);
 
 			trigger->count = reader.read_int();

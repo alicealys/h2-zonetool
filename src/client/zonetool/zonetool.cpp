@@ -1,6 +1,8 @@
 #include <std_include.hpp>
 #include "zonetool.hpp"
 
+#include <utils/io.hpp>
+
 namespace zonetool
 {
 	void dump_asset(XAsset* asset);
@@ -485,10 +487,6 @@ namespace zonetool
 			{
 				parse_csv_file(zone, fastfile, row->fields_[1]);
 			}
-			else if (row->fields_[0] == "build"s)
-			{
-				zonetool::build_zone(row->fields_[1]);
-			}
 			// this allows us to reference assets instead of rewriting them
 			else if (row->fields_[0] == "reference"s)
 			{
@@ -700,6 +698,28 @@ namespace zonetool
 					else if (args[i] == "-buildzone")
 					{
 						build_zone(args[i + 1]);
+						i++;
+					}
+					else if (args[i] == "-buildzones")
+					{
+						const auto& filename = args[i + 1];
+						std::string data{};
+						if (!utils::io::read_file(filename, &data))
+						{
+							return;
+						}
+
+						const auto zones = utils::string::split(data, '\n');
+						for (auto zone : zones)
+						{
+							if (zone.ends_with("\r"))
+							{
+								zone.pop_back();
+							}
+
+							build_zone(zone);
+						}
+
 						i++;
 					}
 					else if (args[i] == "-verifyzone")

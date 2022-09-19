@@ -502,7 +502,6 @@ namespace zonetool
 	WeaponDef* IWeaponDef::parse(const std::string& name, ZoneMemory* mem)
 	{
 		const auto path = "weapons\\"s + name + ".json"s;
-		const auto base_asset_path = "weapons\\"s + name + ".base"s;
 
 		auto file = filesystem::file(path);
 		if (!file.exists())
@@ -525,6 +524,8 @@ namespace zonetool
 
 		// base asset
 		auto base = data["baseAsset"].get<std::string>();
+		const auto base_asset_path = "weapons\\"s + base + ".base"s;
+
 		char* baseAsset = nullptr;
 		if (!base.empty())
 		{
