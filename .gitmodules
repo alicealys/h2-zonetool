@@ -31,3 +31,6 @@
 [submodule "deps/DirectXTex"]
 	path = deps/DirectXTex
 	url = https://github.com/microsoft/DirectXTex
+[submodule "deps/gsc-tool-h2"]
+	path = deps/gsc-tool-h2
+	url = https://github.com/fedddddd/gsc-tool-h2.git
