@@ -44,4 +44,4 @@ jobs:
         with:
           name: ${{matrix.configuration}} binaries
           path: |
-            build/bin/${{matrix.configuration}}/h2-zonetool.exe
+            build/bin/x64/${{matrix.configuration}}/h2-zonetool.exe
