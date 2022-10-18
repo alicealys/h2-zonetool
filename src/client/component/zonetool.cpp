@@ -78,13 +78,13 @@ namespace zonetool
 		utils::hook::set<uint8_t>(0x14074AEB0, 0xC3); // ^
 		utils::hook::set<uint8_t>(0x14074B550, 0xC3); // ^ 
 
-		/*// shaders
-		utils::hook::set<uint8_t>(0x1400916A0, 0xC3); // ^
-		utils::hook::set<uint8_t>(0x140091610, 0xC3); // ^
-		utils::hook::set<uint8_t>(0x14061ACC0, 0xC3); // ^ - mutex
+		// shaders
+		utils::hook::set<uint8_t>(0x1402A0580, 0xC3); // ^
+		utils::hook::set<uint8_t>(0x1402A04D0, 0xC3); // ^
+		/*utils::hook::set<uint8_t>(0, 0xC3); // ^ - mutex
 
-		utils::hook::set<uint8_t>(0x140516080, 0xC3); // idk
-		utils::hook::set<uint8_t>(0x1405AE5F0, 0xC3); // ^
+		utils::hook::set<uint8_t>(0, 0xC3); // idk
+		utils::hook::set<uint8_t>(0, 0xC3); // ^
 
 		utils::hook::set<uint8_t>(0x1405E0B30, 0xC3); // R_Shutdown
 		utils::hook::set<uint8_t>(0x1405AE400, 0xC3); // shutdown stuff
