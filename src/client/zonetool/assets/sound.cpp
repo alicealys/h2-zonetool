@@ -397,6 +397,7 @@ namespace zonetool
 		SOUND_SUBASSET(sndContext, SndContext);
 		SOUND_SUBASSET(sndCurve, SndCurve);
 		SOUND_SUBASSET(lpfCurve, SndCurve);
+		SOUND_SUBASSET(hpfCurve, SndCurve);
 		SOUND_SUBASSET(reverbSendCurve, SndCurve);
 
 		if (!snddata["speakerMap"].is_null())
@@ -561,6 +562,11 @@ namespace zonetool
 				zone->add_asset_of_type(ASSET_TYPE_LPF_CURVE, head->lpfCurve->name);
 			}
 
+			if (head->hpfCurve)
+			{
+				zone->add_asset_of_type(ASSET_TYPE_LPF_CURVE, head->hpfCurve->name);
+			}
+
 			if (head->reverbSendCurve)
 			{
 				zone->add_asset_of_type(ASSET_TYPE_REVERB_CURVE, head->reverbSendCurve->name);
@@ -693,6 +699,12 @@ namespace zonetool
 		{
 			dest->lpfCurve = static_cast<SndCurve*>(zone->get_asset_pointer(
 				ASSET_TYPE_LPF_CURVE, data->lpfCurve->name));
+		}
+
+		if (data->hpfCurve)
+		{
+			dest->hpfCurve = static_cast<SndCurve*>(zone->get_asset_pointer(
+				ASSET_TYPE_LPF_CURVE, data->hpfCurve->name));
 		}
 
 		if (data->reverbSendCurve)
@@ -862,6 +874,7 @@ namespace zonetool
 		SOUND_DUMP_SUBASSET(sndContext);
 		SOUND_DUMP_SUBASSET(sndCurve);
 		SOUND_DUMP_SUBASSET(lpfCurve);
+		SOUND_DUMP_SUBASSET(hpfCurve);
 		SOUND_DUMP_SUBASSET(reverbSendCurve);
 
 		sound["speakerMap"] = nullptr;
@@ -917,8 +930,6 @@ namespace zonetool
 		const auto path = "sounds\\"s + asset->name + ".json"s;
 
 		ordered_json sound;
-		ordered_json aliases;
-		ordered_json unknownArray;
 
 		SOUND_DUMP_STRING(aliasName);
 		SOUND_DUMP_CHAR(count);
