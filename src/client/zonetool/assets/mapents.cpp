@@ -14,17 +14,41 @@ namespace zonetool
 		std::string convert_mapents(const std::string& source)
 		{
 			std::string out_buffer{};
-			const auto lines = utils::string::split(source, '\n');
 
-			bool in_map_ent = false;
-			bool empty = false;
-			int line_index{};
-			for (const auto& line : lines)
+			const auto lines = utils::string::split(source, '\n');
+			auto in_map_ent = false;
+			auto empty = false;
+			auto in_comment = false;
+
+			for (auto i = 0; i < lines.size(); i++)
 			{
-				const auto _0 = gsl::finally([&]()
+				auto line = lines[i];
+				if (line.ends_with('\r'))
 				{
-					line_index++;
-				});
+					line.pop_back();
+				}
+
+				if (line.starts_with("/*") || line.ends_with("/*"))
+				{
+					in_comment = true;
+					continue;
+				}
+
+				if (line.starts_with("*/") || line.ends_with("*/"))
+				{
+					in_comment = false;
+					continue;
+				}
+
+				if (in_comment)
+				{
+					continue;
+				}
+
+				if (line.starts_with("//"))
+				{
+					continue;
+				}
 
 				if (line[0] == '{' && !in_map_ent)
 				{
@@ -35,7 +59,7 @@ namespace zonetool
 
 				if (line[0] == '{' && in_map_ent)
 				{
-					throw std::runtime_error(utils::string::va("[addon_map_ents parser] '{' on line %i\n", line_index));
+					ZONETOOL_FATAL("[map_ents parser] Unexpected '{' on line %i\n", i);
 				}
 
 				if (line[0] == '}' && in_map_ent)
@@ -44,7 +68,7 @@ namespace zonetool
 					{
 						out_buffer.append("\n}\n");
 					}
-					else if (line_index < static_cast<int>(lines.size()) - 1)
+					else if (i < static_cast<int>(lines.size()) - 1)
 					{
 						out_buffer.append("}\n");
 					}
@@ -59,38 +83,42 @@ namespace zonetool
 
 				if (line[0] == '}' && !in_map_ent)
 				{
-					throw std::runtime_error(utils::string::va("[addon_map_ents parser] Unexpected '}' on line %i\n", line_index));
+					ZONETOOL_FATAL("[map_ents parser] Unexpected '}' on line %i\n", i);
+				}
+
+				if (line.starts_with("0 \""))
+				{
+					out_buffer.append(line);
+					out_buffer.append("\n");
+					continue;
 				}
 
 				std::regex expr(R"~((.+) "(.*)")~");
 				std::smatch match{};
 				if (!std::regex_search(line, match, expr))
 				{
-					printf("[addon_map_ents parser] Failed to parse line %i\n", line_index);
-					continue;
+					ZONETOOL_WARNING("[map_ents parser] Failed to parse line %i (%s)\n", i, line.data());
 				}
 
 				auto key = utils::string::to_lower(match[1].str());
 				const auto value = match[2].str();
 
-				if (key.size() <= 0 || value.size() <= 0)
+				if (key.size() <= 0)
 				{
-					printf("[addon_map_ents parser] Invalid key/value ('%s' '%s') pair on line %i\n", key.data(), value.data(), line_index);
+					ZONETOOL_WARNING("[map_ents parser] Invalid key ('%s') on line %i (%s)\n", key.data(), i, line.data());
+				}
+
+				if (value.size() <= 0)
+				{
 					continue;
 				}
 
 				empty = false;
 
-				auto key_id = std::atoi(key.data());
-				if (key_id != 0)
+				if (utils::string::is_numeric(key) || key.size() < 3 || !key.starts_with("\"") || !key.ends_with("\""))
 				{
-					out_buffer.append(utils::string::va("%i \"%s\"\n", key_id, value.data()));
-					continue;
-				}
-
-				if (key.size() < 3 || (!key.starts_with("\"") || !key.ends_with("\"")))
-				{
-					printf("[addon_map_ents parser] Bad key '%s' on line %i\n", key.data(), line_index);
+					out_buffer.append(line);
+					out_buffer.append("\n");
 					continue;
 				}
 
@@ -98,14 +126,14 @@ namespace zonetool
 				const auto id = xsk::gsc::h2::resolver::token_id(key_);
 				if (id == 0)
 				{
-					printf("[addon_map_ents parser] Key '%s' not found, on line %i\n", key_.data(), line_index);
+					ZONETOOL_WARNING("[map_ents parser] Key '%s' not found, on line %i (%s)\n", key_.data(), i, line.data());
 					continue;
 				}
 
 				out_buffer.append(utils::string::va("%i \"%s\"\n", id, value.data()));
 			}
 
-			return out_buffer;
+			return {out_buffer};
 		}
 
 	}
