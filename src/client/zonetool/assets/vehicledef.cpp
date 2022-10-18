@@ -458,7 +458,10 @@ namespace zonetool
 
 		VEHICLE_STRING(useHintString);
 
+		VEHICLE_STRING(vehPhysDef.physPresetName);
 		VEHICLE_SUBASSET(vehPhysDef.physPreset, ASSET_TYPE_PHYSPRESET, PhysPreset);
+		VEHICLE_STRING(vehPhysDef.unkString01);
+		VEHICLE_STRING(vehPhysDef.accelGraphName);
 
 		VEHICLE_STRING(unkString01);
 
@@ -508,6 +511,8 @@ namespace zonetool
 		VEHICLE_SOUND_CUSTOM(suspensionHardSnd);
 		VEHICLE_SOUND_CUSTOM(collisionSnd);
 		VEHICLE_SOUND_CUSTOM(speedSnd);
+
+		VEHICLE_STRING(surfaceSndPrefix);
 
 		for (auto i = 0; i < 53; i++)
 		{

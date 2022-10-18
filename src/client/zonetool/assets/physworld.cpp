@@ -27,27 +27,59 @@ namespace zonetool
 		return "";
 	}
 
-	void IPhysWorld::init(const std::string& name, ZoneMemory* mem)
+	PhysWorld* IPhysWorld::parse(const std::string& name, ZoneMemory* mem)
 	{
-		this->name_ = name;
+		const auto path = name + ".physmap"s;
 
-		if (this->referenced())
+		assetmanager::reader read(mem);
+		if (!read.open(path))
 		{
-			this->asset_ = mem->Alloc<typename std::remove_reference<decltype(*this->asset_)>::type>();
-			this->asset_->name = mem->StrDup(name);
-			return;
+			return nullptr;
 		}
 
-		this->asset_ = DB_FindXAssetHeader_Copy<PhysWorld>(XAssetType(this->type()), this->name().data(), mem).physWorld;
-		if (this->asset_->waterVolumes)
+		ZONETOOL_INFO("Parsing physmap \"%s\"...", name.data());
+
+		PhysWorld* asset = read.read_single<PhysWorld>();
+		asset->name = read.read_string();
+
+		asset->models = read.read_array<PhysBrushModel>();
+		asset->polytopeDatas = read.read_array<dmPolytopeData>();
+		for (unsigned int i = 0; i < asset->polytopeDatasCount; i++)
 		{
-			auto* original_water_volumes = this->asset_->waterVolumes;
-			this->asset_->waterVolumes = mem->Alloc<PhysWaterVolumeDef>(this->asset_->waterVolumesCount);
-			memcpy(this->asset_->waterVolumes, original_water_volumes, sizeof(PhysWaterVolumeDef) * this->asset_->waterVolumesCount);
-			for (unsigned int i = 0; i < this->asset_->waterVolumesCount; i++)
-			{
-				this->add_script_string(&this->asset_->waterVolumes[i].string, SL_ConvertToString(original_water_volumes[i].string));
-			}
+			asset->polytopeDatas[i].vec4_array0 = read.read_array<vec4_t>();
+			asset->polytopeDatas[i].vec4_array1 = read.read_array<vec4_t>();
+			asset->polytopeDatas[i].uint16_array0 = read.read_array<unsigned short>();
+			asset->polytopeDatas[i].uint16_array1 = read.read_array<unsigned short>();
+			asset->polytopeDatas[i].edges = read.read_array<dmSubEdge>();
+			asset->polytopeDatas[i].uint8_array0 = read.read_array<unsigned char>();
+		}
+		asset->meshDatas = read.read_array<dmMeshData>();
+		for (unsigned int i = 0; i < asset->meshDatasCount; i++)
+		{
+			asset->meshDatas[i].meshNodes = read.read_array<dmMeshNode_array_t>();
+			asset->meshDatas[i].vec4_array0 = read.read_array<vec4_t>();
+			asset->meshDatas[i].meshTriangles = read.read_array<dmMeshTriangle>();
+		}
+		asset->waterVolumes = read.read_array<PhysWaterVolumeDef>();
+		for (unsigned int i = 0; i < asset->waterVolumesCount; i++)
+		{
+			asset->waterVolumes[i].physWaterPreset = read.read_asset<PhysWaterPreset>();
+			this->add_script_string(&asset->waterVolumes[i].string, read.read_string());
+		}
+
+		read.close();
+
+		return asset;
+	}
+
+	void IPhysWorld::init(const std::string& name, ZoneMemory* mem)
+	{
+		this->name_ = "maps/"s + (filesystem::get_fastfile().substr(0, 3) == "mp_" ? "mp/" : "") + filesystem::get_fastfile() + ".d3dbsp"; // name;
+		this->asset_ = parse(name, mem);
+
+		if (!this->asset_)
+		{
+			ZONETOOL_FATAL("Could not parse physmap \"%s\"", name.data());
 		}
 	}
 
@@ -208,5 +240,42 @@ namespace zonetool
 
 	void IPhysWorld::dump(PhysWorld* asset)
 	{
+		const auto path = asset->name + ".physmap"s;
+
+		assetmanager::dumper write;
+		if (!write.open(path))
+		{
+			return;
+		}
+
+		write.dump_single(asset);
+		write.dump_string(asset->name);
+
+		write.dump_array(asset->models, asset->modelsCount);
+		write.dump_array(asset->polytopeDatas, asset->polytopeDatasCount);
+		for (unsigned int i = 0; i < asset->polytopeDatasCount; i++)
+		{
+			write.dump_array(asset->polytopeDatas[i].vec4_array0, asset->polytopeDatas[i].count0);
+			write.dump_array(asset->polytopeDatas[i].vec4_array1, asset->polytopeDatas[i].count1);
+			write.dump_array(asset->polytopeDatas[i].uint16_array0, asset->polytopeDatas[i].count1);
+			write.dump_array(asset->polytopeDatas[i].uint16_array1, asset->polytopeDatas[i].count0);
+			write.dump_array(asset->polytopeDatas[i].edges, asset->polytopeDatas[i].count2);
+			write.dump_array(asset->polytopeDatas[i].uint8_array0, asset->polytopeDatas[i].count1);
+		}
+		write.dump_array(asset->meshDatas, asset->meshDatasCount);
+		for (unsigned int i = 0; i < asset->meshDatasCount; i++)
+		{
+			write.dump_array(asset->meshDatas[i].meshNodes, asset->meshDatas[i].count0);
+			write.dump_array(asset->meshDatas[i].vec4_array0, asset->meshDatas[i].count1);
+			write.dump_array(asset->meshDatas[i].meshTriangles, asset->meshDatas[i].count2);
+		}
+		write.dump_array(asset->waterVolumes, asset->waterVolumesCount);
+		for (unsigned int i = 0; i < asset->waterVolumesCount; i++)
+		{
+			write.dump_asset(asset->waterVolumes[i].physWaterPreset);
+			write.dump_string(SL_ConvertToString(asset->waterVolumes[i].string));
+		}
+
+		write.close();
 	}
 }

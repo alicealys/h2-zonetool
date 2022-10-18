@@ -33,6 +33,7 @@
 #include "assets/physworld.hpp"
 #include "assets/rawfile.hpp"
 #include "assets/reverbcurve.hpp"
+#include "assets/scriptabledef.hpp"
 #include "assets/scriptfile.hpp"
 #include "assets/skeletonscript.hpp"
 #include "assets/sound.hpp"
@@ -56,6 +57,12 @@
 #include "assets/pixelshader.hpp"
 #include "assets/vertexdecl.hpp"
 #include "assets/vertexshader.hpp"
+
+#include "assets/clipmap.hpp"
+#include "assets/comworld.hpp"
+#include "assets/fxworld.hpp"
+#include "assets/gfxworld.hpp"
+#include "assets/glassworld.hpp"
 
 #include "zone.hpp"
 

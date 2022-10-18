@@ -243,14 +243,21 @@ namespace zonetool
 		{
 			for (unsigned char i = 0; i < data->numBonePhysics; i++)
 			{
-				zone->add_asset_of_type(ASSET_TYPE_PHYSPRESET, data->bonePhysics[i].physPreset->name);
+				if (data->bonePhysics[i].physPreset)
+				{
+					zone->add_asset_of_type(ASSET_TYPE_PHYSPRESET, data->bonePhysics[i].physPreset->name);
+				}
 
 				if (data->bonePhysics[i].physContraint)
 				{
 					zone->add_asset_of_type(ASSET_TYPE_PHYSCONSTRAINT, data->bonePhysics[i].physContraint->name);
 				}
 
-				zone->add_asset_of_type(ASSET_TYPE_PHYSCOLLMAP, data->bonePhysics[i].physCollmap->name);
+
+				if (data->bonePhysics[i].physCollmap)
+				{
+					zone->add_asset_of_type(ASSET_TYPE_PHYSCOLLMAP, data->bonePhysics[i].physCollmap->name);
+				}
 			}
 		}
 	}
@@ -442,8 +449,11 @@ namespace zonetool
 			auto* dest_bonePhysics = buf->write(data->bonePhysics, data->numBonePhysics);
 			for (unsigned char i = 0; i < data->numBonePhysics; i++)
 			{
-				dest_bonePhysics[i].physPreset = reinterpret_cast<PhysPreset*>(zone->get_asset_pointer(
-					ASSET_TYPE_PHYSPRESET, data->bonePhysics[i].physPreset->name));
+				if (data->bonePhysics[i].physPreset)
+				{
+					dest_bonePhysics[i].physPreset = reinterpret_cast<PhysPreset*>(zone->get_asset_pointer(
+						ASSET_TYPE_PHYSPRESET, data->bonePhysics[i].physPreset->name));
+				}
 
 				if (data->bonePhysics[i].physContraint)
 				{
@@ -451,8 +461,11 @@ namespace zonetool
 						ASSET_TYPE_PHYSCONSTRAINT, data->bonePhysics[i].physContraint->name));
 				}
 
-				dest_bonePhysics[i].physCollmap = reinterpret_cast<PhysCollmap*>(zone->get_asset_pointer(
-					ASSET_TYPE_PHYSCOLLMAP, data->bonePhysics[i].physCollmap->name));
+				if (data->bonePhysics[i].physCollmap)
+				{
+					dest_bonePhysics[i].physCollmap = reinterpret_cast<PhysCollmap*>(zone->get_asset_pointer(
+						ASSET_TYPE_PHYSCOLLMAP, data->bonePhysics[i].physCollmap->name));
+				}
 			}
 			ZoneBuffer::clear_pointer(&dest->bonePhysics);
 		}

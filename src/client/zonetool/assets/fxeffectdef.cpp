@@ -40,7 +40,7 @@ namespace zonetool
 	{
 		assetmanager::reader read(mem);
 
-		const auto path = name + ".fxe"s;
+		const auto path = "effects\\"s + name + ".fxe"s;
 		if (!read.open(path))
 		{
 			return nullptr;
@@ -151,6 +151,10 @@ namespace zonetool
 					{
 						def->extended.flareDef->srcCosScale = read.read_array<float>();
 					}
+				}
+				else if (def->elemType == FX_ELEM_TYPE_DECAL)
+				{
+					def->extended.decalDef = read.read_single<FxDecalDef>();
 				}
 				else
 				{
@@ -383,7 +387,7 @@ namespace zonetool
 		{
 			buf->align(3);
 			buf->write(data->visSamples, data->visStateIntervalCount + 1);
-			ZoneBuffer::clear_pointer(&dest->visSamples);
+			ZoneBuffer::clear_pointer(&dest->velSamples);
 		}
 
 		write_fx_elem_def_visuals(zone, buf, data, &dest->visuals);
@@ -484,6 +488,12 @@ namespace zonetool
 
 				ZoneBuffer::clear_pointer(&dest->extended.flareDef);
 			}
+			else if (data->elemType == FX_ELEM_TYPE_DECAL)
+			{
+				buf->align(0);
+				buf->write_stream(data->extended.decalDef, 3);
+				ZoneBuffer::clear_pointer(&dest->extended.decalDef);
+			}
 			else
 			{
 				buf->align(0);
@@ -506,11 +516,9 @@ namespace zonetool
 		{
 			buf->align(3);
 			auto destdef = buf->write(data->elemDefs,
-				data->elemDefCountLooping + data->elemDefCountOneShot + data->
-				elemDefCountEmission);
+				data->elemDefCountLooping + data->elemDefCountOneShot + data->elemDefCountEmission);
 
-			for (int i = 0; i < (data->elemDefCountLooping + data->elemDefCountOneShot + data->
-				elemDefCountEmission); i++)
+			for (int i = 0; i < (data->elemDefCountLooping + data->elemDefCountOneShot + data->elemDefCountEmission); i++)
 			{
 				write_fx_elem_def(zone, buf, &destdef[i]);
 			}
@@ -558,7 +566,7 @@ namespace zonetool
 	{
 		assetmanager::dumper dump;
 
-		const auto path = asset->name + ".fxe"s;
+		const auto path = "effects\\"s + asset->name + ".fxe"s;
 		if (!dump.open(path))
 		{
 			return;
@@ -675,6 +683,10 @@ namespace zonetool
 					{
 						dump.dump_array(def->extended.flareDef->srcCosScale, def->extended.flareDef->srcCosScaleIntervalCount + 1);
 					}
+				}
+				else if (def->elemType == FX_ELEM_TYPE_DECAL)
+				{
+					dump.dump_single(def->extended.decalDef);
 				}
 				else
 				{

@@ -1,50 +1,68 @@
-#ifndef CSVPARSER_H
-#define CSVPARSER_H
+#pragma once
 
-#include <stdio.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef struct CsvRow
+namespace csv
 {
-	char** fields_;
-	int numOfFields_;
-} CsvRow;
+	struct row
+	{
+		char** fields;
+		int num_fields;
+	};
 
-typedef struct CsvParser
-{
-	char* filePath_;
-	char delimiter_;
-	int firstLineIsHeader_;
-	char* errMsg_;
-	CsvRow* header_;
-	FILE* fileHandler_;
-	int fromString_;
-	char* csvString_;
-	int csvStringIter_;
-} CsvParser;
+	struct parser_info_raw
+	{
+		char* buffer;
+		int buffer_len;
+		char delimeter;
+		row** rows;
+		int num_rows;
+	};
 
+	class parser_raw
+	{
+	private:
+		parser_info_raw raw_info{ 0 };
 
-// Public
-CsvParser* CsvParser_new(const char* filePath, const char* delimiter, int firstLineIsHeader);
-CsvParser* CsvParser_new_from_string(const char* csvString, const char* delimiter, int firstLineIsHeader);
-void CsvParser_destroy(CsvParser* csvParser);
-void CsvParser_destroy_row(CsvRow* csvRow);
-const CsvRow* CsvParser_getHeader(CsvParser* csvParser);
-CsvRow* CsvParser_getRow(CsvParser* csvParser);
-int CsvParser_getNumFields(const CsvRow* csvRow);
-const char** CsvParser_getFields(const CsvRow* csvRow);
-const char* CsvParser_getErrorMessage(CsvParser* csvParser);
+	public:
+		parser_raw(const char* data, int data_len, char delimeter = ',');
+		parser_raw();
+		~parser_raw();
 
-// Private
-CsvRow* _CsvParser_getRow(CsvParser* csvParser);
-int _CsvParser_delimiterIsAccepted(const char* delimiter);
-void _CsvParser_setErrorMessage(CsvParser* csvParser, const char* errorMessage);
+		int get_num_rows();
+		row** get_rows();
+		int get_max_columns();
 
-#ifdef __cplusplus
+	private:
+		std::vector<std::string> split_rows();
+		std::vector<std::string> split_fields(const std::string& src);
+
+		void parse();
+	};
+
+	struct parser_info
+	{
+		char* buffer;
+		char* file_path;
+		FILE* fp;
+	};
+
+	class parser
+	{
+	private:
+		char path_buffer[0x100]{ 0 };
+		parser_info info{ 0 };
+		parser_raw* raw;
+
+	public:
+		parser(const std::string& path, char delimeter = ',');
+		~parser();
+
+		bool valid();
+
+		int get_num_rows();
+		row** get_rows();
+		int get_max_columns();
+
+	private:
+		void clear_buffers();
+	};
 }
-#endif
-
-#endif

@@ -3,18 +3,14 @@
 
 namespace zonetool
 {
-	class IPhysWorld : public IAsset
+	class IGlassWorld : public IAsset
 	{
 	private:
 		std::string name_;
-		PhysWorld* asset_ = nullptr;
-
-		std::vector<std::pair<scr_string_t*, std::string>> script_strings;
-		void add_script_string(scr_string_t* ptr, std::string str);
-		std::string get_script_string(scr_string_t* ptr);
+		GlassWorld* asset_ = nullptr;
 
 	public:
-		PhysWorld* parse(const std::string& name, ZoneMemory* mem);
+		GlassWorld* parse(const std::string& name, ZoneMemory* mem);
 
 		void init(const std::string& name, ZoneMemory* mem) override;
 		void prepare(ZoneBuffer* buf, ZoneMemory* mem) override;
@@ -24,8 +20,9 @@ namespace zonetool
 		bool referenced() override { return name_.starts_with(","); }
 		std::string name() override;
 		std::int32_t type() override;
+
 		void write(IZone* zone, ZoneBuffer* buffer) override;
 
-		static void dump(PhysWorld* asset);
+		static void dump(GlassWorld* asset);
 	};
 }

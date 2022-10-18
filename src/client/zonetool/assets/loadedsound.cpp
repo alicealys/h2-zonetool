@@ -7,7 +7,7 @@ namespace zonetool
 {
 	LoadedSound* ILoadedSound::parse_flac(const std::string& name, ZoneMemory* mem)
 	{
-		ZONETOOL_INFO("Parsing loaded_sound \"%s\"...", name.data());
+		/*ZONETOOL_INFO("Parsing loaded_sound \"%s\"...", name.data());
 
 		const auto path = "loaded_sound\\"s + name + ".flac";
 		filesystem::file file(path);
@@ -20,7 +20,10 @@ namespace zonetool
 		file.read(result->info.data, result->info.loadedSize, 1);
 		file.close();
 
-		return result;
+		return result;*/
+
+		ZONETOOL_WARNING("Flac sounds are not supported yet! (%s)", name.data());
+		return nullptr;
 	}
 
 	LoadedSound* ILoadedSound::parse_wav(const std::string& name, ZoneMemory* mem)
@@ -130,10 +133,6 @@ namespace zonetool
 		if (filesystem::file(path + ".wav").exists())
 		{
 			return parse_wav(name, mem);
-		}
-		else if (filesystem::file(path + ".flac").exists())
-		{
-			return parse_flac(name, mem);
 		}
 
 		return nullptr;

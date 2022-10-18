@@ -1,298 +1,310 @@
-#include <std_include.hpp>
+#include "std_include.hpp"
 #include "csv.hpp"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-CsvParser* CsvParser_new(const char* filePath, const char* delimiter, int firstLineIsHeader)
+namespace csv
 {
-	CsvParser* csvParser = (CsvParser*)malloc(sizeof(CsvParser));
-	if (filePath == nullptr)
+	int parser_raw::get_num_rows()
 	{
-		csvParser->filePath_ = nullptr;
+		return this->raw_info.num_rows;
 	}
-	else
-	{
-		int filePathLen = static_cast<int>(strlen(filePath));
-		csvParser->filePath_ = (char*)malloc((filePathLen + 1));
-		strcpy(csvParser->filePath_, filePath);
-	}
-	csvParser->firstLineIsHeader_ = firstLineIsHeader;
-	csvParser->errMsg_ = nullptr;
-	if (delimiter == nullptr)
-	{
-		csvParser->delimiter_ = ',';
-	}
-	else if (_CsvParser_delimiterIsAccepted(delimiter))
-	{
-		csvParser->delimiter_ = *delimiter;
-	}
-	else
-	{
-		csvParser->delimiter_ = '\0';
-	}
-	csvParser->header_ = nullptr;
-	csvParser->fileHandler_ = nullptr;
-	csvParser->fromString_ = 0;
-	csvParser->csvString_ = nullptr;
-	csvParser->csvStringIter_ = 0;
 
-	return csvParser;
-}
+	row** parser_raw::get_rows()
+	{
+		return this->raw_info.rows;
+	}
 
-CsvParser* CsvParser_new_from_string(const char* csvString, const char* delimiter, int firstLineIsHeader)
-{
-	CsvParser* csvParser = CsvParser_new(nullptr, delimiter, firstLineIsHeader);
-	csvParser->fromString_ = 1;
-	if (csvString != nullptr)
+	int parser_raw::get_max_columns()
 	{
-		int csvStringLen = static_cast<int>(strlen(csvString));
-		csvParser->csvString_ = (char*)malloc(csvStringLen + 1);
-		strcpy(csvParser->csvString_, csvString);
-	}
-	return csvParser;
-}
-
-void CsvParser_destroy(CsvParser* csvParser)
-{
-	if (csvParser == nullptr)
-	{
-		return;
-	}
-	if (csvParser->filePath_ != nullptr)
-	{
-		free(csvParser->filePath_);
-	}
-	if (csvParser->errMsg_ != nullptr)
-	{
-		free(csvParser->errMsg_);
-	}
-	if (csvParser->fileHandler_ != nullptr)
-	{
-		fclose(csvParser->fileHandler_);
-	}
-	if (csvParser->header_ != nullptr)
-	{
-		CsvParser_destroy_row(csvParser->header_);
-	}
-	if (csvParser->csvString_ != nullptr)
-	{
-		free(csvParser->csvString_);
-	}
-	free(csvParser);
-}
-
-void CsvParser_destroy_row(CsvRow* csvRow)
-{
-	int i;
-	for (i = 0; i < csvRow->numOfFields_; i++)
-	{
-		free(csvRow->fields_[i]);
-	}
-	free(csvRow->fields_);
-	free(csvRow);
-}
-
-const CsvRow* CsvParser_getHeader(CsvParser* csvParser)
-{
-	if (!csvParser->firstLineIsHeader_)
-	{
-		_CsvParser_setErrorMessage(
-			csvParser, "Cannot supply header, as current CsvParser object does not support header");
-		return nullptr;
-	}
-	if (csvParser->header_ == nullptr)
-	{
-		csvParser->header_ = _CsvParser_getRow(csvParser);
-	}
-	return csvParser->header_;
-}
-
-CsvRow* CsvParser_getRow(CsvParser* csvParser)
-{
-	if (csvParser->firstLineIsHeader_ && csvParser->header_ == nullptr)
-	{
-		csvParser->header_ = _CsvParser_getRow(csvParser);
-	}
-	return _CsvParser_getRow(csvParser);
-}
-
-int CsvParser_getNumFields(const CsvRow* csvRow)
-{
-	return csvRow->numOfFields_;
-}
-
-const char** CsvParser_getFields(const CsvRow* csvRow)
-{
-	return (const char**)csvRow->fields_;
-}
-
-CsvRow* _CsvParser_getRow(CsvParser* csvParser)
-{
-	int numRowRealloc = 0;
-	int acceptedFields = 64;
-	int acceptedCharsInField = 64;
-	if (csvParser->filePath_ == nullptr && (!csvParser->fromString_))
-	{
-		_CsvParser_setErrorMessage(csvParser, "Supplied CSV file path is NULL");
-		return nullptr;
-	}
-	if (csvParser->csvString_ == nullptr && csvParser->fromString_)
-	{
-		_CsvParser_setErrorMessage(csvParser, "Supplied CSV string is NULL");
-		return nullptr;
-	}
-	if (csvParser->delimiter_ == '\0')
-	{
-		_CsvParser_setErrorMessage(csvParser, "Supplied delimiter is not supported");
-		return nullptr;
-	}
-	if (!csvParser->fromString_)
-	{
-		if (csvParser->fileHandler_ == nullptr)
+		int max_columns = 0;
+		if (this->raw_info.rows)
 		{
-			csvParser->fileHandler_ = fopen(csvParser->filePath_, "r");
-			if (csvParser->fileHandler_ == nullptr)
+			for (int i = 0; i < this->raw_info.num_rows; i++)
 			{
-				int errorNum = errno;
-				const char* errStr = strerror(errorNum);
-				char* errMsg = (char*)malloc(1024 + strlen(errStr));
-				strcpy(errMsg, "");
-				sprintf(errMsg, "Error opening CSV file for reading: %s : %s", csvParser->filePath_, errStr);
-				_CsvParser_setErrorMessage(csvParser, errMsg);
-				free(errMsg);
-				return nullptr;
+				if (this->raw_info.rows[i])
+				{
+					if (max_columns < this->raw_info.rows[i]->num_fields)
+					{
+						max_columns = this->raw_info.rows[i]->num_fields;
+					}
+				}
 			}
 		}
+		return max_columns;
 	}
-	CsvRow* csvRow = (CsvRow*)malloc(sizeof(CsvRow));
-	csvRow->fields_ = (char**)malloc(acceptedFields * sizeof(char*));
-	csvRow->numOfFields_ = 0;
-	int fieldIter = 0;
-	char* currField = (char*)malloc(acceptedCharsInField);
-	int inside_complex_field = 0;
-	int currFieldCharIter = 0;
-	int seriesOfQuotesLength = 0;
-	int lastCharIsQuote = 0;
-	int isEndOfFile = 0;
-	while (true)
+
+	std::vector<std::string> parser_raw::split_rows()
 	{
-		char currChar = static_cast<char>((csvParser->fromString_)
-			                ? csvParser->csvString_[csvParser->csvStringIter_]
-			                : fgetc(csvParser->fileHandler_));
-		csvParser->csvStringIter_++;
-		int endOfFileIndicator;
-		if (csvParser->fromString_)
+		std::vector<std::string> res;
+		std::string buffer;
+		std::string src = this->raw_info.buffer;
+
+		for (std::size_t i = 0; i < src.size(); i++)
 		{
-			endOfFileIndicator = (currChar == '\0');
-		}
-		else
-		{
-			endOfFileIndicator = feof(csvParser->fileHandler_);
-		}
-		if (endOfFileIndicator)
-		{
-			if (currFieldCharIter == 0 && fieldIter == 0)
+			const auto c = src[i];
+			if (c == '\\' && i + 1 < src.size())
 			{
-				_CsvParser_setErrorMessage(csvParser, "Reached EOF");
-				free(currField);
-				CsvParser_destroy_row(csvRow);
-				return nullptr;
+				const auto cc = src[i + 1];
+				if (cc == 'n')
+				{
+					buffer.push_back('\n');
+					i++;
+					continue;
+				}
+				else if (cc == 't')
+				{
+					buffer.push_back('\t');
+					i++;
+					continue;
+				}
 			}
-			currChar = '\n';
-			isEndOfFile = 1;
-		}
-		if (currChar == '\r')
-		{
-			continue;
-		}
-		if (currFieldCharIter == 0 && !lastCharIsQuote)
-		{
-			if (currChar == '\"')
+
+			if (c == '\r')
 			{
-				inside_complex_field = 1;
-				lastCharIsQuote = 1;
 				continue;
 			}
-		}
-		else if (currChar == '\"')
-		{
-			seriesOfQuotesLength++;
-			inside_complex_field = (seriesOfQuotesLength % 2 == 0);
-			if (inside_complex_field)
+			else if (c == '\n')
 			{
-				currFieldCharIter--;
+				res.push_back(buffer);
+				buffer.clear();
+				continue;
 			}
-		}
-		else
-		{
-			seriesOfQuotesLength = 0;
-		}
-		if (isEndOfFile || ((currChar == csvParser->delimiter_ || currChar == '\n') && !inside_complex_field))
-		{
-			currField[lastCharIsQuote ? currFieldCharIter - 1 : currFieldCharIter] = '\0';
-			csvRow->fields_[fieldIter] = (char*)malloc(currFieldCharIter + 1);
-			strcpy(csvRow->fields_[fieldIter], currField);
-			free(currField);
-			csvRow->numOfFields_++;
-			if (currChar == '\n')
-			{
-				return csvRow;
-			}
-			if (csvRow->numOfFields_ != 0 && csvRow->numOfFields_ % acceptedFields == 0)
-			{
-				csvRow->fields_ = (char**)realloc(csvRow->fields_,
-				                                  ((numRowRealloc + 2) * acceptedFields) * sizeof(char*));
-				numRowRealloc++;
-			}
-			acceptedCharsInField = 64;
-			currField = (char*)malloc(acceptedCharsInField);
-			currFieldCharIter = 0;
-			fieldIter++;
-			inside_complex_field = 0;
-		}
-		else
-		{
-			currField[currFieldCharIter] = currChar;
-			currFieldCharIter++;
-			if (currFieldCharIter == acceptedCharsInField - 1)
-			{
-				acceptedCharsInField *= 2;
-				currField = (char*)realloc(currField, acceptedCharsInField);
-			}
-		}
-		lastCharIsQuote = (currChar == '\"') ? 1 : 0;
-	}
-}
 
-int _CsvParser_delimiterIsAccepted(const char* delimiter)
-{
-	char actualDelimiter = *delimiter;
-	if (actualDelimiter == '\n' || actualDelimiter == '\r' || actualDelimiter == '\0' ||
-		actualDelimiter == '\"')
+			buffer.push_back(c);
+		}
+
+		if (!buffer.empty())
+		{
+			res.push_back(buffer);
+		}
+
+		return res;
+	}
+
+	std::vector<std::string> parser_raw::split_fields(const std::string& src)
 	{
+		std::vector<std::string> res;
+		std::string buffer;
+		auto in_quote = false;
+
+		for (std::size_t i = 0; i < src.size(); i++)
+		{
+			const auto c = src[i];
+			if (c == '"')
+			{
+				in_quote = !in_quote;
+				continue;
+			}
+
+			if (c != ',' || in_quote)
+			{
+				buffer.push_back(c);
+			}
+			else if (c == ',' && !in_quote)
+			{
+				res.push_back(buffer);
+				buffer.clear();
+			}
+		}
+
+		if (!buffer.empty())
+		{
+			res.push_back(buffer);
+		}
+
+		return res;
+	}
+
+	void parser_raw::parse()
+	{
+		auto split_rows = this->split_rows();
+
+		this->raw_info.num_rows = static_cast<int>(split_rows.size());
+		this->raw_info.rows = nullptr;
+		if (this->raw_info.num_rows)
+		{
+			this->raw_info.rows = new csv::row * [this->raw_info.num_rows];
+			if (this->raw_info.rows)
+			{
+				for (int i = 0; i < this->raw_info.num_rows; i++)
+				{
+					this->raw_info.rows[i] = new csv::row;
+					if (this->raw_info.rows[i])
+					{
+						auto split_fields = this->split_fields(split_rows[i]);
+
+						this->raw_info.rows[i]->num_fields = static_cast<int>(split_fields.size());
+						this->raw_info.rows[i]->fields = nullptr;
+						if (this->raw_info.rows[i]->num_fields)
+						{
+							this->raw_info.rows[i]->fields = new char* [this->raw_info.rows[i]->num_fields];
+							if (this->raw_info.rows[i]->fields)
+							{
+								for (int j = 0; j < this->raw_info.rows[i]->num_fields; j++)
+								{
+									auto field_len = split_fields[j].size() + 1;
+									this->raw_info.rows[i]->fields[j] = new char[field_len];
+									memset(this->raw_info.rows[i]->fields[j], 0, field_len);
+									if (this->raw_info.rows[i]->fields[j])
+									{
+										strcpy(this->raw_info.rows[i]->fields[j], split_fields[j].data());
+										this->raw_info.rows[i]->fields[j][field_len - 1] = '\0';
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	parser_raw::parser_raw(const char* data, int data_len, char delimeter)
+	{
+		this->raw_info = { 0 };
+
+		if (data)
+		{
+			this->raw_info.buffer = const_cast<char*>(data);
+			this->raw_info.buffer_len = data_len;
+		}
+		else
+		{
+			throw std::runtime_error("CSV: Data is invalid!");
+		}
+
+		this->raw_info.delimeter = delimeter;
+
+		this->parse();
+	}
+
+	parser_raw::parser_raw()
+	{
+
+	}
+
+	parser_raw::~parser_raw()
+	{
+		for (int i = 0; i < this->raw_info.num_rows; i++)
+		{
+			if (this->raw_info.rows[i])
+			{
+				if (this->raw_info.rows[i]->fields)
+				{
+					for (int j = 0; j < this->raw_info.rows[i]->num_fields; j++)
+					{
+						if (this->raw_info.rows[i]->fields[j])
+						{
+							delete[] this->raw_info.rows[i]->fields[j];
+						}
+					}
+					delete[] this->raw_info.rows[i]->fields;
+				}
+				delete this->raw_info.rows[i];
+			}
+		}
+		delete[] this->raw_info.rows;
+	}
+
+	bool parser::valid()
+	{
+		return this->info.fp != nullptr;
+	}
+
+	int parser::get_num_rows()
+	{
+		return this->raw->get_num_rows();
+	}
+
+	row** parser::get_rows()
+	{
+		return this->raw->get_rows();
+	}
+
+	int parser::get_max_columns()
+	{
+		return this->raw->get_max_columns();
+	}
+
+	void parser::clear_buffers()
+	{
+		memset(path_buffer, 0, sizeof(path_buffer));
+	}
+
+	inline int file_len(FILE* fp)
+	{
+		if (fp)
+		{
+			auto idx = ftell(fp);
+			fseek(fp, 0, SEEK_END);
+
+			auto size = ftell(fp);
+			fseek(fp, idx, SEEK_SET);
+
+			return size;
+		}
 		return 0;
 	}
-	return 1;
-}
 
-void _CsvParser_setErrorMessage(CsvParser* csvParser, const char* errorMessage)
-{
-	if (csvParser->errMsg_ != nullptr)
+	parser::parser(const std::string& path, char delimeter)
 	{
-		free(csvParser->errMsg_);
+		this->clear_buffers();
+		this->info.file_path = path_buffer;
+		this->info.buffer = nullptr;
+
+		if (!path.size())
+		{
+			throw std::runtime_error("CSV: File path is invalid!");
+		}
+		else if (path.size() >= sizeof(path_buffer))
+		{
+			throw std::runtime_error("CSV: File path length is too large!");
+		}
+		strcpy(path_buffer, path.data());
+
+		this->info.fp = fopen(path_buffer, "rb");
+
+		if (!this->info.fp)
+		{
+			throw std::runtime_error("CSV: Failed to open file for read!");
+		}
+
+		int buffer_len = 0;
+		if (this->info.fp)
+		{
+			auto len = file_len(this->info.fp);
+			buffer_len = len * sizeof(char) + 1;
+			this->info.buffer = reinterpret_cast<char*>(malloc(buffer_len));
+
+			if (this->info.buffer != NULL)
+			{
+				memset(this->info.buffer, 0, buffer_len * sizeof(char));
+				fread(this->info.buffer, len, 1, this->info.fp);
+			}
+			else
+			{
+				throw std::runtime_error("CSV: Couldn't allocate memory for file buffer!");
+			}
+		}
+		else
+		{
+			throw std::runtime_error("CSV: Failed to open file for read!");
+		}
+
+		this->raw = new parser_raw(this->info.buffer, buffer_len, delimeter);
 	}
-	int errMsgLen = static_cast<int>(strlen(errorMessage));
-	csvParser->errMsg_ = (char*)malloc(errMsgLen + 1);
-	strcpy(csvParser->errMsg_, errorMessage);
-}
 
-const char* CsvParser_getErrorMessage(CsvParser* csvParser)
-{
-	return csvParser->errMsg_;
-}
+	parser::~parser()
+	{
+		if (this->info.fp)
+		{
+			fclose(this->info.fp);
+		}
 
-#ifdef __cplusplus
+		if (this->info.buffer != NULL)
+		{
+			free(this->info.buffer);
+		}
+
+		delete this->raw;
+	}
 }
-#endif

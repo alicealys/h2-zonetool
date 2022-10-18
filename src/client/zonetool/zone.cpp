@@ -41,6 +41,11 @@ namespace zonetool
 		}
 
 		std::string ref_name = "," + name;
+		if (name.starts_with(","))
+		{
+			ref_name = name;
+			ref_name.erase(0, 1);
+		}
 
 		for (std::size_t idx = 0; idx < m_assets.size(); idx++)
 		{
@@ -127,12 +132,13 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_LOCALIZE_ENTRY, ILocalize);
 			ADD_ASSET(ASSET_TYPE_LPF_CURVE, ILpfCurve);
 			ADD_ASSET(ASSET_TYPE_LUA_FILE, ILuaFile);
-			ADD_ASSET(ASSET_TYPE_MAP_ENTS, IMapEnts);
 			ADD_ASSET(ASSET_TYPE_ADDON_MAP_ENTS, IAddonMapEnts);
+			ADD_ASSET(ASSET_TYPE_MAP_ENTS, IMapEnts);
 			ADD_ASSET(ASSET_TYPE_MATERIAL, IMaterial);
 			ADD_ASSET(ASSET_TYPE_NET_CONST_STRINGS, INetConstStrings);
 			ADD_ASSET(ASSET_TYPE_RAWFILE, IRawFile);
 			ADD_ASSET(ASSET_TYPE_REVERB_CURVE, IReverbCurve);
+			ADD_ASSET(ASSET_TYPE_SCRIPTABLE, IScriptableDef);
 			ADD_ASSET(ASSET_TYPE_SCRIPTFILE, IScriptFile);
 			ADD_ASSET(ASSET_TYPE_SKELETONSCRIPT, ISkeletonScript);
 			ADD_ASSET(ASSET_TYPE_SOUND, ISound);
@@ -161,6 +167,12 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_PIXELSHADER, IPixelShader);
 			ADD_ASSET(ASSET_TYPE_VERTEXDECL, IVertexDecl);
 			ADD_ASSET(ASSET_TYPE_VERTEXSHADER, IVertexShader);
+
+			ADD_ASSET(ASSET_TYPE_COL_MAP_SP, IClipMap);
+			ADD_ASSET(ASSET_TYPE_COM_MAP, IComWorld);
+			ADD_ASSET(ASSET_TYPE_FX_MAP, IFxWorld);
+			ADD_ASSET(ASSET_TYPE_GFX_MAP, IGfxWorld);
+			ADD_ASSET(ASSET_TYPE_GLASS_MAP, IGlassWorld);
 		}
 		catch (std::exception& ex)
 		{

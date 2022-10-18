@@ -72,58 +72,6 @@ namespace zonetool
 		return mat;
 	}
 
-	MaterialConstantBufferDef* parse_constant_buffer_def_array(const std::string& name, int count, ZoneMemory* mem)
-	{
-		const auto path = "materials\\cbt\\"s + name;
-		assetmanager::reader read(mem);
-		if (!read.open(path))
-		{
-			ZONETOOL_FATAL("Could not find %s", path.data());
-			return nullptr;
-		}
-
-		auto def = read.read_array<MaterialConstantBufferDef>();
-		for (int i = 0; i < count; i++)
-		{
-			if (def[i].vsData)
-			{
-				def[i].vsData = read.read_array<unsigned char>();
-			}
-			if (def[i].hsData)
-			{
-				def[i].hsData = read.read_array<unsigned char>();
-			}
-			if (def[i].dsData)
-			{
-				def[i].dsData = read.read_array<unsigned char>();
-			}
-			if (def[i].psData)
-			{
-				def[i].psData = read.read_array<unsigned char>();
-			}
-			if (def[i].vsOffsetData)
-			{
-				def[i].vsOffsetData = read.read_array<unsigned short>();
-			}
-			if (def[i].hsOffsetData)
-			{
-				def[i].hsOffsetData = read.read_array<unsigned short>();
-			}
-			if (def[i].dsOffsetData)
-			{
-				def[i].dsOffsetData = read.read_array<unsigned short>();
-			}
-			if (def[i].psOffsetData)
-			{
-				def[i].psOffsetData = read.read_array<unsigned short>();
-			}
-		}
-
-		read.close();
-
-		return def;
-	}
-
 	Material* IMaterial::parse(std::string name, ZoneMemory* mem)
 	{
 		auto c_name = clean_name(name);
@@ -159,7 +107,7 @@ namespace zonetool
 		mat->info.surfaceTypeBits = matdata["surfaceTypeBits"].get<SurfaceTypeBits>();
 		//mat->info.hashIndex = matdata["hashIndex"].get<unsigned int>();
 
-		mat->stateFlags = matdata["stateFlags"].get<unsigned char>();
+		//mat->stateFlags = matdata["stateFlags"].get<unsigned char>();
 		mat->cameraRegion = matdata["cameraRegion"].get<unsigned char>();
 		mat->materialType = matdata["materialType"].get<unsigned char>();
 		mat->assetFlags = matdata["assetFlags"].get<unsigned char>();
@@ -200,11 +148,15 @@ namespace zonetool
 
 		if (mat->techniqueSet)
 		{
+			ITechset::parse_stateinfo(mat->techniqueSet->name, mat, mem);
 			ITechset::parse_statebits(mat->techniqueSet->name, mat->stateBitsEntry, mem);
 			ITechset::parse_statebitsmap(mat->techniqueSet->name, &mat->stateBitsTable, &mat->stateBitsCount,
 				&this->depth_stenchil_state_bits,
 				&this->blend_state_bits,
 				mem);
+
+			ITechset::parse_constant_buffer_indexes(mat->techniqueSet->name, mat->constantBufferIndex, mem);
+			ITechset::parse_constant_buffer_def_array(mat->techniqueSet->name, &mat->constantBufferTable, &mat->constantBufferCount, mem);
 		}
 
 		auto max_state_index = 0;
@@ -232,12 +184,21 @@ namespace zonetool
 			mat->stateBitsCount = static_cast<unsigned char>(max_state_index + 1);
 		}
 
-		auto constantBufferTable = matdata["constantBufferTable"];
-		if (!constantBufferTable.is_null())
+		// fix sortKeys
+		/*bool fixed = false;
+		DB_EnumXAssets(ASSET_TYPE_MATERIAL, [mat, &fixed](XAssetHeader header)
 		{
-			mat->constantBufferCount = matdata["constantBufferCount"].get<unsigned char>();
-			mat->constantBufferTable = parse_constant_buffer_def_array(constantBufferTable.get<std::string>(), mat->constantBufferCount, mem);
-		}
+			if (fixed) return;
+
+			const char* name = mat->techniqueSet->name;
+			if (name[0] == ',') ++name;
+
+			if (std::string(name) == header.material->techniqueSet->name)
+			{
+				mat->info.sortKey = header.material->info.sortKey;
+				fixed = true;
+			}
+		}, false);*/
 
 		return mat;
 	}
@@ -445,55 +406,6 @@ namespace zonetool
 		buf->pop_stream();
 	}
 
-	void dump_material_constant_buffer_def_array(const std::string& name, int count, MaterialConstantBufferDef* def)
-	{
-		const auto path = "materials\\cbt\\"s + name;
-		assetmanager::dumper dump;
-		if (!dump.open(path))
-		{
-			return;
-		}
-
-		dump.dump_array(def, count);
-		for (int i = 0; i < count; i++)
-		{
-			if (def[i].vsData)
-			{
-				dump.dump_array(def[i].vsData, def[i].vsDataSize);
-			}
-			if (def[i].hsData)
-			{
-				dump.dump_array(def[i].hsData, def[i].hsDataSize);
-			}
-			if (def[i].dsData)
-			{
-				dump.dump_array(def[i].dsData, def[i].dsDataSize);
-			}
-			if (def[i].psData)
-			{
-				dump.dump_array(def[i].psData, def[i].psDataSize);
-			}
-			if (def[i].vsOffsetData)
-			{
-				dump.dump_array(def[i].vsOffsetData, def[i].vsOffsetDataSize);
-			}
-			if (def[i].hsOffsetData)
-			{
-				dump.dump_array(def[i].hsOffsetData, def[i].hsOffsetDataSize);
-			}
-			if (def[i].dsOffsetData)
-			{
-				dump.dump_array(def[i].dsOffsetData, def[i].dsOffsetDataSize);
-			}
-			if (def[i].psOffsetData)
-			{
-				dump.dump_array(def[i].psOffsetData, def[i].psOffsetDataSize);
-			}
-		}
-
-		dump.close();
-	}
-
 	void IMaterial::dump(Material* asset)
 	{
 		// TODO: maybe add subMaterials?
@@ -508,8 +420,12 @@ namespace zonetool
 
 			if (asset && asset->techniqueSet)
 			{
+				ITechset::dump_stateinfo(asset->techniqueSet->name, asset);
 				ITechset::dump_statebits(asset->techniqueSet->name, asset->stateBitsEntry);
 				ITechset::dump_statebits_map(asset->techniqueSet->name, asset->stateBitsTable, asset->stateBitsCount);
+
+				ITechset::dump_constant_buffer_indexes(asset->techniqueSet->name, asset->constantBufferIndex);
+				ITechset::dump_constant_buffer_def_array(asset->techniqueSet->name, asset->constantBufferCount, asset->constantBufferTable);
 			}
 
 			ordered_json matdata;
@@ -533,7 +449,7 @@ namespace zonetool
 			MATERIAL_DUMP_INFO(surfaceTypeBits);
 			//MATERIAL_DUMP_INFO(hashIndex);
 
-			MATERIAL_DUMP(stateFlags);
+			//MATERIAL_DUMP(stateFlags);
 			MATERIAL_DUMP(cameraRegion);
 			MATERIAL_DUMP(materialType);
 			MATERIAL_DUMP(assetFlags);
@@ -608,14 +524,6 @@ namespace zonetool
 				material_images.push_back(image);
 			}
 			matdata["textureTable"] = material_images;
-
-			if (asset && asset->constantBufferTable)
-			{
-				const auto cbt_name = c_name + ".cbt";
-				dump_material_constant_buffer_def_array(cbt_name, asset->constantBufferCount, asset->constantBufferTable);
-				matdata["constantBufferTable"] = cbt_name;
-				matdata["constantBufferCount"] = asset->constantBufferCount;
-			}
 
 			auto str = matdata.dump(4);
 

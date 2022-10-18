@@ -3,7 +3,7 @@
 
 namespace snd
 {
-#define SND_MAX_VOLUME_GROUPS 126
+#define SND_MAX_VOLUME_GROUPS 180
 	std::array<const char*, SND_MAX_VOLUME_GROUPS> volume_mod_groups =
 	{
 		"default",
@@ -16,11 +16,12 @@ namespace snd
 		"music",
 		"music2",
 		"music_big",
-		"music_so",
+		"music_emitter",
 		// Ambience
 		"amb_quad",
 		"amb_dist",
 		"amb_damb",
+		"amb_damb_big",
 		"amb_emitter",
 		"amb_emitter_int",
 		"amb_emitter_ext",
@@ -28,33 +29,38 @@ namespace snd
 		"physics",
 		// Characters
 		"bodyfall",
-		"deaths_door",
+		"bodyfall_mech",
 		"foley_plr",
+		"foley_plr_special",
+		"mp_foley_plr",
 		"foley_npc",
+		"foley_mech",
+		"foleymp_npc",
+		"wpn_foley_plr",
+		"wpn_foley_npc",
+		"wpn_foley_mech",
 		"footstep_plr",
 		"footstep_plr_special",
 		"footstep_water_plr",
 		"footstep_npc",
-		"melee_npc",
-		"melee_hit",
-		"mp_foley_npc",
-		"mp_foley_plr",
+		"footstep_mech",
 		"mp_footstep_plr",
 		"mp_footstep_npc",
-		"plr_internal",
-		"wpn_foley_plr",
-		"wpn_foley_plr_beltfed",
-		"wpn_plr_foley_h2",
-		"wpn_foley_npc",
 		"melee_plr",
+		"melee_npc",
+		"melee_hit",
+		"plr_internal",
+		"deaths_door",
 		// Dialogue
-		"voices_ally",
-		"voices_enemy",
-		"voices_enemy_death_kbp",
-		"voices_dialog",
-		"voices_dialog_radio",
-		"voices_dialog_critical",
-		"voices_pa",
+		"chatter_friendly",
+		"chatter_enemy",
+		"chatter_atlas",
+		"vox_friendly",
+		"vox_enemy",
+		"dialog",
+		"dialog_radio",
+		"dialog_critical",
+		"dialog_amb",
 		// Explosions & Destruction
 		"destruct",
 		"explosion",
@@ -64,9 +70,9 @@ namespace snd
 		"explosion_car",
 		"explosion_critical",
 		"explosion_debris",
+		"impact_critical",
 		// Bullet Impacts & Whizbys
 		"bullet_impact_geo",
-		"bullet_impact_geo_metal",
 		"bullet_impact_plr",
 		"bullet_impact_npc",
 		"mp_bullet_impact_geo",
@@ -74,50 +80,45 @@ namespace snd
 		"mp_bullet_impact_npc",
 		"bullet_whizby",
 		"mp_bullet_whizby",
+		"bullet_impact_special",
 		// Vehicles
 		"vehicle_plr",
 		"vehicle_plr_special",
 		"vehicle_npc",
+		"vehicle_npc_special",
 		"vehicle_avm_plr",
 		"vehicle_avm_npc",
 		"wpn_vehicle_plr",
 		"wpn_vehicle_npc",
-		"wpn_vehicle_npc_h2",
+		"vehicle",
 		"vehicle_aircraft",
+		"vehicle_pdrone",
+		"vehicle_drone_swarm",
+		"vehicle_amb",
 		// Weapons
 		"grenadebounce",
 		"mp_grenadebounce",
 		"shellcasings",
+		"mp_shellcasings",
 		"wpn_plr",
 		"wpn_plr_special",
 		"wpn_npc_special",
+		"mp_wpn_plr",
 		"wpn_npc",
 		"mp_wpn_npc",
 		"wpn_projectile",
+		"mp_wpn_projectile",
 		// Weapons Detailed
-		"iw4_wpn_plr_shot",
-		"wpn_plr_shot_first",
 		"wpn_plr_shot_special",
 		"wpn_plr_shot",
-		"wpn_plr_punch",
 		"wpn_plr_mech",
 		"wpn_plr_sub",
-		"wpn_plr_lfe",
 		"wpn_plr_tail",
-		"wpn_plr_tail_int_med",
-		"wpn_plr_tail_int_sml",
-		"wpn_plr_tail_semi",
-		"iw4_wpn_npc_shot",
 		"wpn_npc_shot",
 		"wpn_npc_mech",
 		"wpn_npc_sub",
 		"wpn_npc_tail",
 		"wpn_npc_dist",
-		"h2_wpn_npc_shot_close",
-		"h2_wpn_npc_shot_mid",
-		"h2_wpn_npc_shot_far",
-		"h2_wpn_npc_shot_tail",
-		"h2_wpn_npc_shot_first",
 		// Tactical
 		"tactical_plr",
 		"tactical_npc",
@@ -126,7 +127,6 @@ namespace snd
 		// Attack Dogs
 		"attack_dog",
 		// Special use
-		"fullvolume",
 		"big_moment",
 		"scripted1",
 		"scripted2",
@@ -138,52 +138,106 @@ namespace snd
 		"scripted8",
 		"scripted9",
 		"scripted10",
-		"scripted11",
-		"scripted12",
-		"scripted13",
-		"scripted14",
-		"scripted15",
-		// MP
+		"fullvolume",
 		"mp_pre_event",
+		"mp_post_event",
 		"mp_splash_notify",
 		"mp_hit_marker",
+		// Level specific and MP perks
+		"mp_perk_quiet",
+		// OLD
+		"mw3_amb_damb",
+		"mw3_amb_emitter",
+		"mw3_amb_quad",
+		"mw3_bodyfall",
+		"mw3_bullet_impact_geo",
+		"mw3_bullet_impact_npc",
+		"mw3_bullet_impact_plr",
+		"mw3_bullet_whizby",
+		"mw3_chatter_enemy",
+		"mw3_chatter_friendly",
+		"mw3_DEPRECATED_default",
+		"mw3_DEPRECATED_MAX",
+		"mw3_DEPRECATED_na",
+		"mw3_destruct",
+		"mw3_dialog",
+		"mw3_dialog_amb",
+		"mw3_dialog_critical",
+		"mw3_dialog_radio",
+		"mw3_explosion",
+		"mw3_explosion_car",
+		"mw3_explosion_flashbang",
+		"mw3_explosion_grenade",
+		"mw3_explosion_rocket",
+		"mw3_foley_npc",
+		"mw3_footstep_npc",
+		"mw3_frontend_sfx",
+		"mw3_fullvolume",
+		"mw3_grenadebounce",
+		"mw3_melee_npc",
+		"mw3_mp_bullet_impact_geo",
+		"mw3_mp_bullet_impact_npc",
+		"mw3_mp_foley_npc",
+		"mw3_mp_footstep_npc",
+		"mw3_mp_wpn_npc",
+		"mw3_music",
+		"mw3_physics",
+		"mw3_scripted1",
+		"mw3_scripted2",
+		"mw3_scripted3",
+		"mw3_scripted4",
+		"mw3_scripted5",
+		"mw3_shellcasings",
+		"mw3_vehicle",
+		"mw3_vehicle_plr",
+		"mw3_vehicle_npc",
+		"mw3_vox_enemy",
+		"mw3_vox_friendly",
+		"mw3_wpn_foley_npc",
+		"mw3_wpn_foley_plr",
+		"mw3_footstep_plr",
+		"mw3_wpn_npc",
+		"mw3_wpn_plr",
+		"mw3_wpn_projectile",
+		"mw3_wpn_vehicle_npc",
+		"mw3_wpn_vehicle_plr",
 	};
 
 #define SND_MAX_DSP_BUSES 32
 	std::array<const char*, SND_MAX_DSP_BUSES> dsp_buses =
 	{
 		"default",
-		"ambiance_quad",
-		"animals",
+		"weapons",
+		"weapons_dist",
+		"ambience",
 		"emitters",
-		"emitters_ext",
-		"emitters_int",
-		"emitters_unoccluded",
+		"quads",
+		"music",
+		"foley",
 		"explosions",
 		"explosions_critical",
-		"foley",
-		"interface",
-		"music",
-		"notimescale",
+		"tactical",
+		"tactical_special",
+		"vehicles",
+		"air_vehicles",
+		"int_vehicles_1",
+		"int_vehicles_2",
+		"voices",
+		"voices_critical",
+		"voices_unfiltered",
+		"animals",
 		"physics",
+		"battlechatter",
+		"interface",
+		"scripted",
 		"scripted1",
 		"scripted2",
 		"scripted3",
 		"scripted4",
-		"tactical",
+		"scripted5",
 		"unoccluded",
-		"vehicles_air",
-		"vehicles_land",
-		"voices",
-		"voices_env",
-		"voices_critical",
-		"voices_unfiltered",
-		"weapons_npc",
-		"weapons_npc_dist",
-		"weapons_npc_mid",
-		"weapons_npc_tail",
-		"weapons_plr",
 		"whizbys",
+		"notimescale",
 	};
 
 	const char* get_vol_nod_name(short index)
@@ -325,7 +379,12 @@ namespace zonetool
 		SOUND_CHAR(polyEntityType);
 		SOUND_CHAR(polyGlobalType);
 
+		SOUND_FLOAT(envelopMin);
+		SOUND_FLOAT(envelopMax);
+		SOUND_FLOAT(envelopPercentage);
+
 		SOUND_FLOAT(reverbWetMixOverride);
+		SOUND_FLOAT(reverbMultiplier);
 
 		SOUND_FLOAT(smartPanDistance2d);
 		SOUND_FLOAT(smartPanDistance3d);
@@ -338,7 +397,6 @@ namespace zonetool
 		SOUND_SUBASSET(sndContext, SndContext);
 		SOUND_SUBASSET(sndCurve, SndCurve);
 		SOUND_SUBASSET(lpfCurve, SndCurve);
-		SOUND_SUBASSET(hpfCurve, SndCurve);
 		SOUND_SUBASSET(reverbSendCurve, SndCurve);
 
 		if (!snddata["speakerMap"].is_null())
@@ -396,14 +454,9 @@ namespace zonetool
 		if (!snd_unknown.is_null())
 		{
 			auto pad0 = nlohmann::get_object_bytes(snd_unknown["pad"][0]);
-			auto pad1 = nlohmann::get_object_bytes(snd_unknown["pad"][1]);
-			auto pad2 = nlohmann::get_object_bytes(snd_unknown["pad"][2]);
 			memcpy(asset->__pad0, pad0.data(), pad0.size());
-			memcpy(asset->__pad1, pad1.data(), pad1.size());
-			memcpy(asset->__pad2, pad2.data(), pad2.size());
 			asset->u1 = snd_unknown["u1"].get<char>();
-			asset->u4 = snd_unknown["u4"].get<float>();
-			asset->u6 = snd_unknown["u6"].get<float>();
+			asset->u2 = snd_unknown["u2"].get<float>();
 		}
 	}
 
@@ -436,15 +489,15 @@ namespace zonetool
 				json_parse_snd_alias(&asset->head[i], heads[i], mem);
 			}
 
-			auto unk = snddata["unknownArray"];
-			if (unk.is_array())
+			auto context_list = snddata["contextList"];
+			if (context_list.is_array())
 			{
-				asset->unkCount = static_cast<unsigned char>(unk.size());
-				asset->unk = mem->Alloc<short>(asset->unkCount);
+				asset->contextListCount = static_cast<unsigned char>(context_list.size());
+				asset->contextList = mem->Alloc<snd_alias_context_list>(asset->contextListCount);
 
-				for (unsigned char i = 0; i < asset->unkCount; i++)
+				for (unsigned char i = 0; i < asset->contextListCount; i++)
 				{
-					asset->unk[i] = unk[i].get<short>();
+					asset->contextList[i].unk = context_list[i].get<short>();
 				}
 			}
 
@@ -506,11 +559,6 @@ namespace zonetool
 			if (head->lpfCurve)
 			{
 				zone->add_asset_of_type(ASSET_TYPE_LPF_CURVE, head->lpfCurve->name);
-			}
-
-			if (head->hpfCurve)
-			{
-				zone->add_asset_of_type(ASSET_TYPE_LPF_CURVE, head->hpfCurve->name);
 			}
 
 			if (head->reverbSendCurve)
@@ -647,12 +695,6 @@ namespace zonetool
 				ASSET_TYPE_LPF_CURVE, data->lpfCurve->name));
 		}
 
-		if (data->hpfCurve)
-		{
-			dest->hpfCurve = static_cast<SndCurve*>(zone->get_asset_pointer(
-				ASSET_TYPE_LPF_CURVE, data->hpfCurve->name));
-		}
-
 		if (data->reverbSendCurve)
 		{
 			dest->reverbSendCurve = static_cast<SndCurve*>(zone->get_asset_pointer(
@@ -701,11 +743,11 @@ namespace zonetool
 			ZoneBuffer::clear_pointer(&dest->head);
 		}
 
-		if (data->unk)
+		if (data->contextList)
 		{
 			buf->align(1);
-			buf->write(data->unk, data->unkCount);
-			ZoneBuffer::clear_pointer(&dest->unk);
+			buf->write(data->contextList, data->contextListCount);
+			ZoneBuffer::clear_pointer(&dest->contextList);
 		}
 
 		buf->pop_stream();
@@ -786,7 +828,7 @@ namespace zonetool
 		SOUND_DUMP_FLOAT(distMax);
 		SOUND_DUMP_FLOAT(velocityMin);
 		SOUND_DUMP_FLOAT(probability);
-		SOUND_DUMP_CHAR(sequence);
+		SOUND_DUMP_INT(sequence);
 		SOUND_DUMP_INT(startDelay);
 
 		SOUND_DUMP_CHAR(masterPriority);
@@ -802,7 +844,12 @@ namespace zonetool
 		SOUND_DUMP_CHAR(polyEntityType);
 		SOUND_DUMP_CHAR(polyGlobalType);
 
+		SOUND_DUMP_FLOAT(envelopMin);
+		SOUND_DUMP_FLOAT(envelopMax);
+		SOUND_DUMP_FLOAT(envelopPercentage);
+
 		SOUND_DUMP_FLOAT(reverbWetMixOverride);
+		SOUND_DUMP_FLOAT(reverbMultiplier);
 
 		SOUND_DUMP_FLOAT(smartPanDistance2d);
 		SOUND_DUMP_FLOAT(smartPanDistance3d);
@@ -815,7 +862,6 @@ namespace zonetool
 		SOUND_DUMP_SUBASSET(sndContext);
 		SOUND_DUMP_SUBASSET(sndCurve);
 		SOUND_DUMP_SUBASSET(lpfCurve);
-		SOUND_DUMP_SUBASSET(hpfCurve);
 		SOUND_DUMP_SUBASSET(reverbSendCurve);
 
 		sound["speakerMap"] = nullptr;
@@ -862,11 +908,8 @@ namespace zonetool
 
 		// dump all unknown things too
 		sound["unknown"]["pad"][0] = json::binary(std::vector<std::uint8_t>(asset->__pad0, asset->__pad0 + sizeof(asset->__pad0)));
-		sound["unknown"]["pad"][1] = json::binary(std::vector<std::uint8_t>(asset->__pad1, asset->__pad1 + sizeof(asset->__pad1)));
-		sound["unknown"]["pad"][2] = json::binary(std::vector<std::uint8_t>(asset->__pad2, asset->__pad2 + sizeof(asset->__pad2)));
 		sound["unknown"]["u1"] = asset->u1;
-		sound["unknown"]["u4"] = asset->u4;
-		sound["unknown"]["u6"] = asset->u6;
+		sound["unknown"]["u2"] = asset->u2;
 	}
 
 	void ISound::json_dump(snd_alias_list_t* asset)
@@ -887,9 +930,9 @@ namespace zonetool
 			sound["head"][i] = alias;
 		}
 
-		for (unsigned char i = 0; i < asset->unkCount; i++)
+		for (unsigned char i = 0; i < asset->contextListCount; i++)
 		{
-			sound["unknownArray"][i] = asset->unk[i];
+			sound["contextList"][i] = asset->contextList[i].unk;
 		}
 
 		std::string assetstr = sound.dump(4);

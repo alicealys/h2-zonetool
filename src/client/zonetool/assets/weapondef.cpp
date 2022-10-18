@@ -524,7 +524,6 @@ namespace zonetool
 
 		// base asset
 		auto base = data["baseAsset"].get<std::string>();
-		const auto base_asset_path = "weapons\\"s + base + ".base"s;
 
 		char* baseAsset = nullptr;
 		if (!base.empty())
@@ -532,15 +531,7 @@ namespace zonetool
 			baseAsset = reinterpret_cast<char*>(DB_FindXAssetHeader(ASSET_TYPE_WEAPON, base.data(), 0).weapon);
 			if (baseAsset == nullptr || DB_IsXAssetDefault(ASSET_TYPE_WEAPON, base.data()))
 			{
-				auto base_asset_file = filesystem::file(base_asset_path);
-				if (!base_asset_file.exists())
-				{
-					ZONETOOL_FATAL("Could not load base asset \"%s\" into memory...", base.data());
-				}
-
-				base_asset_file.open("rb");
-				base_asset_bytes = base_asset_file.read_bytes(sizeof(WeaponDef));
-				baseAsset = reinterpret_cast<char*>(base_asset_bytes.data());
+				ZONETOOL_FATAL("Could not load base asset \"%s\" into memory...", base.data());
 			}
 
 			std::memcpy(weapon, baseAsset, sizeof(WeaponDef));
@@ -2602,12 +2593,6 @@ namespace zonetool
 	void IWeaponDef::dump(WeaponDef* asset)
 	{
 		const auto path = "weapons\\"s + asset->name + ".json"s;
-		const auto base_asset_path = "weapons\\"s + asset->name + ".base";
-
-		auto base_asset_file = filesystem::file(base_asset_path);
-		base_asset_file.open("wb");
-		base_asset_file.write(reinterpret_cast<char*>(asset), sizeof(WeaponDef), 1);
-		base_asset_file.close();
 
 		ordered_json data;
 

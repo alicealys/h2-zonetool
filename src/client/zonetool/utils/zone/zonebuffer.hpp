@@ -115,7 +115,7 @@ namespace zonetool
 				}
 			}
 
-			if (alignment > 0)
+			if (alignment >= sizeof(long long) - 1)
 			{
 				if (alignof(T) - 1 > alignment)
 				{
