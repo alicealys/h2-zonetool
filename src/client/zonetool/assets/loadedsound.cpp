@@ -1,13 +1,209 @@
 #include <std_include.hpp>
 #include "loadedsound.hpp"
 
+#include <utils/bit_buffer.hpp>
+
 #define SIZEOF_SNDFILE_WAVE_HEADER 46
+
+#define APPLICATION_ID "fsiz"
+#define CONSTANT_BLOCKSIZE 0x400
 
 namespace zonetool
 {
+	namespace
+	{
+		enum block_type_t
+		{
+			streaminfo,
+			padding,
+			application,
+			seektable,
+			vorbis_comment,
+			cuesheet,
+			picture,
+			count
+		};
+
+		struct metadata_block_header_t
+		{
+			bool is_last;
+			block_type_t type;
+			int length;
+		};
+
+		struct metadata_block_t
+		{
+			metadata_block_header_t header;
+			char* data;
+			char* start;
+		};
+
+		metadata_block_t parse_metadata_block(char* buffer)
+		{
+			/*
+				// https://xiph.org/flac/format.html#metadata_block_header
+
+				bits | description
+				   1   is last block
+				   7   block type
+				  24   block length (header not included)
+			*/
+
+			const auto header = _byteswap_ulong(*reinterpret_cast<uint32_t*>(
+				reinterpret_cast<uint64_t>(buffer)));
+
+			const auto is_last = static_cast<bool>(header >> (8 * 3 + 7));
+			const auto block_type = static_cast<block_type_t>((header << 1) >> (8 * 3 + 1));
+			const auto block_length = (header << 8) >> 8;
+
+			metadata_block_t block{};
+			block.header.is_last = is_last;
+			block.header.type = block_type;
+			block.header.length = block_length;
+			block.data = buffer + 4;
+			block.start = buffer;
+
+			return block;
+		}
+
+		void parse_metadata_block(char* buffer, metadata_block_t* block)
+		{
+			*block = parse_metadata_block(buffer);
+		}
+
+		bool check_signature(const std::string& buffer)
+		{
+			static std::vector<uint8_t> signature = { 'f', 'L', 'a', 'C' };
+
+			if (buffer.size() < signature.size())
+			{
+				return false;
+			}
+
+			for (auto i = 0; i < signature.size(); i++)
+			{
+				if (buffer[i] != signature[i])
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		bool check_signature(const char* buffer)
+		{
+			return check_signature(std::string(buffer, 4));
+		}
+
+		void verify_streaminfo_block(const metadata_block_t& block)
+		{
+			const auto minimum = _byteswap_ushort(*reinterpret_cast<uint16_t*>(block.data));
+			const auto maximum = _byteswap_ushort(*reinterpret_cast<uint16_t*>(block.data + 2));
+
+			if (maximum != CONSTANT_BLOCKSIZE || minimum != CONSTANT_BLOCKSIZE)
+			{
+				ZONETOOL_WARNING(
+					"Stream must have a constant blocksize of 1024! (was min: %i, max: %i)",
+					minimum, maximum);
+			}
+		}
+
+		std::string convert_flac(std::string& data, LoadedSoundInfo* info)
+		{
+			const auto start_pos = data.data();
+			const auto end_pos = start_pos + data.size();
+
+			if (!check_signature(start_pos))
+			{
+				ZONETOOL_FATAL("File is not a flac file");
+			}
+
+			auto pos = start_pos;
+			pos += 4; // skip "fLaC"
+
+			metadata_block_t block{};
+
+			auto num_blocks = 0;
+			auto has_seektable = false;
+			auto has_application = false;
+
+			while (!block.header.is_last && pos < end_pos)
+			{
+				parse_metadata_block(pos, &block);
+				num_blocks++;
+
+				if (!block.header.is_last)
+				{
+					pos = block.data + block.header.length;
+				}
+
+				if (block.header.type == block_type_t::application)
+				{
+					const auto application_id = std::string{block.data, 4};
+					if (application_id == APPLICATION_ID)
+					{
+						has_application = true;
+					}
+				}
+
+				if (block.header.type == block_type_t::streaminfo)
+				{
+					verify_streaminfo_block(block);
+
+					utils::bit_buffer buffer({block.data, static_cast<size_t>(block.header.length)});
+
+					info->sampleRate = buffer.read_bits(80, 20);
+					info->channels = static_cast<char>(buffer.read_bits(100, 3) + 1);
+					info->numBits = static_cast<char>(buffer.read_bits(103, 5)) + 1; // bps
+					info->numSamples = buffer.read_bits(108, 36);
+				}
+
+				if (block.header.type == block_type_t::seektable)
+				{
+					has_seektable = true;
+				}
+			}
+
+			const auto frame_section_size = (start_pos + data.size()) - (block.data + block.header.length);
+			auto insert_pos = static_cast<size_t>(pos - start_pos);
+			auto insert_header = _byteswap_ulong(0x02000008); // application block, length 8
+
+			if (num_blocks == 1)
+			{
+				const auto header_ptr = reinterpret_cast<uint32_t*>(block.start);
+				const auto header = _byteswap_ulong(*header_ptr);
+				*header_ptr = _byteswap_ulong((header << 1) >> 1);
+
+				insert_header = _byteswap_ulong(0x82000008);
+				insert_pos = static_cast<size_t>(block.data - start_pos + block.header.length);
+			}
+
+			std::string insert_data{};
+
+			if (!has_seektable)
+			{
+				const auto seektable_ = _byteswap_ulong(0x03000000);
+				insert_data.append(reinterpret_cast<const char*>(&seektable_), 4);
+			}
+
+			if (!has_application)
+			{
+				insert_data.append(reinterpret_cast<const char*>(&insert_header), 4); // header
+				insert_data.append(APPLICATION_ID); // data (application id)
+				insert_data.append(reinterpret_cast<const char*>(&frame_section_size), 4); // data (frame section size)
+			}
+
+			std::string new_data = data;
+			new_data.insert(insert_pos, insert_data);
+			return new_data;
+		}
+
+	}
+
 	LoadedSound* ILoadedSound::parse_flac(const std::string& name, ZoneMemory* mem)
 	{
-		/*ZONETOOL_INFO("Parsing loaded_sound \"%s\"...", name.data());
+		ZONETOOL_INFO("Parsing loaded_sound \"%s\"...", name.data());
 
 		const auto path = "loaded_sound\\"s + name + ".flac";
 		filesystem::file file(path);
@@ -15,15 +211,24 @@ namespace zonetool
 
 		auto* result = mem->Alloc<LoadedSound>();
 		result->name = mem->StrDup(name);
-		result->info.loadedSize = static_cast<int>(file.size());
-		result->info.data = mem->Alloc<char>(result->info.loadedSize);
-		file.read(result->info.data, result->info.loadedSize, 1);
+
+		const auto size = static_cast<int>(file.size());
+		const auto data = mem->Alloc<char>(size);
+		file.read(data, size, 1);
+
+		result->info.blockAlign = 0;
+		result->info.format = 6; // idk, seems to always be 6
+
+		std::string data_str{data, static_cast<size_t>(size)};
+		const auto converted = convert_flac(data_str, &result->info);
+
+		result->info.data = mem->Alloc<char>(converted.size());
+		std::memcpy(result->info.data, converted.data(), converted.size());
+		result->info.loadedSize = static_cast<int>(converted.size());
+		result->info.dataByteCount = result->info.loadedSize;
+
 		file.close();
-
-		return result;*/
-
-		ZONETOOL_WARNING("Flac sounds are not supported yet! (%s)", name.data());
-		return nullptr;
+		return result;
 	}
 
 	LoadedSound* ILoadedSound::parse_wav(const std::string& name, ZoneMemory* mem)
@@ -130,9 +335,29 @@ namespace zonetool
 	LoadedSound* ILoadedSound::parse(const std::string& name, ZoneMemory* mem)
 	{
 		auto path = "loaded_sound\\"s + name;
+		if (filesystem::file(path).exists())
+		{
+			auto fpath = std::filesystem::path(path);
+			if (fpath.has_extension())
+			{
+				auto ext = fpath.extension();
+				if (ext == ".wav")
+				{
+					return parse_wav(name.substr(0, name.length() - 4), mem);
+				}
+				else if (ext == ".flac")
+				{
+					return parse_flac(name.substr(0, name.length() - 5), mem);
+				}
+			}
+		}
 		if (filesystem::file(path + ".wav").exists())
 		{
 			return parse_wav(name, mem);
+		}
+		else if (filesystem::file(path + ".flac").exists())
+		{
+			return parse_flac(name, mem);
 		}
 
 		return nullptr;
