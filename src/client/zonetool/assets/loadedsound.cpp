@@ -73,7 +73,7 @@ namespace zonetool
 
 		bool check_signature(const std::string& buffer)
 		{
-			static std::vector<uint8_t> signature = { 'f', 'L', 'a', 'C' };
+			static std::vector<uint8_t> signature = {'f', 'L', 'a', 'C'};
 
 			if (buffer.size() < signature.size())
 			{
