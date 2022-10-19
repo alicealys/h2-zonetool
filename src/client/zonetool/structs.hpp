@@ -880,7 +880,6 @@ namespace zonetool
 		float volMin;
 		float volMax;
 		short volModIndex;
-		//char __padding0[2]; // padding
 		float pitchMin;
 		float pitchMax;
 		float distMin;
@@ -891,13 +890,10 @@ namespace zonetool
 		float masterPercentage;
 		float slavePercentage;
 		char playbackPercentage;
-		//char __padding1[3]; // padding
 		float probability;
 		char u1; // value: 0-4
-		//char __padding2[3]; // padding
 		SndContext* sndContext;
 		unsigned char sequence;
-		//char __padding3[3]; // padding
 		float lfePercentage;
 		float centerPercentage;
 		int startDelay;
@@ -3569,7 +3565,7 @@ namespace zonetool
 		cbrush_t* brushes;
 		Bounds* brushBounds;
 		int* brushContents;
-	}; assert_sizeof(BrushesCollisionData, 64);
+	};
 
 	struct CollisionBorder
 	{
@@ -3630,6 +3626,7 @@ namespace zonetool
 		PatchesCollisionData pCollisionData;
 		SModelsCollisionData sCollisionData;
 	}; assert_sizeof(ClipInfo, 0xF8);
+	assert_offsetof(ClipInfo, planes, 8);
 	assert_offsetof(ClipInfo, bCollisionTree, 32);
 	assert_offsetof(ClipInfo, pCollisionTree, 64);
 	assert_offsetof(ClipInfo, sCollisionTree, 80);
@@ -4966,8 +4963,12 @@ namespace zonetool
 
 	struct GfxWorldDpvsUnk
 	{
-		char __pad0[56];
+		char __pad0[8];
+		GfxStaticModelVertexLightingInfo info;
+		char __pad1[24];
 	};
+
+	assert_sizeof(GfxWorldDpvsUnk, 56);
 
 	struct GfxWorldDpvsStatic
 	{
@@ -4988,13 +4989,14 @@ namespace zonetool
 		unsigned int emissiveSurfsEnd; // 56
 		unsigned int smodelVisDataCount; // 60
 		unsigned int surfaceVisDataCount; // 64
+		unsigned int unkCount1; // 68
 		unsigned int* smodelVisData[4]; // 72 80 88 96
 		unsigned int* smodelUnknownVisData[27];
 		unsigned int* surfaceVisData[4]; // 320 328 336 344
 		unsigned int* surfaceUnknownVisData[27];
 		unsigned int* smodelUmbraVisData[4]; // 568 576 584 592
 		unsigned int* surfaceUmbraVisData[4]; // 600 608 616 624
-		unsigned int unkCount;
+		unsigned int unkCount2;
 		unsigned int* lodData; // 632 // h2 640
 		unsigned int* tessellationCutoffVisData; // 640
 		unsigned int* sortedSurfIndex; // 648 656
@@ -5024,6 +5026,7 @@ namespace zonetool
 	assert_offsetof(GfxWorldDpvsStatic, sortedSurfIndex, 656);
 	assert_offsetof(GfxWorldDpvsStatic, tessellationCutoffVisData, 648);
 	assert_offsetof(GfxWorldDpvsStatic, gfx_unk, 784);
+	assert_offsetof(GfxWorldDpvsStatic, unkCount1, 68);
 
 	struct GfxWorldDpvsDynamic
 	{

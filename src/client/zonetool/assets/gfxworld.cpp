@@ -251,8 +251,14 @@ namespace zonetool
 			asset->dpvs.constantBuffersAmbient[i] = read.read_raw<char>();
 		}
 
-		// TODO
-		asset->dpvs.gfx_unk = nullptr;
+		asset->dpvs.gfx_unk = read.read_array<GfxWorldDpvsUnk>();
+		for (unsigned int i = 0; i < asset->dpvs.unkCount1; i++)
+		{
+			if (asset->dpvs.gfx_unk[i].info.lightingValues)
+			{
+				asset->dpvs.gfx_unk[i].info.lightingValues = read.read_array<GfxStaticModelVertexLighting>();
+			}
+		}
 
 		asset->dpvsDyn.dynEntCellBits[0] = read.read_array<unsigned int>();
 		asset->dpvsDyn.dynEntCellBits[1] = read.read_array<unsigned int>();
@@ -1512,7 +1518,7 @@ namespace zonetool
 		if (data->dpvs.lodData)
 		{
 			buf->align(3);
-			buf->write(data->dpvs.lodData, data->dpvs.unkCount + 1);
+			buf->write(data->dpvs.lodData, data->dpvs.unkCount2 + 1);
 			ZoneBuffer::clear_pointer(&dest->dpvs.lodData);
 		}
 		buf->push_stream(2);
@@ -1667,6 +1673,25 @@ namespace zonetool
 			ZoneBuffer::clear_pointer(&dest->dpvs.constantBuffersAmbient);
 		}
 		buf->pop_stream();
+
+		if (data->dpvs.gfx_unk)
+		{
+			buf->align(3);
+			auto dest_gfx_unk = buf->write(data->dpvs.gfx_unk, data->dpvs.unkCount1);
+
+			for (unsigned int i = 0; i < data->dpvs.unkCount1; i++)
+			{
+				if (data->dpvs.gfx_unk[i].info.lightingValues)
+				{
+					dest_gfx_unk[i].info.lightingValuesVb = nullptr;
+					buf->align(3);
+					buf->write(data->dpvs.gfx_unk[i].info.lightingValues, data->dpvs.gfx_unk[i].info.numLightingValues);
+					ZoneBuffer::clear_pointer(&dest_gfx_unk[i].info.lightingValues);
+				}
+			}
+
+			ZoneBuffer::clear_pointer(&dest->dpvs.gfx_unk);
+		}
 
 		buf->push_stream(2);
 		if (data->dpvsDyn.dynEntCellBits[0])
@@ -1997,7 +2022,7 @@ namespace zonetool
 		write.dump_array(asset->dpvs.unknownSModelVisData1, asset->dpvs.smodelVisDataCount);
 		write.dump_array(asset->dpvs.unknownSModelVisData2, 2 * asset->dpvs.smodelVisDataCount);
 
-		write.dump_array(asset->dpvs.lodData, asset->dpvs.unkCount + 1);
+		write.dump_array(asset->dpvs.lodData, asset->dpvs.unkCount2 + 1);
 		write.dump_array(asset->dpvs.tessellationCutoffVisData, asset->dpvs.surfaceVisDataCount);
 		write.dump_array(asset->dpvs.sortedSurfIndex, asset->dpvs.staticSurfaceCount);
 
@@ -2040,6 +2065,14 @@ namespace zonetool
 		for (unsigned int i = 0; i < asset->dpvs.smodelCount; i++)
 		{
 			write.dump_raw(asset->dpvs.constantBuffersAmbient[i], 1);
+		}
+		write.dump_array(asset->dpvs.gfx_unk, asset->dpvs.unkCount1);
+		for (unsigned int i = 0; i < asset->dpvs.unkCount1; i++)
+		{
+			if (asset->dpvs.gfx_unk[i].info.lightingValues)
+			{
+				write.dump_array(asset->dpvs.gfx_unk[i].info.lightingValues, asset->dpvs.gfx_unk[i].info.numLightingValues);
+			}
 		}
 
 		write.dump_array(asset->dpvsDyn.dynEntCellBits[0],
