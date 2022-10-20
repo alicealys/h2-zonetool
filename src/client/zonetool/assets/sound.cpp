@@ -3,7 +3,7 @@
 
 namespace snd
 {
-#define SND_MAX_VOLUME_GROUPS 180
+#define SND_MAX_VOLUME_GROUPS 126
 	std::array<const char*, SND_MAX_VOLUME_GROUPS> volume_mod_groups =
 	{
 		"default",
