@@ -73,6 +73,7 @@ namespace zonetool
 		for (auto i = 0; i < 6; i++)
 		{
 			asset->lodInfo[i].modelSurfs = read.read_asset<XModelSurfs>();
+			asset->lodInfo[i].reactiveMotionParts = read.read_array<ReactiveMotionModelPart>();
 		}
 
 		// subassets
@@ -351,9 +352,18 @@ namespace zonetool
 
 		for (auto i = 0; i < 6; i++)
 		{
-			if (!data->lodInfo[i].modelSurfs) continue;
-			dest->lodInfo[i].modelSurfs = reinterpret_cast<XModelSurfs*>(zone->get_asset_pointer(
-				ASSET_TYPE_XMODEL_SURFS, data->lodInfo[i].modelSurfs->name));
+			if (data->lodInfo[i].modelSurfs)
+			{
+				dest->lodInfo[i].modelSurfs = reinterpret_cast<XModelSurfs*>(zone->get_asset_pointer(
+					ASSET_TYPE_XMODEL_SURFS, data->lodInfo[i].modelSurfs->name));
+			}
+
+			if (data->lodInfo[i].reactiveMotionParts)
+			{
+				buf->align(15);
+				buf->write(data->lodInfo[i].reactiveMotionParts, data->lodInfo[i].numReactiveMotionParts);
+				ZoneBuffer::clear_pointer(&dest->lodInfo[i].reactiveMotionParts);
+			}
 		}
 
 		if (data->collSurfs)
@@ -519,6 +529,7 @@ namespace zonetool
 		for (auto i = 0; i < 6; i++)
 		{
 			dump.dump_asset(asset->lodInfo[i].modelSurfs);
+			dump.dump_array(asset->lodInfo[i].reactiveMotionParts, asset->lodInfo[i].numReactiveMotionParts);
 		}
 
 		// physics subassets

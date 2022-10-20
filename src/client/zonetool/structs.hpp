@@ -1,13 +1,8 @@
 #pragma once
 #include <d3d11.h>
 
-#ifdef DEBUG
 #define assert_sizeof(__ASSET__, __SIZE__) static_assert(sizeof(__ASSET__) == __SIZE__)
 #define assert_offsetof(__ASSET__, __VARIABLE__, __OFFSET__) static_assert(offsetof(__ASSET__, __VARIABLE__) == __OFFSET__)
-#else
-#define assert_sizeof(__ASSET__, __SIZE__)
-#define assert_offsetof(__ASSET__, __VARIABLE__, __OFFSET__)
-#endif
 
 namespace zonetool
 {
@@ -2037,10 +2032,10 @@ namespace zonetool
 		int partBits[8];
 	}; static_assert(sizeof(XModelSurfs) == 0x38);
 
-	struct XUnknown1
+	struct ReactiveMotionModelPart
 	{
 		char __pad0[32];
-	}; static_assert(sizeof(XUnknown1) == 32);
+	}; static_assert(sizeof(ReactiveMotionModelPart) == 32);
 
 	struct XModelLodInfo
 	{
@@ -2050,9 +2045,9 @@ namespace zonetool
 		XModelSurfs* modelSurfs; // 8
 		int partBits[8]; // 16 20 24 28 32 36 40 44
 		XSurface* surfs; // 48
-		XUnknown1* unknown; // 56 (sizeof struct = 32) (reactiveMotionParts?)
+		ReactiveMotionModelPart* reactiveMotionParts; // 56 (sizeof struct = 32) (reactiveMotionParts?)
 		char __pad0[5]; // 64 (something must be here)
-		char unknownCount; // 69 (numReactiveMotionParts?)
+		char numReactiveMotionParts; // 69 (numReactiveMotionParts?)
 		char __pad1[2]; // 70 (padding?)
 	}; static_assert(sizeof(XModelLodInfo) == 72);
 
@@ -2076,12 +2071,6 @@ namespace zonetool
 		float quat[4];
 		float trans[3];
 		float transWeight;
-	};
-
-	struct ReactiveMotionModelPart
-	{
-		float center[3];
-		float stiffness;
 	};
 
 	struct ReactiveMotionModelTweaks
@@ -4894,20 +4883,21 @@ namespace zonetool
 		unsigned short flags;
 		unsigned short lightingHandle;
 		unsigned short staticModelId;
-		unsigned short primaryLightEnvIndex;
 		short pad;
+		unsigned short primaryLightEnvIndex;
 		char unk;
 		unsigned char reflectionProbeIndex;
 		unsigned char firstMtlSkinIndex;
 		unsigned char sunShadowFlags;
-	}; assert_sizeof(GfxStaticModelDrawInst, 80);
+	};
+	assert_sizeof(GfxStaticModelDrawInst, 80);
 	assert_offsetof(GfxStaticModelDrawInst, model, 0);
-	//assert_offsetof(GfxStaticModelDrawInst, cullDist, 64);
-	//assert_offsetof(GfxStaticModelDrawInst, flags, 66);
-	//assert_offsetof(GfxStaticModelDrawInst, lightingHandle, 68);
-	//assert_offsetof(GfxStaticModelDrawInst, primaryLightEnvIndex, 72);
-	//assert_offsetof(GfxStaticModelDrawInst, reflectionProbeIndex, 77); // maybe wrong
-	//assert_offsetof(GfxStaticModelDrawInst, firstMtlSkinIndex, 78);
+	assert_offsetof(GfxStaticModelDrawInst, cullDist, 60);
+	assert_offsetof(GfxStaticModelDrawInst, flags, 62);
+	assert_offsetof(GfxStaticModelDrawInst, lightingHandle, 64);
+	assert_offsetof(GfxStaticModelDrawInst, primaryLightEnvIndex, 70);
+	assert_offsetof(GfxStaticModelDrawInst, reflectionProbeIndex, 73); // maybe wrong
+	assert_offsetof(GfxStaticModelDrawInst, firstMtlSkinIndex, 74);
 
 	struct GfxStaticModelVertexLighting
 	{
