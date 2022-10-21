@@ -528,10 +528,15 @@ namespace zonetool
 		char* baseAsset = nullptr;
 		if (!base.empty())
 		{
-			baseAsset = reinterpret_cast<char*>(DB_FindXAssetHeader(ASSET_TYPE_WEAPON, base.data(), 0).weapon);
-			if (baseAsset == nullptr || DB_IsXAssetDefault(ASSET_TYPE_WEAPON, base.data()))
+			baseAsset = reinterpret_cast<char*>(DB_FindXAssetHeader(ASSET_TYPE_WEAPON, base.data(), 1).weapon);
+			if (baseAsset == nullptr)
 			{
 				ZONETOOL_FATAL("Could not load base asset \"%s\" into memory...", base.data());
+			}
+
+			if (DB_IsXAssetDefault(ASSET_TYPE_WEAPON, base.data()))
+			{
+				ZONETOOL_WARNING("Using default weapon base asset for weapon \"%s\"", name.data());
 			}
 
 			std::memcpy(weapon, baseAsset, sizeof(WeaponDef));
