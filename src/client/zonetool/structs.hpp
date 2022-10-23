@@ -672,7 +672,7 @@ namespace zonetool
 		GfxTexture texture;
 		DXGI_FORMAT imageFormat;
 		MapType mapType;
-		unsigned char sematic;
+		unsigned char semantic;
 		unsigned char category;
 		unsigned char flags;
 		Picmip picmip;
@@ -1073,20 +1073,233 @@ namespace zonetool
 		SplineRecordList splineList;
 	}; static_assert(sizeof(MapEnts) == 0x128);
 
+	struct AddonMapEntsUnk1
+	{
+		char __pad0[8];
+	};
+
+	struct AddonMapEntsUnk2_unk1
+	{
+		char __pad0[16];
+	};
+
+	struct AddonMapEntsUnk2_unk2
+	{
+		char __pad0[16];
+	};
+
+	struct AddonMapEntsUnk2
+	{
+		AddonMapEntsUnk2_unk1* unk1; // 0 [unkCount1]
+		AddonMapEntsUnk2_unk2* unk2; // 8 [unkCount2]
+		unsigned short* unk3; // 16 [unkCount2]
+		unsigned short* unk4; // 24 [unkCount1]
+		unsigned int* unk5; // 32 [unkCount3]
+		unsigned char* unk6; // 40 [unkCount2]
+		char __pad0[12];
+		unsigned int unkCount1;
+		unsigned int unkCount2;
+		unsigned int unkCount3;
+		char __pad1[40];
+	};
+
+	assert_sizeof(AddonMapEntsUnk2, 112);
+	assert_offsetof(AddonMapEntsUnk2, unk1, 0);
+	assert_offsetof(AddonMapEntsUnk2, unk2, 8);
+	assert_offsetof(AddonMapEntsUnk2, unk3, 16);
+	assert_offsetof(AddonMapEntsUnk2, unk4, 24);
+	assert_offsetof(AddonMapEntsUnk2, unk5, 32);
+	assert_offsetof(AddonMapEntsUnk2, unk6, 40);
+	assert_offsetof(AddonMapEntsUnk2, unkCount1, 60);
+	assert_offsetof(AddonMapEntsUnk2, unkCount2, 64);
+	assert_offsetof(AddonMapEntsUnk2, unkCount3, 68);
+
+	struct AddonMapEntsUnk3
+	{
+		char __pad0[80];
+	};
+
+	struct cmodel_t;
+	struct ClipInfo;
+	struct GfxBrushModel;
+
 	struct AddonMapEnts
 	{
 		const char* name;
 		char* entityString;
 		int numEntityChars;
 		MapTriggers trigger;
-		void* info;
+		ClipInfo* info;
 		unsigned int numSubModels;
-		void* cmodels;
-		void* models;
-		char __pad0[0x20];
+		cmodel_t* cmodels;
+		GfxBrushModel* models;
+		AddonMapEntsUnk1* unk1; // [numSubmodels]
+		AddonMapEntsUnk2* unk2; // [unkCount1]
+		AddonMapEntsUnk3* unk3; // [unkCount2]
+		unsigned int unkCount1;
+		unsigned int unkCount2;
 	};
 
+	static_assert(offsetof(AddonMapEnts, info) == 72);
+	static_assert(offsetof(AddonMapEnts, cmodels) == 88);
+	static_assert(offsetof(AddonMapEnts, numSubModels) == 80);
+	assert_offsetof(AddonMapEnts, models, 96);
+	assert_offsetof(AddonMapEnts, unk1, 104);
+	assert_offsetof(AddonMapEnts, unk2, 112);
+	assert_offsetof(AddonMapEnts, unk3, 120);
+	assert_offsetof(AddonMapEnts, unkCount1, 128);
+	assert_offsetof(AddonMapEnts, unkCount2, 132);
+
 	static_assert(sizeof(AddonMapEnts) == 136);
+
+	struct pathlink_s
+	{
+		float fDist;
+		unsigned __int16 nodeNum;
+		char disconnectCount;
+		char negotiationLink;
+		char flags;
+		char ubBadPlaceCount[3];
+	};
+
+	static_assert(sizeof(pathlink_s) == 12);
+
+	struct pathnode_yaworient_t
+	{
+		float fLocalAngle;
+		float localForward[2];
+	};
+
+	union $1B5D54D6544FE1811800FA8B20785540
+	{
+		pathnode_yaworient_t yaw_orient;
+		float angles[3];
+	};
+
+	union PathNodeParentUnion
+	{
+		scr_string_t name;
+		unsigned __int16 index;
+	};
+
+	enum PathNodeErrorCode
+	{
+		PNERR_NONE = 0x0,
+		PNERR_INSOLID = 0x1,
+		PNERR_FLOATING = 0x2,
+		PNERR_NOLINK = 0x3,
+		PNERR_DUPLICATE = 0x4,
+		PNERR_NOSTANCE = 0x5,
+		PNERR_INVALIDDOOR = 0x6,
+		PNERR_NOANGLES = 0x7,
+		PNERR_BADPLACEMENT = 0x8,
+		NUM_PATH_NODE_ERRORS = 0x9,
+	};
+
+	union $5F11B9753862CE791E23553F99FA1738
+	{
+		float minUseDistSq;
+		PathNodeErrorCode error;
+	};
+
+	struct pathnode_t;
+
+	struct pathnode_constant_t
+	{
+		unsigned __int16 type;
+		unsigned int spawnflags;
+		scr_string_t targetname;
+		scr_string_t script_linkName;
+		scr_string_t script_noteworthy;
+		scr_string_t target;
+		scr_string_t animscript;
+		int animscriptfunc;
+		float vLocalOrigin[3];
+		$1B5D54D6544FE1811800FA8B20785540 ___u9;
+		PathNodeParentUnion parent;
+		$5F11B9753862CE791E23553F99FA1738 ___u11;
+		__int16 wOverlapNode[2];
+		char __pad0[4];
+		unsigned __int16 totalLinkCount;
+		char __pad0[4];
+		pathlink_s* Links;
+	};
+
+	struct SentientHandle
+	{
+		unsigned __int16 number;
+		unsigned __int16 infoIndex;
+	};
+
+	union $73F238679C0419BE2C31C6559E8604FC
+	{
+		float nodeCost;
+		int linkIndex;
+	};
+
+	struct pathnode_transient_t
+	{
+		int iSearchFrame;
+		pathnode_t* pNextOpen;
+		pathnode_t* pPrevOpen;
+		pathnode_t* pParent;
+		float fCost;
+		float fHeuristic;
+		$73F238679C0419BE2C31C6559E8604FC ___u6;
+	};
+
+	struct pathnode_dynamic_t
+	{
+		SentientHandle pOwner;
+		int iFreeTime;
+		int iValidTime[3];
+		__int16 wLinkCount;
+		__int16 wOverlapCount;
+		__int16 turretEntNumber;
+		char userCount;
+		char hasBadPlaceLink;
+		int spreadUsedTime[2];
+		__int16 flags;
+		__int16 dangerousCount;
+		int recentUseProxTime;
+	};
+
+	struct pathnode_t
+	{
+		pathnode_constant_t constant;
+		pathnode_dynamic_t dynamic;
+		pathnode_transient_t transient;
+	};
+
+	assert_offsetof(pathnode_t, constant.Links, 80);
+	assert_offsetof(pathnode_t, constant.totalLinkCount, 72);
+	assert_offsetof(pathnode_t, dynamic.wLinkCount, 116);
+	assert_sizeof(pathnode_t, 192);
+	assert_sizeof(pathnode_constant_t, 88);
+
+	struct PathData
+	{
+		const char* name;
+		unsigned int nodeCount;
+		pathnode_t* nodes;
+		bool parentIndexResolved;
+		unsigned __int16 version;
+		int visBytes;
+		char* pathVis;
+		int nodeTreeCount;
+		pathnode_tree_t* nodeTree;
+		int dynamicNodeGroupCount;
+		PathDynamicNodeGroup* dynamicNodeGroups;
+		int exposureBytes;
+		char* pathExposure;
+		int noPeekVisBytes;
+		char* pathNoPeekVis;
+		int zoneCount;
+		int zonesBytes;
+		char* pathZones;
+		int dynStatesBytes;
+		char* pathDynStates;
+	};
 
 	struct RawFile
 	{
@@ -1984,6 +2197,16 @@ namespace zonetool
 	typedef unsigned short alignCompBufUShort_t;
 	typedef float alignCompBufFloat_t;
 	typedef unsigned short XBlendInfo;
+
+	enum XSurfaceFlags : std::uint16_t
+	{
+		SURF_FLAG_VERTCOL_GREY = 0x1,
+		SURF_FLAG_VERTCOL_NONE = 0x2,
+		SURF_FLAG_SKINNED = 0x4,
+		SURF_FLAG_REACTIVE_MOTION = 0x8,
+		SURF_FLAG_LIGHTMAP_COORDS = 0x10,
+		SURF_FLAG_TENSION = 0x20,
+	};
 
 	struct XSurface
 	{
@@ -3556,6 +3779,8 @@ namespace zonetool
 		int* brushContents;
 	};
 
+	static_assert(sizeof(BrushesCollisionData) == 0x40);
+
 	struct CollisionBorder
 	{
 		float distEq[3];
@@ -3647,6 +3872,8 @@ namespace zonetool
 		ClipInfo* info;
 		cLeaf_t leaf;
 	}; assert_sizeof(cmodel_t, 88);
+
+	assert_offsetof(cmodel_t, info, 32);
 
 	struct Stage
 	{
@@ -5070,9 +5297,9 @@ namespace zonetool
 		unsigned int sortKeyTopDecal; // 72
 		unsigned int sortKeyEffectAuto; // 76
 		unsigned int sortKeyDistortion; // 80
-		unsigned int sortKeyUnknown; // 84
-		unsigned int sortKeyUnknown2; // 88
-		char __pad1[4]; // 92
+		unsigned int sortKeyUnknown; // 84 - 104
+		unsigned int sortKeyUnknown2; // 88 - 108
+		char __pad1[4]; // 92 - 112
 		GfxWorldDpvsPlanes dpvsPlanes; // 112
 		GfxCellTreeCount* aabbTreeCounts; // 128
 		GfxCellTree* aabbTrees; // 136
@@ -5120,6 +5347,7 @@ namespace zonetool
 		GfxBuildInfo buildInfo; // 2832
 	};
 
+	assert_offsetof(GfxWorld, dpvsPlanes.nodes, 112 + 16);
 	assert_offsetof(GfxWorld, dpvs, 1880);
 	assert_offsetof(GfxWorld, dpvsPlanes, 112);
 	assert_offsetof(GfxWorld, primaryLightCount, 72);
@@ -5127,6 +5355,11 @@ namespace zonetool
 	assert_offsetof(GfxWorld, aabbTreeCounts, 144);
 	assert_offsetof(GfxWorld, portalGroupCount, 48);
 	assert_offsetof(GfxWorld, portalGroupCount, 48);
+	assert_offsetof(GfxWorld, mdaoVolumesCount, 2816);
+	assert_offsetof(GfxWorld, mdaoVolumes, 2824);
+	assert_offsetof(GfxWorld, umbraTomeData, 2800);
+	assert_offsetof(GfxWorld, umbraTomeSize, 2796);
+	assert_offsetof(GfxWorld, models, 1536);
 
 	static_assert(sizeof(GfxWorld) == 0xB50);
 

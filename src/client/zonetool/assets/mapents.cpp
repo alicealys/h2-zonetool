@@ -270,7 +270,7 @@ namespace zonetool
 			clientTrigger->unk5 = reader.read_array<short>();
 			clientTrigger->unk6 = reader.read_array<short>();
 			clientTrigger->unk7 = reader.read_array<short>();
-			clientTrigger->unk8 = reader.read_array<short>();
+			//clientTrigger->unk8 = reader.read_array<short>();
 
 			reader.close();
 		}
@@ -511,12 +511,12 @@ namespace zonetool
 			buf->write(data->clientTrigger.unk7, data->clientTrigger.trigger.count);
 			ZoneBuffer::clear_pointer(&dest->clientTrigger.unk7);
 		}
-		if (data->clientTrigger.unk8)
+		/*if (data->clientTrigger.unk8)
 		{
 			buf->align(1);
 			buf->write(data->clientTrigger.unk8, data->clientTrigger.trigger.count);
 			ZoneBuffer::clear_pointer(&dest->clientTrigger.unk8);
-		}
+		}*/
 
 		if (data->clientTriggerBlend.blendNodes)
 		{
@@ -668,7 +668,7 @@ namespace zonetool
 			dumper.dump_array(clientTrigger->unk5, clientTrigger->trigger.count);
 			dumper.dump_array(clientTrigger->unk6, clientTrigger->trigger.count);
 			dumper.dump_array(clientTrigger->unk7, clientTrigger->trigger.count);
-			dumper.dump_array(clientTrigger->unk8, clientTrigger->trigger.count);
+			//dumper.dump_array(clientTrigger->unk8, clientTrigger->trigger.count);
 
 			dumper.close();
 		}
