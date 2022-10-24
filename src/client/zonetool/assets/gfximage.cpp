@@ -685,10 +685,10 @@ namespace zonetool
 			return;
 		}
 
-		this->asset_ = this->parse_custom(name, mem);
+		this->asset_ = this->parse(name, mem);
 		if (!this->asset_)
 		{
-			this->asset_ = parse(name.data(), mem);
+			this->asset_ = parse_custom(name, mem);
 			if (!this->asset_)
 			{
 				ZONETOOL_WARNING("Image \"%s\" not found, it will probably look messed up ingame!", name.data());
