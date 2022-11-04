@@ -319,14 +319,22 @@ namespace zonetool
 		weapon->__field__ = mem->Alloc<XAnimParts*>(__size__); \
 		for (auto idx##__field__ = 0; idx##__field__ < __size__; idx##__field__++) \
 		{ \
-			auto asset##__field__ = data[#__field__][get_anim_name_from_index(idx##__field__)].get<std::string>(); \
-			if (asset##__field__.empty()) \
+			auto asset##__field__ = data[#__field__][get_anim_name_from_index(idx##__field__)]; \
+			if (asset##__field__.is_null()) \
 			{ \
 				weapon->__field__[idx##__field__] = nullptr; \
 			} \
 			else \
 			{ \
-				weapon->__field__[idx##__field__] = DB_FindXAssetHeader(XAssetType::ASSET_TYPE_XANIM, asset##__field__.data(), 1).parts; \
+				const auto asset_str_##__field__ = asset##__field__.get<std::string>(); \
+				if (asset_str_##__field__.empty()) \
+				{ \
+					weapon->__field__[idx##__field__] = nullptr; \
+				} \
+				else \
+				{ \
+					weapon->__field__[idx##__field__] = DB_FindXAssetHeader(XAssetType::ASSET_TYPE_XANIM, asset_str_##__field__.data(), 1).parts; \
+				} \
 			} \
 		} \
 	} \
@@ -338,14 +346,22 @@ namespace zonetool
 #define WEAPON_READ_SOUND(__field__) \
 	if (!data["sounds"][#__field__].is_null() && data["sounds"][#__field__].is_string()) \
 	{ \
-		auto asset##__field__ = data["sounds"][#__field__].get<std::string>(); \
-		if (asset##__field__.empty()) \
+		auto asset##__field__ = data["sounds"][#__field__]; \
+		if (asset##__field__.is_null()) \
 		{ \
 			weapon->__field__ = nullptr; \
 		} \
 		else \
 		{ \
-			weapon->__field__ = DB_FindXAssetHeader(XAssetType::ASSET_TYPE_SOUND, asset##__field__.data(), 1).sound; \
+			const auto asset_str_##__field__ = asset##__field__.get<std::string>(); \
+			if (asset_str_##__field__.empty()) \
+			{ \
+				weapon->__field__ = nullptr; \
+			} \
+			else \
+			{ \
+				weapon->__field__ = DB_FindXAssetHeader(XAssetType::ASSET_TYPE_SOUND, asset_str_##__field__.data(), 1).sound; \
+			} \
 		} \
 	} \
 	else \
