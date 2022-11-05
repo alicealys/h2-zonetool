@@ -5239,28 +5239,28 @@ namespace zonetool
 		unsigned int* surfaceUnknownVisData[27];
 		unsigned int* smodelUmbraVisData[4]; // 568 576 584 592
 		unsigned int* surfaceUmbraVisData[4]; // 600 608 616 624
-		unsigned int unkCount2;
-		unsigned int* lodData; // 632 // h2 640
-		unsigned int* tessellationCutoffVisData; // 640
-		unsigned int* sortedSurfIndex; // 648 656
-		GfxStaticModelInst* smodelInsts; // 656
-		GfxSurface* surfaces; // 664
-		GfxSurfaceBounds* surfacesBounds; // 672
-		GfxStaticModelDrawInst* smodelDrawInsts; // 680
-		unsigned int* unknownSModelVisData1; // 688
-		unsigned int* unknownSModelVisData2; // 696
-		GfxStaticModelLighting* smodelLighting; // 704 (array)
-		GfxSubdivVertexLightingInfo* subdivVertexLighting; // 712 (array)
-		GfxDrawSurf* surfaceMaterials; // 720
-		unsigned int* surfaceCastsSunShadow; // 728
-		unsigned int sunShadowOptCount; // 736
-		unsigned int sunSurfVisDataCount; // 740
-		unsigned int* surfaceCastsSunShadowOpt; // 744
-		GfxDepthAndSurf* surfaceDeptAndSurf; // 752
-		GfxWorldDpvsVoid* constantBuffersLit; // 760
-		GfxWorldDpvsVoid* constantBuffersAmbient; // 768
-		GfxWorldDpvsUnk* gfx_unk;
-		int usageCount; // 776
+		unsigned int unkCount2; // 632
+		unsigned int* lodData; // 640
+		unsigned int* tessellationCutoffVisData; // 648
+		unsigned int* sortedSurfIndex; // 656
+		GfxStaticModelInst* smodelInsts; // 664
+		GfxSurface* surfaces; // 672
+		GfxSurfaceBounds* surfacesBounds; // 680
+		GfxStaticModelDrawInst* smodelDrawInsts; // 688
+		unsigned int* unknownSModelVisData1; // 696
+		unsigned int* unknownSModelVisData2; // 704
+		GfxStaticModelLighting* smodelLighting; // 712 (array)
+		GfxSubdivVertexLightingInfo* subdivVertexLighting; // 720 (array)
+		GfxDrawSurf* surfaceMaterials; // 728
+		unsigned int* surfaceCastsSunShadow; // 736
+		unsigned int sunShadowOptCount; // 744
+		unsigned int sunSurfVisDataCount; // 748
+		unsigned int* surfaceCastsSunShadowOpt; // 752
+		GfxDepthAndSurf* surfaceDeptAndSurf; // 760
+		GfxWorldDpvsVoid* constantBuffersLit; // 768
+		GfxWorldDpvsVoid* constantBuffersAmbient; // 776
+		GfxWorldDpvsUnk* gfx_unk; // 784
+		int usageCount; // 792
 	};
 	static_assert(sizeof(GfxWorldDpvsStatic) == 800);
 	assert_offsetof(GfxWorldDpvsStatic, smodelDrawInsts, 688);
@@ -5269,7 +5269,19 @@ namespace zonetool
 	assert_offsetof(GfxWorldDpvsStatic, sortedSurfIndex, 656);
 	assert_offsetof(GfxWorldDpvsStatic, tessellationCutoffVisData, 648);
 	assert_offsetof(GfxWorldDpvsStatic, gfx_unk, 784);
+	assert_offsetof(GfxWorldDpvsStatic, sunShadowOptCount, 744);
+	assert_offsetof(GfxWorldDpvsStatic, sunSurfVisDataCount, 748);
+	assert_offsetof(GfxWorldDpvsStatic, surfaceCastsSunShadowOpt, 752);
+	assert_offsetof(GfxWorldDpvsStatic, surfaceDeptAndSurf, 760);
+	assert_offsetof(GfxWorldDpvsStatic, subdivVertexLighting, 720);
+	assert_offsetof(GfxWorldDpvsStatic, constantBuffersLit, 768);
+	assert_offsetof(GfxWorldDpvsStatic, constantBuffersAmbient, 776);
+	assert_offsetof(GfxWorldDpvsStatic, usageCount, 792);
+	assert_offsetof(GfxWorldDpvsStatic, unknownSModelVisData1, 696);
 	assert_offsetof(GfxWorldDpvsStatic, unkCount1, 68);
+	assert_offsetof(GfxWorldDpvsStatic, unkCount2, 632);
+	assert_offsetof(GfxWorldDpvsStatic, surfaceUmbraVisData, 600);
+	assert_offsetof(GfxWorldDpvsStatic, smodelInsts, 664);
 
 	struct GfxWorldDpvsDynamic
 	{
@@ -5315,64 +5327,75 @@ namespace zonetool
 		GfxSky* skies; // 40
 		unsigned int portalGroupCount; // 48
 		char __pad0[16];
-		unsigned int lastSunPrimaryLightIndex; // 52
-		unsigned int primaryLightCount; // 56
-		unsigned int primaryLightEnvCount; // 60
-		unsigned int sortKeyLitDecal; // 64
-		unsigned int sortKeyEffectDecal; // 68
-		unsigned int sortKeyTopDecal; // 72
-		unsigned int sortKeyEffectAuto; // 76
-		unsigned int sortKeyDistortion; // 80
-		unsigned int sortKeyUnknown; // 84 - 104
-		unsigned int sortKeyUnknown2; // 88 - 108
-		char __pad1[4]; // 92 - 112
+		unsigned int lastSunPrimaryLightIndex; // 68
+		unsigned int primaryLightCount; // 72
+		unsigned int primaryLightEnvCount; // 76
+		unsigned int sortKeyLitDecal; // 80
+		unsigned int sortKeyEffectDecal; // 84
+		unsigned int sortKeyTopDecal; // 88
+		unsigned int sortKeyEffectAuto; // 92
+		unsigned int sortKeyDistortion; // 96
+		unsigned int sortKeyUnknown; // 100
+		unsigned int sortKeyUnknown2; // 104
+		char __pad1[4]; // 108
 		GfxWorldDpvsPlanes dpvsPlanes; // 112
-		GfxCellTreeCount* aabbTreeCounts; // 128
-		GfxCellTree* aabbTrees; // 136
-		GfxCell* cells; // 144
-		GfxPortalGroup* portalGroup; // 152
-		int unk_vec4_count_0; // 160
-		char __pad2[4];
-		vec4_t* unk_vec4_0; // 168
-		GfxWorldDraw draw; // 176
-		GfxLightGrid lightGrid; // 432
-		int modelCount; // 1512
-		GfxBrushModel* models; // 1520
+		GfxCellTreeCount* aabbTreeCounts; // 144
+		GfxCellTree* aabbTrees; // 152
+		GfxCell* cells; // 160
+		GfxPortalGroup* portalGroup; // 168
+		int unk_vec4_count_0; // 176
+		char __pad2[4]; // 180
+		vec4_t* unk_vec4_0; // 184
+		GfxWorldDraw draw; // 192
+		GfxLightGrid lightGrid; // 448
+		int modelCount; // 1528
+		GfxBrushModel* models; // 1536
 		vec3_t mins1;
 		vec3_t maxs1;
 		vec3_t mins2;
 		vec3_t maxs2;
-		unsigned int checksum;
-		int materialMemoryCount; // 1580
-		MaterialMemory* materialMemory; // 1584
-		sunflare_t sun; // 1592
-		float outdoorLookupMatrix[4][4];
-		GfxImage* outdoorImage; // 1768
-		unsigned int* cellCasterBits; // 1776
-		unsigned int* cellHasSunLitSurfsBits; // 1784
-		GfxSceneDynModel* sceneDynModel; // 1792
-		GfxSceneDynBrush* sceneDynBrush; // 1800
-		unsigned int* primaryLightEntityShadowVis; // 1808
-		unsigned int* primaryLightDynEntShadowVis[2]; // 1816 1824
-		unsigned short* nonSunPrimaryLightForModelDynEnt; // 1832
-		GfxShadowGeometry* shadowGeom; // 1840
-		GfxShadowGeometry* shadowGeomOptimized; // 1848
-		GfxLightRegion* lightRegion; // 1856
-		GfxWorldDpvsStatic dpvs; // 1864
-		GfxWorldDpvsDynamic dpvsDyn; // 2648
-		unsigned int mapVtxChecksum;
-		unsigned int heroOnlyLightCount; // 2748
-		GfxHeroOnlyLight* heroOnlyLights; // 2752
-		unsigned char fogTypesAllowed; // 2760
-		unsigned int umbraTomeSize; // 2764
-		char* umbraTomeData; // 2768
-		umbraTomePtr_t umbraTomePtr; // 2776
-		unsigned int mdaoVolumesCount; // 2784
-		MdaoVolume* mdaoVolumes; // 2792
+		unsigned int checksum; // 1592
+		int materialMemoryCount; // 1596
+		MaterialMemory* materialMemory; // 1600
+		sunflare_t sun; // 1608
+		float outdoorLookupMatrix[4][4]; // 1720
+		GfxImage* outdoorImage; // 1784
+		unsigned int* cellCasterBits; // 1792
+		unsigned int* cellHasSunLitSurfsBits; // 1800
+		GfxSceneDynModel* sceneDynModel; // 1808
+		GfxSceneDynBrush* sceneDynBrush; // 1816
+		unsigned int* primaryLightEntityShadowVis; // 1824
+		unsigned int* primaryLightDynEntShadowVis[2]; // 1832 1840
+		unsigned short* nonSunPrimaryLightForModelDynEnt; // 1848
+		GfxShadowGeometry* shadowGeom; // 1856
+		GfxShadowGeometry* shadowGeomOptimized; // 1864
+		GfxLightRegion* lightRegion; // 1872
+		GfxWorldDpvsStatic dpvs; // 1880
+		GfxWorldDpvsDynamic dpvsDyn; // 2680
+		unsigned int mapVtxChecksum; // 2776
+		unsigned int heroOnlyLightCount; // 2780
+		GfxHeroOnlyLight* heroOnlyLights; // 2784
+		unsigned char fogTypesAllowed; // 2792
+		unsigned int umbraTomeSize; // 2796
+		char* umbraTomeData; // 2800
+		umbraTomePtr_t umbraTomePtr; // 2808
+		unsigned int mdaoVolumesCount; // 2816
+		MdaoVolume* mdaoVolumes; // 2824
 		char __pad3[32];
-		GfxBuildInfo buildInfo; // 2832
+		GfxBuildInfo buildInfo; // 2864
 	};
 
+	assert_offsetof(GfxWorld, skies, 40);
+	assert_offsetof(GfxWorld, sortKeyUnknown2, 104);
+	assert_offsetof(GfxWorld, aabbTreeCounts, 144);
+	assert_offsetof(GfxWorld, portalGroup, 168);
+	assert_offsetof(GfxWorld, lightGrid, 448);
+	assert_offsetof(GfxWorld, modelCount, 1528);
+	assert_offsetof(GfxWorld, models, 1536);
+	assert_offsetof(GfxWorld, checksum, 1592);
+	assert_offsetof(GfxWorld, materialMemoryCount, 1596);
+	assert_offsetof(GfxWorld, sun, 1608);
+	assert_offsetof(GfxWorld, outdoorLookupMatrix, 1720);
 	assert_offsetof(GfxWorld, dpvsPlanes.nodes, 112 + 16);
 	assert_offsetof(GfxWorld, dpvs, 1880);
 	assert_offsetof(GfxWorld, dpvsPlanes, 112);
@@ -5385,7 +5408,15 @@ namespace zonetool
 	assert_offsetof(GfxWorld, mdaoVolumes, 2824);
 	assert_offsetof(GfxWorld, umbraTomeData, 2800);
 	assert_offsetof(GfxWorld, umbraTomeSize, 2796);
+	assert_offsetof(GfxWorld, sceneDynBrush, 1816);
 	assert_offsetof(GfxWorld, models, 1536);
+	assert_offsetof(GfxWorld, umbraTomeSize, 2796);
+	assert_offsetof(GfxWorld, fogTypesAllowed, 2792);
+	assert_offsetof(GfxWorld, umbraTomeData, 2800);
+	assert_offsetof(GfxWorld, dpvsDyn, 2680);
+	assert_offsetof(GfxWorld, buildInfo, 2864);
+	assert_offsetof(GfxWorld, mdaoVolumesCount, 2816);
+	assert_offsetof(GfxWorld, mdaoVolumes, 2824);
 
 	static_assert(sizeof(GfxWorld) == 0xB50);
 

@@ -40,12 +40,7 @@ namespace zonetool
 					continue;
 				}
 
-				if (in_comment)
-				{
-					continue;
-				}
-
-				if (line.starts_with("//"))
+				if (in_comment || line.starts_with("//") || line.empty())
 				{
 					continue;
 				}
@@ -59,7 +54,7 @@ namespace zonetool
 
 				if (line[0] == '{' && in_map_ent)
 				{
-					ZONETOOL_FATAL("[map_ents parser] Unexpected '{' on line %i\n", i);
+					ZONETOOL_FATAL("Unexpected '{' on line %i", i);
 				}
 
 				if (line[0] == '}' && in_map_ent)
@@ -83,7 +78,7 @@ namespace zonetool
 
 				if (line[0] == '}' && !in_map_ent)
 				{
-					ZONETOOL_FATAL("[map_ents parser] Unexpected '}' on line %i\n", i);
+					ZONETOOL_FATAL("Unexpected '}' on line %i", i);
 				}
 
 				if (line.starts_with("0 \""))
@@ -97,7 +92,8 @@ namespace zonetool
 				std::smatch match{};
 				if (!std::regex_search(line, match, expr))
 				{
-					ZONETOOL_WARNING("[map_ents parser] Failed to parse line %i (%s)\n", i, line.data());
+					ZONETOOL_WARNING("Failed to parse line %i (%s)", i, line.data());
+					continue;
 				}
 
 				auto key = utils::string::to_lower(match[1].str());
@@ -105,7 +101,8 @@ namespace zonetool
 
 				if (key.size() <= 0)
 				{
-					ZONETOOL_WARNING("[map_ents parser] Invalid key ('%s') on line %i (%s)\n", key.data(), i, line.data());
+					ZONETOOL_WARNING("Invalid key ('%s') on line %i (%s)", key.data(), i, line.data());
+					continue;
 				}
 
 				if (value.size() <= 0)
@@ -126,7 +123,7 @@ namespace zonetool
 				const auto id = xsk::gsc::h2::resolver::token_id(key_);
 				if (id == 0)
 				{
-					ZONETOOL_WARNING("[map_ents parser] Key '%s' not found, on line %i (%s)\n", key_.data(), i, line.data());
+					ZONETOOL_WARNING("Key '%s' not found, on line %i (%s)", key_.data(), i, line.data());
 					continue;
 				}
 
