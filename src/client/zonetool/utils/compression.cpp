@@ -193,7 +193,7 @@ namespace compression
 
 	std::string decompress_lz4_block(const std::string& data)
 	{
-		const auto decompressed = compress_lz4_block(data.data(), data.size());
+		const auto decompressed = decompress_lz4_block(data.data(), data.size());
 		return {decompressed.begin(), decompressed.end()};
 	}
 }
