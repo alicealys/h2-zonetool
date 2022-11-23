@@ -56,7 +56,7 @@ namespace zonetool
 		T* get_zone_pointer()
 		{
 			return reinterpret_cast<T*>
-				(0xFDFDFDF000000000 | (static_cast<std::uint64_t>(this->m_stream) & 0x0F) << 32 | ((m_zonestreams[m_stream] + 1) & 0x0FFFFFFF));
+				(0xFDFDFDF000000000 | (static_cast<std::uint64_t>(this->m_stream) & 0x0F) << 32 | ((m_zonestreams[m_stream] + 1) & 0x0FFFFFFFFFFFFFF));
 		}
 
 		template <typename T = char>

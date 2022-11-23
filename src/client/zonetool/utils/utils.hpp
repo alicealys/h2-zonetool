@@ -104,7 +104,7 @@ namespace zonetool
 	{
 		char header[8];
 		std::int32_t version;
-		unsigned char unknown[16];
+		unsigned char encrypted_block_count[16];
 		DB_AuthHash hash;
 		DB_AuthSignature signature;
 	};

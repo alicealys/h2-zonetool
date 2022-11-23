@@ -11,6 +11,8 @@
 
 #include <tomcrypt.h>
 
+#include "../compression.hpp"
+
 #define ZSTD_COMPRESSION 11
 #define ZLIB_COMPRESSION Z_BEST_COMPRESSION
 
@@ -515,28 +517,6 @@ namespace zonetool
 
 	std::vector<std::uint8_t> ZoneBuffer::compress_lz4()
 	{
-		// calculate buffer size needed for current zone
-		auto size = LZ4_compressBound(static_cast<int>(this->m_pos));
-
-		// alloc array for compressed data
-		std::vector<std::uint8_t> compressed;
-		compressed.resize(size);
-
-		// compress buffer
-		auto destsize = LZ4_compress_default(
-			reinterpret_cast<const char*>(this->m_buf.data()),
-			reinterpret_cast<char*>(compressed.data()),
-			static_cast<int>(this->m_pos),
-			size);
-		compressed.resize(destsize);
-
-		if (!destsize)
-		{
-			ZONETOOL_ERROR("An error occured while compressing the fastfile (LZ4)");
-			return {};
-		}
-
-		// return compressed buffer
-		return compressed;
+		return compression::compress_lz4_block(this->m_buf, this->m_pos);
 	}
 }

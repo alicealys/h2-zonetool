@@ -214,7 +214,7 @@ namespace zonetool
 
 			auto stateInfo = json::parse(bytes);
 
-			mat->stateFlags = stateInfo["stateFlags"];
+			mat->stateFlags = stateInfo["stateFlags"].get<unsigned char>();
 
 			return;
 		}
