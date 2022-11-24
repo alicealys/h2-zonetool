@@ -713,18 +713,19 @@ namespace zonetool
 		const auto asset_path = utils::string::va("streamed_images\\%s.h2Image", clean_name(name).data());
 
 		assetmanager::reader read(mem);
-		GfxImage* asset = nullptr;
-		if (read.open(asset_path))
+		if (!read.open(asset_path))
 		{
-			asset = read.read_single<GfxImage>();
-			asset->name = read.read_string();
+			return nullptr;
 		}
+
+		GfxImage* asset = read.read_single<GfxImage>();
+		asset->name = read.read_string();
 
 		ZONETOOL_INFO("Parsing streamed image \"%s\"...", name.data());
 
 		this->custom_streamed_image = true;
 
-		auto total_size = 0;
+		//auto total_size = 0;
 		for (auto i = 0; i < 4; i++)
 		{
 			// dds doesnt work properly yet
@@ -765,7 +766,7 @@ namespace zonetool
 
 		if (asset != nullptr)
 		{
-			asset->dataLen2 = total_size;
+			//asset->dataLen2 = total_size;
 		}
 
 		read.close();
