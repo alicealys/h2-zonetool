@@ -12,6 +12,7 @@ namespace zonetool
 	bool dump = false;
 
 	filesystem::file csv_file;
+	bool dump_to_zonetool = false;
 
 	// referenced assets
 	std::vector<std::pair<XAssetType, std::string>> referenced_assets;
@@ -681,6 +682,12 @@ namespace zonetool
 			}
 
 			verify_zone(params.get(1));
+		});
+
+		command::add("dumptozonetool", [](const command::params& params)
+		{
+			dump_to_zonetool = !dump_to_zonetool;
+			printf("dump_to_zonetool: %i\n", dump_to_zonetool);
 		});
 	}
 

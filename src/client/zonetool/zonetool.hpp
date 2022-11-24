@@ -83,4 +83,6 @@ namespace zonetool
 
 	void initialize();
 	void start();
+
+	extern bool dump_to_zonetool;
 }
