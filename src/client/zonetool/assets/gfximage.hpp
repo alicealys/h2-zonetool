@@ -9,11 +9,14 @@ namespace zonetool
 		std::string name_;
 		GfxImage* asset_ = nullptr;
 
-		std::array<XStreamFile*, 4> image_stream_files;
-
 	public:
+		std::array<XStreamFile*, 4> image_stream_files;
+		std::array<std::optional<std::string>, 4> image_stream_blocks;
+		bool custom_streamed_image = false;
+
 		static GfxImage* parse_custom(const std::string& name, ZoneMemory* mem);
 
+		GfxImage* parse_streamed_image(const std::string& name, ZoneMemory* mem);
 		GfxImage* parse(const std::string& name, ZoneMemory* mem);
 
 		void init(const std::string& name, ZoneMemory* mem) override;

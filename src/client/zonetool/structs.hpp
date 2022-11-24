@@ -652,7 +652,11 @@ namespace zonetool
 	{
 		unsigned short width;
 		unsigned short height;
-		unsigned int pixelSize;
+		union
+		{
+			unsigned char bytes[4];
+			unsigned int pixelSize;
+		};
 	};
 
 	enum MapType : std::uint8_t

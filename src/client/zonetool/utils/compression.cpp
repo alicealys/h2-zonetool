@@ -12,7 +12,10 @@
 #include <tomcrypt.h>
 
 #define LZ4_COMPRESSION 4
+#define LZ4_CLEVEL 8 // compression level
 #define MAX_BLOCK_SIZE 0x10000ull
+
+#include <utils/hook.hpp>
 
 namespace compression
 {
@@ -63,8 +66,8 @@ namespace compression
 			std::string buffer;
 			buffer.resize(bound);
 
-			const auto compressed_size = LZ4_compress_fast(data_ptr, 
-				buffer.data(), block_size, bound, 1);
+			const auto compressed_size = LZ4_compress_HC(data_ptr,
+				buffer.data(), block_size, bound, LZ4_CLEVEL);
 			buffer.resize(align_value(compressed_size, 4));
 
 			if (first_block)
@@ -162,7 +165,7 @@ namespace compression
 			std::string buffer;
 			buffer.resize(header.uncompressed_block_size);
 
-			const auto read_count = static_cast<unsigned int>(LZ4_decompress_safe(data_ptr, buffer.data(), 
+			const auto read_count = static_cast<unsigned int>(LZ4_decompress_safe(data_ptr, buffer.data(),
 				header.compressed_size, header.uncompressed_block_size));
 
 			if (read_count != header.uncompressed_block_size)
