@@ -402,6 +402,8 @@ namespace zonetool
 		MaterialShaderArgument* args;
 	};
 
+	static_assert(offsetof(MaterialPass, zone) == 50);
+
 	struct MaterialTechniqueHeader
 	{
 		const char* name;
@@ -1156,6 +1158,16 @@ namespace zonetool
 
 	static_assert(sizeof(AddonMapEnts) == 136);
 
+	struct Clut
+	{
+		int count0;
+		int count1;
+		int count2;
+		int pad;
+		char* unk;
+		const char* name;
+	}; assert_sizeof(Clut, 0x20);
+
 	struct pathnode_yaworient_t
 	{
 		float fLocalAngle;
@@ -1638,13 +1650,15 @@ namespace zonetool
 	struct FxElemVisualState
 	{
 		float color[4];
-		float unlitHDRScale;
+		float pad1[3];
 		float rotationDelta;
 		float rotationTotal;
 		float size[2];
 		float scale;
-		char __pad0[16];
+		float pad2[2];
 	};
+
+	static_assert(sizeof(FxElemVisualState) == 56);
 
 	struct FxElemVisStateSample
 	{
@@ -4431,15 +4445,16 @@ namespace zonetool
 		unsigned char needsDynamicShadows; // 2
 		unsigned char exponent; // 3
 		unsigned char isVolumetric; // 4
-		char __pad0[15];
+		char __pad0[3];
 		float color[3]; // 8 12 16
+		float color2[3]; // 8 12 16
 		float dir[3]; // 20 24 28
 		float up[3]; // 32 36 40
 		float origin[3]; // 44 48 52
-		float fadeOffsetRt[2];
-		float radius;
+		float fadeOffset[2];
 		float bulbRadius;
 		float bulbLength[3];
+		float radius; // 80
 		float cosHalfFovOuter; // 84
 		float cosHalfFovInner; // 88
 		float cosHalfFovExpanded; // 92
@@ -5664,6 +5679,7 @@ namespace zonetool
 		DopplerPreset* doppler;
 		FxParticleSimAnimation* particleSimAnimation;
 		SkeletonScript* skeletonScript;
+		Clut* clut;
 		TTFDef* ttfDef;
 	};
 

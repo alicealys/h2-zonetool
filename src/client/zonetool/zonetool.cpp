@@ -197,6 +197,7 @@ namespace zonetool
 				DUMP_ASSET(ASSET_TYPE_FX_MAP, IFxWorld, FxWorld);
 				DUMP_ASSET(ASSET_TYPE_GFX_MAP, IGfxWorld, GfxWorld);
 				DUMP_ASSET(ASSET_TYPE_GLASS_MAP, IGlassWorld, GlassWorld);
+				DUMP_ASSET(ASSET_TYPE_CLUT, IClut, Clut);
 			}
 			catch (const std::exception& e)
 			{
@@ -466,7 +467,7 @@ namespace zonetool
 		}
 	}
 
-	void parse_csv_file(IZone* zone, const std::string& fastfile, const std::string& csv)
+	void try_parse_csv_file(IZone* zone, const std::string& fastfile, const std::string& csv)
 	{
 		auto path = "zone_source\\" + csv + ".csv";
 		auto parser = csv::parser(path.data(), ',');
@@ -479,105 +480,133 @@ namespace zonetool
 
 		auto is_referencing = false;
 		auto rows = parser.get_rows();
-		if (rows != nullptr)
+		if (rows == nullptr)
 		{
-			for (int row_index = 0; row_index < parser.get_num_rows(); row_index++)
+			return;
+		}
+
+		for (auto row_index = 0; row_index < parser.get_num_rows(); row_index++)
+		{
+			auto* row = rows[row_index];
+			if (row == nullptr || row->fields == nullptr)
 			{
-				auto* row = rows[row_index];
-				if (row != nullptr)
+				continue;
+			}
+
+			// parse options
+			if ((strlen(row->fields[0]) >= 1 && row->fields[0][0] == '#') || (strlen(row->fields[0]) >= 2 && row->
+				fields[0][0] == '/' && row->fields[0][1] == '/'))
+			{
+				// comment line, go to next line.
+				continue;
+			}
+			if (!strlen(row->fields[0]))
+			{
+				// empty line, go to next line.
+				continue;
+			}
+			if (row->fields[0] == "require"s)
+			{
+				load_zone(row->fields[1], DB_LOAD_SYNC);
+			}
+			else if (row->fields[0] == "include"s)
+			{
+				try_parse_csv_file(zone, fastfile, row->fields[1]);
+			}
+			// this allows us to reference assets instead of rewriting them
+			else if (row->fields[0] == "reference"s)
+			{
+				if (row->num_fields >= 2)
 				{
-					if (row->fields)
+					is_referencing = row->fields[1] == "true"s;
+				}
+			}
+			// this will use a directory iterator to automatically add assets
+			else if (row->fields[0] == "iterate"s && row->num_fields >= 2)
+			{
+				const auto type = row->fields[1];
+				const auto iterate_all = row->fields[1] == "true"s;
+
+				try
+				{
+					if (type == "fx"s || iterate_all)
 					{
-						// parse options
-						if ((strlen(row->fields[0]) >= 1 && row->fields[0][0] == '#') || (strlen(row->fields[0]) >= 2 && row->
-							fields[0][0] == '/' && row->fields[0][1] == '/'))
+						add_assets_using_iterator(fastfile, type, "effects", ".fxe", true, zone);
+					}
+					if (type == "material"s || iterate_all)
+					{
+						add_assets_using_iterator(fastfile, type, "materials", "", true, zone);
+					}
+					if (type == "xmodel"s || iterate_all)
+					{
+						add_assets_using_iterator(fastfile, type, "xmodel", ".xmodel_export", true, zone);
+					}
+					if (type == "xanim"s || iterate_all)
+					{
+						add_assets_using_iterator(fastfile, type, "xanim", ".xanim_export", true, zone);
+					}
+				}
+				catch (std::exception& ex)
+				{
+					ZONETOOL_FATAL("A fatal exception occured while building zone \"%s\", exception was: \n%s", fastfile.data(), ex.what());
+				}
+			}
+			// if entry is not an option, it should be an asset.
+			else
+			{
+				if (row->fields[0] == "localize"s && row->num_fields >= 2 &&
+					filesystem::file("localizedstrings/"s + row->fields[1] + ".str").exists())
+				{
+					ILocalize::parse_localizedstrings_file(zone, row->fields[1]);
+				}
+				else if (row->fields[0] == "localize"s && row->num_fields >= 2 &&
+					filesystem::file("localizedstrings/"s + row->fields[1] + ".json").exists())
+				{
+					ILocalize::parse_localizedstrings_json(zone, row->fields[1]);
+				}
+				else
+				{
+					if (row->num_fields >= 2)
+					{
+						if (is_valid_asset_type(row->fields[0]))
 						{
-							// comment line, go to next line.
-							continue;
-						}
-						if (!strlen(row->fields[0]))
-						{
-							// empty line, go to next line.
-							continue;
-						}
-						if (row->fields[0] == "require"s)
-						{
-							load_zone(row->fields[1], DB_LOAD_SYNC);
-						}
-						else if (row->fields[0] == "include"s)
-						{
-							parse_csv_file(zone, fastfile, row->fields[1]);
-						}
-						// this allows us to reference assets instead of rewriting them
-						else if (row->fields[0] == "reference"s)
-						{
-							if (row->num_fields >= 2)
+							std::string name;
+							if ((!row->fields[1] || !strlen(row->fields[1]) && row->fields[2] && strlen(row->fields[2])))
 							{
-								is_referencing = row->fields[1] == "true"s;
+								name = ","s + row->fields[2];
 							}
-						}
-						// this will use a directory iterator to automatically add assets
-						else if (row->fields[0] == "iterate"s)
-						{
+							else
+							{
+								name = ((is_referencing) ? ","s : ""s) + row->fields[1];
+							}
+
 							try
 							{
-								add_assets_using_iterator(fastfile, "fx", "fx", ".fxe", true, zone);
-								add_assets_using_iterator(fastfile, "xanimparts", "XAnim", ".xae2", true, zone);
-								add_assets_using_iterator(fastfile, "xmodel", "XModel", ".xme6", true, zone);
-								add_assets_using_iterator(fastfile, "material", "materials", "", true, zone);
+								zone->add_asset_of_type(
+									row->fields[0],
+									name
+								);
 							}
 							catch (std::exception& ex)
 							{
 								ZONETOOL_FATAL("A fatal exception occured while building zone \"%s\", exception was: \n%s", fastfile.data(), ex.what());
 							}
 						}
-						// if entry is not an option, it should be an asset.
-						else
-						{
-							if (row->fields[0] == "localize"s && row->num_fields >= 2 &&
-								filesystem::file("localizedstrings/"s + row->fields[1] + ".str").exists())
-							{
-								ILocalize::parse_localizedstrings_file(zone, row->fields[1]);
-							}
-							else if (row->fields[0] == "localize"s && row->num_fields >= 2 &&
-								filesystem::file("localizedstrings/"s + row->fields[1] + ".json").exists())
-							{
-								ILocalize::parse_localizedstrings_json(zone, row->fields[1]);
-							}
-							else
-							{
-								if (row->num_fields >= 2)
-								{
-									if (is_valid_asset_type(row->fields[0]))
-									{
-										std::string name;
-										if ((!row->fields[1] || !strlen(row->fields[1]) && row->fields[2] && strlen(row->fields[2])))
-										{
-											name = ","s + row->fields[2];
-										}
-										else
-										{
-											name = ((is_referencing) ? ","s : ""s) + row->fields[1];
-										}
-
-										try
-										{
-											zone->add_asset_of_type(
-												row->fields[0],
-												name
-											);
-										}
-										catch (std::exception& ex)
-										{
-											ZONETOOL_FATAL("A fatal exception occured while building zone \"%s\", exception was: \n%s", fastfile.data(), ex.what());
-										}
-									}
-								}
-							}
-						}
 					}
 				}
 			}
+		}
+	}
+
+	void parse_csv_file(IZone* zone, const std::string& fastfile, const std::string& csv)
+	{
+		try
+		{
+			try_parse_csv_file(zone, fastfile, csv);
+		}
+		catch (const std::exception& e)
+		{
+			ZONETOOL_WARNING("%s", e.what());
 		}
 	}
 

@@ -50,6 +50,7 @@
 #include "assets/xanim.hpp"
 #include "assets/xmodel.hpp"
 #include "assets/xsurface.hpp"
+#include "assets/clut.hpp"
 
 #include "assets/computeshader.hpp"
 #include "assets/domainshader.hpp"
