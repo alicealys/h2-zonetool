@@ -64,7 +64,7 @@ namespace zonetool
 		{
 			this->asset_ = mem->Alloc<RawFile>();
 			this->asset_->name = mem->StrDup(name);
-			his->asset_->buffer = mem->StrDup(ZONETOOL_BRANDING);
+			this->asset_->buffer = mem->StrDup(ZONETOOL_BRANDING);
 			this->asset_->len = static_cast<int>(std::strlen(this->asset_->buffer));
 			this->asset_->compressedLen = 0;
 
