@@ -53,6 +53,11 @@ namespace zonetool
 			{
 				for (auto i = 0; i < 4; i++)
 				{
+					if (image->image_stream_files[i])
+					{
+						continue;
+					}
+
 					image->image_stream_files[i] = mem->Alloc<XStreamFile>();
 
 					if (!image->image_stream_blocks[i].has_value())
@@ -64,6 +69,7 @@ namespace zonetool
 					const auto offset = image_file_buffer.size();
 					image_file_buffer.append(reinterpret_cast<const char*>(data.data()), data.size());
 					const auto offset_end = image_file_buffer.size();
+					image->image_stream_blocks[i].reset();
 
 					image->image_stream_files[i]->fileIndex = current_index;
 					image->image_stream_files[i]->offset = offset;
