@@ -21,24 +21,17 @@ namespace zonetool
 
 			auto* rawfile = mem->Alloc<RawFile>();
 			rawfile->name = mem->StrDup(name);
-			rawfile->len = static_cast<int>(size);
 
 			ZoneBuffer buf(data);
-			auto compressed_data = buf.compress_zlib();
+			auto compressed = buf.compress_zlib();
 
-			// Only save the compressed buffer if we gained space
-			if (compressed_data.size() < size)
-			{
-				rawfile->compressedLen = static_cast<int>(compressed_data.size());
-				rawfile->buffer = mem->Alloc<char>(compressed_data.size());
-				std::memcpy(const_cast<char*>(rawfile->buffer), compressed_data.data(), compressed_data.size());
-			}
-			else
-			{
-				rawfile->compressedLen = 0;	
-				rawfile->buffer = mem->Alloc<char>(size + 1);
-				std::memcpy(const_cast<char*>(rawfile->buffer), data.data(), size);
-			}
+			rawfile->len = static_cast<int>(size);
+			rawfile->compressedLen = static_cast<int>(compressed.size());
+			rawfile->buffer = mem->Alloc<char>(compressed.size());
+			memcpy(
+				const_cast<char*>(rawfile->buffer),
+				compressed.data(),
+				compressed.size());
 
 			file.close();
 
@@ -62,12 +55,16 @@ namespace zonetool
 		this->asset_ = parse(name, mem);
 		if (name == filesystem::get_fastfile())
 		{
+			std::string str = ZONETOOL_BRANDING;
+			ZoneBuffer buf(std::vector<uint8_t>(str.begin(), str.end()));
+			auto compressed = buf.compress_zlib();
+			std::string buffer(compressed.begin(), compressed.end());
+
 			this->asset_ = mem->Alloc<RawFile>();
 			this->asset_->name = mem->StrDup(name);
-			this->asset_->buffer = mem->StrDup(ZONETOOL_BRANDING);
-			this->asset_->len = static_cast<int>(std::strlen(this->asset_->buffer));
-			this->asset_->compressedLen = 0;
-
+			this->asset_->buffer = mem->StrDup(buffer.data());
+			this->asset_->len = static_cast<int>(str.size());
+			this->asset_->compressedLen = static_cast<int>(buffer.size());
 		}
 		else if (!this->asset_)
 		{
