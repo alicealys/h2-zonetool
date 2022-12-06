@@ -64,6 +64,7 @@
 #include "assets/fxworld.hpp"
 #include "assets/gfxworld.hpp"
 #include "assets/glassworld.hpp"
+#include "assets/aipaths.hpp"
 
 #include "zone.hpp"
 

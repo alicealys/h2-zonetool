@@ -1240,6 +1240,9 @@ namespace zonetool
 		char __pad1[4];
 	};
 
+	assert_sizeof(pathnode_constant_t, 0x60);
+	assert_offsetof(pathnode_constant_t, parent.index, 56);
+
 	struct SentientHandle
 	{
 		unsigned short number;
@@ -1336,6 +1339,8 @@ namespace zonetool
 		int dynStatesBytes;
 		unsigned char* pathDynStates;
 	}; assert_sizeof(PathData, 0x88);
+
+	assert_offsetof(PathData, parentIndexResolved, 24);
 
 	struct RawFile
 	{
@@ -5681,6 +5686,7 @@ namespace zonetool
 		SkeletonScript* skeletonScript;
 		Clut* clut;
 		TTFDef* ttfDef;
+		PathData* aipaths;
 	};
 
 	struct XAsset

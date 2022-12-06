@@ -197,6 +197,8 @@ namespace zonetool
 				DUMP_ASSET(ASSET_TYPE_FX_MAP, IFxWorld, FxWorld);
 				DUMP_ASSET(ASSET_TYPE_GFX_MAP, IGfxWorld, GfxWorld);
 				DUMP_ASSET(ASSET_TYPE_GLASS_MAP, IGlassWorld, GlassWorld);
+				DUMP_ASSET(ASSET_TYPE_AIPATHS, IAIPaths, PathData);
+
 				DUMP_ASSET(ASSET_TYPE_CLUT, IClut, Clut);
 			}
 			catch (const std::exception& e)
@@ -717,6 +719,27 @@ namespace zonetool
 		{
 			dump_to_zonetool = !dump_to_zonetool;
 			printf("dump_to_zonetool: %i\n", dump_to_zonetool);
+		});
+
+		command::add("dumpasset", [](const command::params& params)
+		{
+			const auto type = XAssetType(type_to_int(params.get(1)));
+			const auto name = params.get(2);
+			XAsset asset{};
+			asset.type = type;
+			const auto header = DB_FindXAssetHeader(type, name, false);
+			if (!header.data)
+			{
+				printf("Asset not found\n");
+				return;
+			}
+
+			dump = true;
+			filesystem::set_fastfile("assets");
+			asset.header = header;
+			dump_asset(&asset);
+			dump = false;
+			printf("Dumped to dump/assets\n");
 		});
 	}
 

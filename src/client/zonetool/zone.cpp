@@ -11,7 +11,7 @@
 #define COMPRESS_TYPE_LZ4 4
 #define COMPRESS_TYPE_ZLIB 1
 
-#define COMPRESS_TYPE COMPRESS_TYPE_ZLIB
+#define COMPRESS_TYPE COMPRESS_TYPE_LZ4
 static_assert(COMPRESS_TYPE == COMPRESS_TYPE_LZ4 || COMPRESS_TYPE == COMPRESS_TYPE_ZLIB);
 
 namespace zonetool
@@ -240,6 +240,7 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_FX_MAP, IFxWorld);
 			ADD_ASSET(ASSET_TYPE_GFX_MAP, IGfxWorld);
 			ADD_ASSET(ASSET_TYPE_GLASS_MAP, IGlassWorld);
+			ADD_ASSET(ASSET_TYPE_AIPATHS, IAIPaths);
 		}
 		catch (std::exception& ex)
 		{
