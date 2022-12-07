@@ -115,13 +115,8 @@ namespace zonetool
 
 #define WRITE_SCRIPT_STRING(__field__) \
 	{ \
-		const auto val = data->nodes[i].constant.__field__; \
 		data->nodes[i].constant.__field__ = static_cast<scr_string_t>( \
 			buf->write_scriptstring(this->get_script_string(&data->nodes[i].constant.__field__))); \
-		if (val == scr_string_t(0)) \
-		{ \
-			data->nodes[i].constant.__field__ = scr_string_t(0); \
-		} \
 	} \
 
 	PathData* IAIPaths::parse(const std::string& name, ZoneMemory* mem)

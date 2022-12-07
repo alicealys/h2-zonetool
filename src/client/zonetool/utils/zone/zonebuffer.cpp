@@ -28,7 +28,7 @@ namespace zonetool
 		this->m_len = MAX_ZONE_SIZE;
 
 		this->m_zonepointers.clear();
-		this->m_scriptstrings.clear();
+		this->init_script_strings();
 		this->m_depthstencilstatebits.clear();
 		this->m_blendstatebits.clear();
 		this->m_ppas.clear();
@@ -46,7 +46,7 @@ namespace zonetool
 		this->m_zonepointers.clear();
 
 		// clear scriptstrings
-		this->m_scriptstrings.clear();
+		this->init_script_strings();
 
 		// clear depth stencil state bits
 		this->m_depthstencilstatebits.clear();
@@ -81,7 +81,7 @@ namespace zonetool
 		this->m_len = data.size();
 
 		this->m_zonepointers.clear();
-		this->m_scriptstrings.clear();
+		this->init_script_strings();
 		this->m_depthstencilstatebits.clear();
 		this->m_blendstatebits.clear();
 		this->m_ppas.clear();
@@ -101,7 +101,7 @@ namespace zonetool
 		this->m_buf.resize(this->m_len);
 
 		this->m_zonepointers.clear();
-		this->m_scriptstrings.clear();
+		this->init_script_strings();
 		this->m_depthstencilstatebits.clear();
 		this->m_blendstatebits.clear();
 		this->m_ppas.clear();
@@ -518,5 +518,13 @@ namespace zonetool
 	std::vector<std::uint8_t> ZoneBuffer::compress_lz4()
 	{
 		return compression::compress_lz4_block(this->m_buf, this->m_pos);
+	}
+
+	void ZoneBuffer::init_script_strings()
+	{
+		this->m_scriptstrings =
+		{
+			{""}, // null scriptstring
+		};
 	}
 }

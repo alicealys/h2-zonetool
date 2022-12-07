@@ -38,6 +38,8 @@ namespace zonetool
 		void write_data(const void* _data, std::size_t size, std::size_t count);
 		void write_data(const void* _data, std::size_t size);
 
+		void init_script_strings();
+
 		std::unordered_map<std::uintptr_t, std::uintptr_t> m_zonepointers;
 		
 	public:
