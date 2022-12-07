@@ -123,7 +123,7 @@ namespace zonetool
 	{
 		assetmanager::reader read(mem);
 
-		const auto path = name + ".paths"s;
+		const auto path = name + ".aipaths"s;
 		if (!read.open(path))
 		{
 			return nullptr;
@@ -364,7 +364,7 @@ namespace zonetool
 	}
 	void IAIPaths::dump(PathData* asset)
 	{
-		const auto path = asset->name + ".paths"s;
+		const auto path = asset->name + ".aipaths"s;
 
 		assetmanager::dumper dumper;
 		if (!dumper.open(path))

@@ -146,6 +146,7 @@ namespace zonetool
 
 			try
 			{
+				DUMP_ASSET(ASSET_TYPE_CLUT, IClut, Clut);
 				DUMP_ASSET(ASSET_TYPE_DOPPLER_PRESET, IDopplerPreset, DopplerPreset);
 				DUMP_ASSET(ASSET_TYPE_FX, IFxEffectDef, FxEffectDef);
 				DUMP_ASSET(ASSET_TYPE_PARTICLE_SIM_ANIMATION, IFxParticleSimAnimation, FxParticleSimAnimation);
@@ -192,14 +193,12 @@ namespace zonetool
 				DUMP_ASSET(ASSET_TYPE_VERTEXDECL, IVertexDecl, MaterialVertexDeclaration);
 				DUMP_ASSET(ASSET_TYPE_VERTEXSHADER, IVertexShader, MaterialVertexShader);
 
+				DUMP_ASSET(ASSET_TYPE_AIPATHS, IAIPaths, PathData);
 				DUMP_ASSET(ASSET_TYPE_COL_MAP_SP, IClipMap, clipMap_t);
 				DUMP_ASSET(ASSET_TYPE_COM_MAP, IComWorld, ComWorld);
 				DUMP_ASSET(ASSET_TYPE_FX_MAP, IFxWorld, FxWorld);
 				DUMP_ASSET(ASSET_TYPE_GFX_MAP, IGfxWorld, GfxWorld);
 				DUMP_ASSET(ASSET_TYPE_GLASS_MAP, IGlassWorld, GlassWorld);
-				DUMP_ASSET(ASSET_TYPE_AIPATHS, IAIPaths, PathData);
-
-				DUMP_ASSET(ASSET_TYPE_CLUT, IClut, Clut);
 			}
 			catch (const std::exception& e)
 			{

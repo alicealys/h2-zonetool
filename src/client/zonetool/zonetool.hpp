@@ -12,6 +12,7 @@
 
 #include "utils/utils.hpp"
 
+#include "assets/clut.hpp"
 #include "assets/addonmapents.hpp"
 #include "assets/dopplerpreset.hpp"
 #include "assets/fxeffectdef.hpp"
@@ -50,7 +51,6 @@
 #include "assets/xanim.hpp"
 #include "assets/xmodel.hpp"
 #include "assets/xsurface.hpp"
-#include "assets/clut.hpp"
 
 #include "assets/computeshader.hpp"
 #include "assets/domainshader.hpp"
@@ -59,12 +59,12 @@
 #include "assets/vertexdecl.hpp"
 #include "assets/vertexshader.hpp"
 
+#include "assets/aipaths.hpp"
 #include "assets/clipmap.hpp"
 #include "assets/comworld.hpp"
 #include "assets/fxworld.hpp"
 #include "assets/gfxworld.hpp"
 #include "assets/glassworld.hpp"
-#include "assets/aipaths.hpp"
 
 #include "zone.hpp"
 

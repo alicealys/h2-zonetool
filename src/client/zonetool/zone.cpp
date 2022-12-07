@@ -189,6 +189,7 @@ namespace zonetool
 		try
 		{
 			// declare asset interfaces
+			ADD_ASSET(ASSET_TYPE_CLUT, IClut);
 			ADD_ASSET(ASSET_TYPE_DOPPLER_PRESET, IDopplerPreset);
 			ADD_ASSET(ASSET_TYPE_FX, IFxEffectDef);
 			ADD_ASSET(ASSET_TYPE_PARTICLE_SIM_ANIMATION, IFxParticleSimAnimation);
@@ -220,7 +221,6 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_XANIM, IXAnimParts);
 			ADD_ASSET(ASSET_TYPE_XMODEL, IXModel);
 			ADD_ASSET(ASSET_TYPE_XMODEL_SURFS, IXSurface);
-			ADD_ASSET(ASSET_TYPE_CLUT, IClut);
 
 			ADD_ASSET(ASSET_TYPE_PHYSCOLLMAP, IPhysCollmap);
 			ADD_ASSET(ASSET_TYPE_PHYSCONSTRAINT, IPhysConstraint);
@@ -235,12 +235,12 @@ namespace zonetool
 			ADD_ASSET(ASSET_TYPE_VERTEXDECL, IVertexDecl);
 			ADD_ASSET(ASSET_TYPE_VERTEXSHADER, IVertexShader);
 
+			ADD_ASSET(ASSET_TYPE_AIPATHS, IAIPaths);
 			ADD_ASSET(ASSET_TYPE_COL_MAP_SP, IClipMap);
 			ADD_ASSET(ASSET_TYPE_COM_MAP, IComWorld);
 			ADD_ASSET(ASSET_TYPE_FX_MAP, IFxWorld);
 			ADD_ASSET(ASSET_TYPE_GFX_MAP, IGfxWorld);
 			ADD_ASSET(ASSET_TYPE_GLASS_MAP, IGlassWorld);
-			ADD_ASSET(ASSET_TYPE_AIPATHS, IAIPaths);
 		}
 		catch (std::exception& ex)
 		{
