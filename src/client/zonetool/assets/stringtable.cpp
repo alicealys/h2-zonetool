@@ -14,6 +14,13 @@ namespace zonetool
 			for (auto i = 0; i < src.size(); i++)
 			{
 				const auto c = src[i];
+				if (c == '\\' && (i < src.size() - 1 && src[i + 1] == '\"'))
+				{
+					buffer.append("\"");
+					++i;
+					continue;
+				}
+
 				if (c == '"')
 				{
 					in_quote = !in_quote;
@@ -265,8 +272,18 @@ namespace zonetool
 				else
 				{
 					std::string str = string_value;
+					auto added_quotes = false;
 					if (str.contains(','))
 					{
+						added_quotes = true;
+						str.insert(str.begin(), '"');
+						str.insert(str.end(), '"');
+					}
+
+					if (str.contains('\"') && !added_quotes)
+					{
+						str = std::regex_replace(str, std::regex("\""), "\\\"");
+
 						str.insert(str.begin(), '"');
 						str.insert(str.end(), '"');
 					}
