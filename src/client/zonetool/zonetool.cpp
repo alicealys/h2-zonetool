@@ -740,6 +740,61 @@ namespace zonetool
 			dump = false;
 			printf("Dumped to dump/assets\n");
 		});
+
+		command::add("buildxmodel", [](const command::params& params)
+		{
+			if (params.size() < 2)
+			{
+				return;
+			}
+
+			std::string name = params.get(1);
+			auto path = "zone_source\\" + name + ".csv";
+			auto parser = csv::parser(path.data(), ',');
+
+			if (!parser.valid())
+			{
+				ZONETOOL_ERROR("Could not find csv file \"%s\" to build xmodel!", name.data());
+				return;
+			}
+
+			auto rows = parser.get_rows();
+			if (rows == nullptr)
+			{
+				return;
+			}
+
+			std::vector<std::string> attachments;
+
+			for (auto row_index = 0; row_index < parser.get_num_rows(); row_index++)
+			{
+				auto* row = rows[row_index];
+				if (row == nullptr || row->fields == nullptr || row->num_fields < 2)
+				{
+					continue;
+				}
+
+				if (row->fields[0] == "name"s)
+				{
+					name = row->fields[1];
+				}
+
+				if (row->fields[0] == "base"s)
+				{
+					attachments.insert(attachments.begin(), row->fields[1]);
+				}
+
+				if (row->fields[0] == "attachment"s)
+				{
+					attachments.push_back(row->fields[1]);
+				}
+			}
+
+			filesystem::set_fastfile("custom_xmodels");
+			IXModel::build_composite_model(name, attachments);
+
+			ZONETOOL_INFO("Saved to \"dump/custom_xmodels/xmodel/%s.xmodel_export\"\n", name.data());
+		});
 	}
 
 	std::vector<std::string> get_command_line_arguments()

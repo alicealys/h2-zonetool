@@ -137,6 +137,11 @@ namespace zonetool
 		{
 			this->asset_ = DB_FindXAssetHeader_Copy<XModel>(XAssetType(this->type()), this->name_.data(), mem).model;
 
+			if (DB_IsXAssetDefault(ASSET_TYPE_XMODEL, this->name_.data()))
+			{
+				ZONETOOL_WARNING("Missing xmodel \"%s\", using default", this->name_.data());
+			}
+
 			auto* asset = this->asset_;
 
 			auto* original_scriptstrings = asset->boneNames;
@@ -483,6 +488,27 @@ namespace zonetool
 		//dest->numBonePhysics = 0;
 
 		buf->pop_stream();
+	}
+	
+	void IXModel::build_composite_model(const std::string& name, std::vector<std::string> attachments)
+	{
+		utils::memory::allocator allocator;
+		const auto asset = allocator.allocate<XModel>();
+
+		asset->name = allocator.duplicate_string(name);
+		asset->unk_float = -1.f;
+		asset->numCompositeModels = static_cast<unsigned char>(attachments.size());
+		asset->compositeModels = allocator.allocate_array<XModel*>(asset->numCompositeModels);
+		asset->memUsage = sizeof(XModel) + asset->numCompositeModels * 8;
+		asset->flags = 1024;
+
+		for (auto i = 0; i < asset->numCompositeModels; i++)
+		{
+			asset->compositeModels[i] = allocator.allocate<XModel>();
+			asset->compositeModels[i]->name = allocator.duplicate_string(attachments[i]);
+		}
+
+		IXModel::dump(asset);
 	}
 
 	void IXModel::dump(XModel* asset)

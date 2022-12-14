@@ -14,6 +14,7 @@ namespace zonetool
 		std::string get_script_string(scr_string_t* ptr);
 
 	public:
+		static void build_composite_model(const std::string& name, std::vector<std::string> attachments);
 		XModel* parse(std::string name, ZoneMemory* mem);
 
 		void init(const std::string& name, ZoneMemory* mem) override;
