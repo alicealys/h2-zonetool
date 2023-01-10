@@ -4,6 +4,136 @@
 namespace snd
 {
 #define SND_MAX_VOLUME_GROUPS 126
+	std::unordered_map<std::string, const char*> mapped_volume_mod_groups =
+	{
+		{"default", "default"},
+		{"hud", "hud"},
+		{"frontend_sfx", "frontend_sfx"},
+		{"frontend_music", "frontend_music"},
+		{"sp_hit_alert_npc", "sp_hit_alert_npc"},
+		{"music", "music"},
+		{"music2", "music2"},
+		{"music_big", "music_big"},
+		{"music_so", "music"},
+		{"amb_quad", "amb_quad"},
+		{"amb_dist", "amb_dist"},
+		{"amb_damb", "amb_damb"},
+		{"amb_emitter", "amb_emitter"},
+		{"amb_emitter_int", "amb_emitter_int"},
+		{"amb_emitter_ext", "amb_emitter_ext"},
+		{"physics", "physics"},
+		{"bodyfall", "bodyfall"},
+		{"deaths_door", "deaths_door"},
+		{"foley_plr", "foley_plr"},
+		{"foley_npc", "foley_npc"},
+		{"footstep_plr", "footstep_plr"},
+		{"footstep_plr_special", "footstep_plr_special"},
+		{"footstep_water_plr", "footstep_water_plr"},
+		{"footstep_npc", "footstep_npc"},
+		{"melee_npc", "melee_npc"},
+		{"melee_hit", "melee_hit"},
+		{"mp_foley_npc", "mw3_mp_foley_npc"},
+		{"mp_foley_plr", "mp_foley_plr"},
+		{"mp_footstep_plr", "mp_footstep_plr"},
+		{"mp_footstep_npc", "mp_footstep_npc"},
+		{"plr_internal", "plr_internal"},
+		{"wpn_foley_plr", "wpn_foley_plr"},
+		{"wpn_foley_plr_beltfed", "wpn_foley_plr"},
+		{"wpn_plr_foley_h2", "wpn_foley_plr"},
+		{"wpn_foley_npc", "wpn_foley_npc"},
+		{"melee_plr", "melee_plr"},
+		{"voices_ally", "vox_friendly"},
+		{"voices_enemy", "vox_enemy"},
+		{"voices_enemy_death_kbp", "vox_enemy"},
+		{"voices_dialog", "dialog"},
+		{"voices_dialog_radio", "dialog_radio"},
+		{"voices_dialog_critical", "dialog_critical"},
+		{"voices_pa", "dialog_amb"},
+		{"destruct", "destruct"},
+		{"explosion", "explosion"},
+		{"explosion_grenade", "explosion_grenade"},
+		{"explosion_flashbang", "explosion_flashbang"},
+		{"explosion_rocket", "explosion_rocket"},
+		{"explosion_car", "explosion_car"},
+		{"explosion_critical", "explosion_critical"},
+		{"explosion_debris", "explosion_debris"},
+		{"bullet_impact_geo", "bullet_impact_geo"},
+		{"bullet_impact_geo_metal", "bullet_impact_geo"},
+		{"bullet_impact_plr", "bullet_impact_plr"},
+		{"bullet_impact_npc", "bullet_impact_npc"},
+		{"mp_bullet_impact_geo", "mp_bullet_impact_geo"},
+		{"mp_bullet_impact_plr", "mp_bullet_impact_plr"},
+		{"mp_bullet_impact_npc", "mp_bullet_impact_npc"},
+		{"bullet_whizby", "bullet_whizby"},
+		{"mp_bullet_whizby", "mp_bullet_whizby"},
+		{"vehicle_plr", "vehicle_plr"},
+		{"vehicle_plr_special", "vehicle_plr_special"},
+		{"vehicle_npc", "vehicle_npc"},
+		{"vehicle_avm_plr", "vehicle_avm_plr"},
+		{"vehicle_avm_npc", "vehicle_avm_npc"},
+		{"wpn_vehicle_plr", "wpn_vehicle_plr"},
+		{"wpn_vehicle_npc", "wpn_vehicle_npc"},
+		{"wpn_vehicle_npc_h2", "wpn_vehicle_npc"},
+		{"vehicle_aircraft", "vehicle_aircraft"},
+		{"grenadebounce", "grenadebounce"},
+		{"mp_grenadebounce", "mp_grenadebounce"},
+		{"shellcasings", "shellcasings"},
+		{"wpn_plr", "wpn_plr"},
+		{"wpn_plr_special", "wpn_plr_special"},
+		{"wpn_npc_special", "wpn_npc_special"},
+		{"wpn_npc", "wpn_npc"},
+		{"mp_wpn_npc", "mp_wpn_npc"},
+		{"wpn_projectile", "wpn_projectile"},
+		{"iw4_wpn_plr_shot", "wpn_plr_shot"},
+		{"wpn_plr_shot_first", "wpn_plr_shot"},
+		{"wpn_plr_shot_special", "wpn_plr_shot_special"},
+		{"wpn_plr_shot", "wpn_plr_shot"},
+		{"wpn_plr_punch", "wpn_plr_shot"},
+		{"wpn_plr_mech", "wpn_plr_mech"},
+		{"wpn_plr_sub", "wpn_plr_sub"},
+		{"wpn_plr_lfe", "wpn_plr_shot"},
+		{"wpn_plr_tail", "wpn_plr_tail"},
+		{"wpn_plr_tail_int_med", "wpn_plr_tail"},
+		{"wpn_plr_tail_int_sml", "wpn_plr_tail"},
+		{"wpn_plr_tail_semi", "wpn_plr_tail"},
+		{"iw4_wpn_npc_shot", "wpn_npc_shot"},
+		{"wpn_npc_shot", "wpn_npc_shot"},
+		{"wpn_npc_mech", "wpn_npc_mech"},
+		{"wpn_npc_sub", "wpn_npc_sub"},
+		{"wpn_npc_tail", "wpn_npc_tail"},
+		{"wpn_npc_dist", "wpn_npc_dist"},
+		{"h2_wpn_npc_shot_close", "wpn_npc_shot"},
+		{"h2_wpn_npc_shot_mid", "wpn_npc_shot"},
+		{"h2_wpn_npc_shot_far", "wpn_npc_shot"},
+		{"h2_wpn_npc_shot_tail", "wpn_npc_shot"},
+		{"h2_wpn_npc_shot_first", "wpn_npc_shot"},
+		{"tactical_plr", "tactical_plr"},
+		{"tactical_npc", "tactical_npc"},
+		{"tactical_plr_special", "tactical_plr_special"},
+		{"tactical_npc_special", "tactical_npc_special"},
+		{"attack_dog", "attack_dog"},
+		{"fullvolume", "fullvolume"},
+		{"big_moment", "big_moment"},
+		{"scripted1", "scripted1"},
+		{"scripted2", "scripted2"},
+		{"scripted3", "scripted3"},
+		{"scripted4", "scripted4"},
+		{"scripted5", "scripted5"},
+		{"scripted6", "scripted6"},
+		{"scripted7", "scripted7"},
+		{"scripted8", "scripted8"},
+		{"scripted9", "scripted9"},
+		{"scripted10", "scripted10"},
+		{"scripted11", "scripted10"},
+		{"scripted12", "scripted10"},
+		{"scripted13", "scripted10"},
+		{"scripted14", "scripted10"},
+		{"scripted15", "scripted10"},
+		{"mp_pre_event", "mp_pre_event"},
+		{"mp_splash_notify", "mp_splash_notify"},
+		{"mp_hit_marker", "mp_hit_marker"},
+	};
+
 	std::array<const char*, SND_MAX_VOLUME_GROUPS> volume_mod_groups =
 	{
 		"default",
@@ -151,6 +281,42 @@ namespace snd
 	};
 
 #define SND_MAX_DSP_BUSES 32
+	std::unordered_map<std::string, const char*> mapped_dsp_buses =
+	{
+		{"default", "default"},
+		{"ambiance_quad", "ambience"}, // not found
+		{"animals", "animals"},
+		{"emitters", "emitters"},
+		{"emitters_ext", "emitters"}, // not found
+		{"emitters_int", "emitters"}, // ^
+		{"emitters_unoccluded", "emitters"}, // ^
+		{"explosions", "explosions"},
+		{"explosions_critical", "explosions_critical"},
+		{"foley", "foley"},
+		{"interface", "interface"},
+		{"music", "music"},
+		{"notimescale", "notimescale"},
+		{"physics", "physics"},
+		{"scripted1", "scripted1"},
+		{"scripted2", "scripted2"},
+		{"scripted3", "scripted3"},
+		{"scripted4", "scripted4"},
+		{"tactical", "tactical"},
+		{"unoccluded", "unoccluded"},
+		{"vehicles_air", "air_vehicles"},
+		{"vehicles_land", "vehicles"}, // not found
+		{"voices", "voices"},
+		{"voices_env", "voices"}, // not found
+		{"voices_critical", "voices_critical"},
+		{"voices_unfiltered", "voices_unfiltered"},
+		{"weapons_npc", "weapons"}, // not found
+		{"weapons_npc_dist", "weapons_dist"}, // not found
+		{"weapons_npc_mid", "weapons"}, // not found
+		{"weapons_npc_tail", "weapons"}, // not found
+		{"weapons_plr", "weapons"}, // not found
+		{"whizbys", "whizbys"},
+	};
+
 	std::array<const char*, SND_MAX_DSP_BUSES> dsp_buses =
 	{
 		"default",
@@ -189,12 +355,12 @@ namespace snd
 
 	const char* get_vol_nod_name(short index)
 	{
-		return volume_mod_groups[index];
+		return mapped_volume_mod_groups[volume_mod_groups[index]];
 	}
 
 	const char* get_dsp_bus_name(char index)
 	{
-		return dsp_buses[index];
+		return mapped_dsp_buses[dsp_buses[index]];
 	}
 
 	short get_vol_mod_index_from_name(const char* name)

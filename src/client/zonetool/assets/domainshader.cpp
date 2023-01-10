@@ -82,8 +82,12 @@ namespace zonetool
 		buf->pop_stream();
 	}
 
-	void IDomainShader::dump(MaterialDomainShader* asset)
+	void IDomainShader::dump(MaterialDomainShader* h2_asset)
 	{
+		utils::memory::allocator allocator;
+		const auto asset = allocator.allocate<MaterialDomainShader>();
+		std::memcpy(asset, h2_asset, sizeof(MaterialDomainShader));
+		asset->name = allocator.duplicate_string(add_postfix(asset->name));
 		const auto path = "techsets\\"s + asset->name + ".domainshader"s;
 
 		assetmanager::dumper write;

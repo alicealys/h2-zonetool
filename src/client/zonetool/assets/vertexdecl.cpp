@@ -75,8 +75,12 @@ namespace zonetool
 		buf->pop_stream();
 	}
 
-	void IVertexDecl::dump(MaterialVertexDeclaration* asset)
+	void IVertexDecl::dump(MaterialVertexDeclaration* h2_asset)
 	{
+		utils::memory::allocator allocator;
+		const auto asset = allocator.allocate<MaterialVertexDeclaration>();
+		std::memcpy(asset, h2_asset, sizeof(MaterialVertexDeclaration));
+		asset->name = allocator.duplicate_string(add_postfix(asset->name));
 		const auto path = "techsets\\"s + asset->name + ".vertexdecl"s;
 
 		assetmanager::dumper write;

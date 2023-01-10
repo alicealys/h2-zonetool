@@ -51,6 +51,31 @@ namespace zonetool
 
 			return new_name;
 		}
+
+		std::unordered_map<std::uint8_t, std::uint8_t> mapped_camera_regions =
+		{
+			{14, 12},
+		};
+
+		std::uint8_t convert_sortkey(const std::uint8_t sort_key)
+		{
+			if (sort_key >= 39)
+			{
+				return sort_key - 1;
+			}
+
+			return sort_key;
+		}
+
+		std::uint8_t convert_camera_region(const std::uint8_t camera_region)
+		{
+			if (mapped_camera_regions.find(camera_region) != mapped_camera_regions.end())
+			{
+				return mapped_camera_regions[camera_region];
+			}
+
+			return camera_region;
+		}
 	}
 
 	MaterialTextureDef* IMaterial::prase_texture_table(json& matdata, ZoneMemory* mem)
@@ -418,27 +443,25 @@ namespace zonetool
 			auto file = filesystem::file(path);
 			file.open("wb");
 
-			if (asset && asset->techniqueSet)
-			{
-				ITechset::dump_stateinfo(asset->techniqueSet->name, asset);
-				ITechset::dump_statebits(asset->techniqueSet->name, asset->stateBitsEntry);
-				ITechset::dump_statebits_map(asset->techniqueSet->name, asset->stateBitsTable, asset->stateBitsCount);
-
-				ITechset::dump_constant_buffer_indexes(asset->techniqueSet->name, asset->constantBufferIndex);
-				ITechset::dump_constant_buffer_def_array(asset->techniqueSet->name, asset->constantBufferCount, asset->constantBufferTable);
-			}
-
 			ordered_json matdata;
 
 			MATERIAL_DUMP_STRING(name);
 
-			if (asset->techniqueSet)
+			if (asset && asset->techniqueSet)
 			{
-				MATERIAL_DUMP_STRING(techniqueSet->name);
+				const auto techset_name = add_postfix(asset->techniqueSet->name);
+				ITechset::dump_stateinfo(techset_name, asset);
+				ITechset::dump_statebits(techset_name, asset->stateBitsEntry);
+				ITechset::dump_statebits_map(techset_name, asset->stateBitsTable, asset->stateBitsCount);
+
+				ITechset::dump_constant_buffer_indexes(techset_name, asset->constantBufferIndex);
+				ITechset::dump_constant_buffer_def_array(techset_name, asset->constantBufferCount, asset->constantBufferTable);
+
+				matdata["techniqueSet->name"] = techset_name;
 			}
 
 			MATERIAL_DUMP_INFO(gameFlags);
-			MATERIAL_DUMP_INFO(sortKey);
+			matdata["sortKey"] = convert_sortkey(asset->info.sortKey);
 			MATERIAL_DUMP_INFO(renderFlags);
 
 			MATERIAL_DUMP_INFO(textureAtlasRowCount);
@@ -450,7 +473,7 @@ namespace zonetool
 			//MATERIAL_DUMP_INFO(hashIndex);
 
 			//MATERIAL_DUMP(stateFlags);
-			MATERIAL_DUMP(cameraRegion);
+			matdata["cameraRegion"] = convert_camera_region(asset->cameraRegion);
 			MATERIAL_DUMP(materialType);
 			MATERIAL_DUMP(assetFlags);
 

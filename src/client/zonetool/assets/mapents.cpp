@@ -130,9 +130,43 @@ namespace zonetool
 				out_buffer.append(utils::string::va("%i \"%s\"\n", id, value.data()));
 			}
 
-			return {out_buffer};
+			return out_buffer;
 		}
 
+		std::string convert_mapents_ids(const std::string& source)
+		{
+			std::string out_buffer;
+
+			const auto lines = utils::string::split(source, '\n');
+
+			for (auto i = 0; i < lines.size(); i++)
+			{
+				const auto _0 = gsl::finally([&]
+				{
+					out_buffer.append("\n");
+				});
+
+				const auto& line = lines[i];
+
+				std::regex expr(R"~((.+) "(.*)")~");
+				std::smatch match{};
+				if (!line.starts_with("0 ") && std::regex_search(line, match, expr))
+				{
+					const auto id = std::atoi(match[1].str().data());
+					const auto value = match[2].str();
+
+					const auto key = xsk::gsc::h2::resolver::token_name(
+						static_cast<std::uint16_t>(id));
+					out_buffer.append(utils::string::va("\"%s\" \"%s\"", key.data(), value.data()));
+				}
+				else
+				{
+					out_buffer.append(line);
+				}
+			}
+
+			return out_buffer;
+		}
 	}
 
 	void IMapEnts::convert_ents(MapEnts* ents, ZoneMemory* mem)
@@ -697,7 +731,9 @@ namespace zonetool
 		file.open("wb");
 		if (file.get_fp())
 		{
-			file.write(entityString, numEntityChars, 1);
+			const auto str = convert_mapents_ids(
+				std::string{entityString, static_cast<size_t>(numEntityChars)});
+			file.write(str.data(), str.size(), 1);
 			file.close();
 		}
 	}

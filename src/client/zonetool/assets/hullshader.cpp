@@ -82,8 +82,12 @@ namespace zonetool
 		buf->pop_stream();
 	}
 
-	void IHullShader::dump(MaterialHullShader* asset)
+	void IHullShader::dump(MaterialHullShader* h2_asset)
 	{
+		utils::memory::allocator allocator;
+		const auto asset = allocator.allocate<MaterialHullShader>();
+		std::memcpy(asset, h2_asset, sizeof(MaterialHullShader));
+		asset->name = allocator.duplicate_string(add_postfix(asset->name));
 		const auto path = "techsets\\"s + asset->name + ".hullshader"s;
 
 		assetmanager::dumper write;

@@ -68,6 +68,11 @@
 
 #include "zone.hpp"
 
+
+#define TECHSET_POSTFIX "_h2"s // avoid collisions with h1 techsets/shaders
+#define TECHSET_POSTFIX_H1 "_h1"s 
+
+
 namespace zonetool
 {
 	template <typename T>
@@ -83,8 +88,12 @@ namespace zonetool
 		return header;
 	}
 
+	std::string add_postfix(const std::string& str);
+
 	void initialize();
 	void start();
 
 	extern bool dump_to_zonetool;
 }
+
+

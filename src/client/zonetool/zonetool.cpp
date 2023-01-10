@@ -137,6 +137,9 @@ namespace zonetool
 		}
 		else
 		{
+#ifdef DEBUG
+			ZONETOOL_INFO("Dumping asset \"%s\" of type %s.", get_asset_name(asset), type_to_string(asset->type));
+#endif
 #define DUMP_ASSET(__type__,__interface__,__struct__) \
 				if (asset->type == __type__) \
 				{ \
@@ -148,7 +151,7 @@ namespace zonetool
 			{
 				DUMP_ASSET(ASSET_TYPE_CLUT, IClut, Clut);
 				DUMP_ASSET(ASSET_TYPE_DOPPLER_PRESET, IDopplerPreset, DopplerPreset);
-				DUMP_ASSET(ASSET_TYPE_FX, IFxEffectDef, FxEffectDef);
+				//DUMP_ASSET(ASSET_TYPE_FX, IFxEffectDef, FxEffectDef);
 				DUMP_ASSET(ASSET_TYPE_PARTICLE_SIM_ANIMATION, IFxParticleSimAnimation, FxParticleSimAnimation);
 				DUMP_ASSET(ASSET_TYPE_IMAGE, IGfxImage, GfxImage);
 				DUMP_ASSET(ASSET_TYPE_LIGHT_DEF, IGfxLightDef, GfxLightDef);
@@ -175,7 +178,7 @@ namespace zonetool
 				DUMP_ASSET(ASSET_TYPE_TTF, IFont, TTFDef);
 				DUMP_ASSET(ASSET_TYPE_ATTACHMENT, IWeaponAttachment, WeaponAttachment);
 				DUMP_ASSET(ASSET_TYPE_WEAPON, IWeaponDef, WeaponDef);
-				DUMP_ASSET(ASSET_TYPE_VEHICLE, IVehicleDef, VehicleDef);
+				//DUMP_ASSET(ASSET_TYPE_VEHICLE, IVehicleDef, VehicleDef);
 				DUMP_ASSET(ASSET_TYPE_XANIM, IXAnimParts, XAnimParts);
 				DUMP_ASSET(ASSET_TYPE_XMODEL, IXModel, XModel);
 				DUMP_ASSET(ASSET_TYPE_XMODEL_SURFS, IXSurface, XModelSurfs);
@@ -195,10 +198,10 @@ namespace zonetool
 
 				DUMP_ASSET(ASSET_TYPE_AIPATHS, IAIPaths, PathData);
 				DUMP_ASSET(ASSET_TYPE_COL_MAP_SP, IClipMap, clipMap_t);
-				DUMP_ASSET(ASSET_TYPE_COM_MAP, IComWorld, ComWorld);
-				DUMP_ASSET(ASSET_TYPE_FX_MAP, IFxWorld, FxWorld);
-				DUMP_ASSET(ASSET_TYPE_GFX_MAP, IGfxWorld, GfxWorld);
-				DUMP_ASSET(ASSET_TYPE_GLASS_MAP, IGlassWorld, GlassWorld);
+				//DUMP_ASSET(ASSET_TYPE_COM_MAP, IComWorld, ComWorld);
+				//DUMP_ASSET(ASSET_TYPE_FX_MAP, IFxWorld, FxWorld);
+				//DUMP_ASSET(ASSET_TYPE_GFX_MAP, IGfxWorld, GfxWorld);
+				//DUMP_ASSET(ASSET_TYPE_GLASS_MAP, IGlassWorld, GlassWorld);
 			}
 			catch (const std::exception& e)
 			{
@@ -661,18 +664,6 @@ namespace zonetool
 			std::quick_exit(EXIT_SUCCESS);
 		});
 
-		command::add("buildzone", [](const command::params& params)
-		{
-			// Check if enough arguments have been passed to the command
-			if (params.size() != 2)
-			{
-				ZONETOOL_ERROR("usage: buildzone <zone>");
-				return;
-			}
-
-			build_zone(params.get(1));
-		});
-
 		command::add("loadzone", [](const command::params& params)
 		{
 			// Check if enough arguments have been passed to the command
@@ -833,33 +824,6 @@ namespace zonetool
 						load_zone(args[i + 1]);
 						i++;
 					}
-					else if (args[i] == "-buildzone")
-					{
-						build_zone(args[i + 1]);
-						i++;
-					}
-					else if (args[i] == "-buildzones")
-					{
-						const auto& filename = args[i + 1];
-						std::string data{};
-						if (!utils::io::read_file(filename, &data))
-						{
-							return;
-						}
-
-						const auto zones = utils::string::split(data, '\n');
-						for (auto zone : zones)
-						{
-							if (zone.ends_with("\r"))
-							{
-								zone.pop_back();
-							}
-
-							build_zone(zone);
-						}
-
-						i++;
-					}
 					else if (args[i] == "-verifyzone")
 					{
 						verify_zone(args[i + 1]);
@@ -948,5 +912,15 @@ namespace zonetool
 		register_commands();
 
 		handle_params();
+	}
+
+	std::string add_postfix(const std::string& str)
+	{
+		if (!str.ends_with(TECHSET_POSTFIX) && !str.ends_with(TECHSET_POSTFIX_H1))
+		{
+			return str + TECHSET_POSTFIX;
+		}
+
+		return str;
 	}
 }

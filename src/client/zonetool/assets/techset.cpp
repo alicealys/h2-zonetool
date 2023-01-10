@@ -9,6 +9,137 @@
 
 namespace zonetool
 {
+	namespace
+	{
+		h1::MaterialTechniqueSet* convert_to_h1(MaterialTechniqueSet* h2_asset, utils::memory::allocator& allocator)
+		{
+			const auto asset = allocator.allocate<h1::MaterialTechniqueSet>();
+			asset->name = allocator.duplicate_string(add_postfix(h2_asset->name));
+			asset->flags = h2_asset->flags;
+			asset->worldVertFormat = h2_asset->worldVertFormat;
+			asset->preDisplacementOnlyCount = h2_asset->preDisplacementOnlyCount;
+
+			std::vector<int> debug_tech_indexes = {59, 122, 185, 248};
+			auto current_debug_tech = 0;
+			auto h2_tecniques_index = 0;
+			for (auto i = 0u; i < TECHNIQUES_COUNT; i++)
+			{
+				const auto tech = reinterpret_cast<h1::MaterialTechnique*>(h2_asset->techniques[h2_tecniques_index]);
+				if (tech != nullptr)
+				{
+					const auto size = sizeof(MaterialTechniqueHeader) + sizeof(MaterialPass) * tech->hdr.passCount;
+					asset->techniques[i] = reinterpret_cast<h1::MaterialTechnique*>(
+						allocator.allocate(size));
+					std::memcpy(asset->techniques[i], tech, size);
+					asset->techniques[i]->hdr.name = allocator.duplicate_string(add_postfix(asset->techniques[i]->hdr.name));
+				}
+				else
+				{
+					asset->techniques[i] = nullptr;
+				}
+
+				if (current_debug_tech < debug_tech_indexes.size()
+					&& h2_tecniques_index == debug_tech_indexes[current_debug_tech])
+				{
+					++current_debug_tech;
+					h2_tecniques_index += 3;
+				}
+
+				++h2_tecniques_index;
+			}
+
+			return asset;
+		}
+
+		unsigned char* convert_to_h1(unsigned char* h2_array, utils::memory::allocator& allocator)
+		{
+			const auto array = allocator.allocate_array<unsigned char>(TECHNIQUES_COUNT);
+
+			std::vector<int> debug_tech_indexes = {59, 119, 179, 239};
+			auto current_debug_tech = 0;
+			auto h2_tecniques_index = 0;
+			for (auto i = 0u; i < TECHNIQUES_COUNT; i++)
+			{
+				array[i] = h2_array[h2_tecniques_index];
+				if (current_debug_tech < debug_tech_indexes.size() && h2_tecniques_index == debug_tech_indexes[current_debug_tech])
+				{
+					++current_debug_tech;
+					h2_tecniques_index += 3;
+				}
+
+				++h2_tecniques_index;
+			}
+
+			return array;
+		}
+
+		unsigned short convert_code_const(unsigned short index)
+		{
+			if (index < 364)
+			{
+				if (index <= 342 + 15 && index >= 338 + 15)
+				{
+					return index - 15;
+				}
+
+				if (index >= 312 + 14)
+				{
+					return index - 14;
+				}
+
+				if (index >= 238 + 13)
+				{
+					return index - 13;
+				}
+
+				if (index >= 229 + 4)
+				{
+					return index - 4;
+				}
+
+				if (index >= 212 + 3)
+				{
+					return index - 3;
+				}
+
+				if (index >= 149 + 2) // not sure about this one (between 129-155)
+				{
+					return index - 2;
+				}
+
+				if (index >= 80 + 1)
+				{
+					return index - 1;
+				}
+
+				return index;
+			}
+			else
+			{
+				return index - 14;
+			}
+		}
+
+		MaterialShaderArgument* convert_shader_arguments(MaterialPass* pass, MaterialShaderArgument* args, utils::memory::allocator& allocator)
+		{
+			const auto arg_count = pass->perPrimArgCount + pass->perObjArgCount + pass->stableArgCount;
+			const auto converted_args = allocator.allocate_array<MaterialShaderArgument>(arg_count);
+			std::memcpy(converted_args, args, sizeof(MaterialShaderArgument) * arg_count);
+
+			for (auto i = 0; i < arg_count; i++)
+			{
+				if (converted_args[i].type != 0)
+				{
+					continue;
+				}
+
+				converted_args[i].u.codeConst.index = convert_code_const(converted_args[i].u.codeConst.index);
+			}
+
+			return converted_args;
+		}
+	}
+
 	std::unordered_map<std::string, std::uintptr_t> ITechset::vertexdecl_pointers;
 
 	std::uintptr_t ITechset::get_vertexdecl_pointer(std::string vertexdecl)
@@ -31,211 +162,32 @@ namespace zonetool
 
 	MaterialTechnique* parse_technique(const std::string& name, ZoneMemory* mem, std::uint32_t index)
 	{
-		const auto path = "techsets\\" + name + ".technique";
-
-		assetmanager::reader reader(mem);
-		if (!reader.open(path))
-		{
-			ZONETOOL_FATAL("technique \"%s\" is missing.", name.data());
-			return nullptr;
-		}
-
-		//ZONETOOL_INFO("Parsing technique \"%s\"...", name.data());
-
-		const auto header = reader.read_single<MaterialTechniqueHeader>();
-		const auto passes = reader.read_array<MaterialPass>();
-
-		header->name = reader.read_string();
-
-		const auto asset = mem->ManualAlloc<MaterialTechnique>(sizeof(MaterialTechniqueHeader) + (sizeof(MaterialPass) * header->passCount));
-		memcpy(&asset->hdr, header, sizeof MaterialTechniqueHeader);
-		memcpy(asset->passArray, passes, sizeof(MaterialPass) * header->passCount);
-
-		for (unsigned short i = 0; i < header->passCount; i++)
-		{
-			if (asset->passArray[i].vertexShader)
-			{
-				asset->passArray[i].vertexShader = reader.read_asset<MaterialVertexShader>();
-			}
-
-			if (asset->passArray[i].vertexDecl)
-			{
-				asset->passArray[i].vertexDecl = reader.read_asset<MaterialVertexDeclaration>();
-				asset->passArray[i].vertexDecl = IVertexDecl::parse(asset->passArray[i].vertexDecl->name, mem);
-			}
-
-			if (asset->passArray[i].hullShader)
-			{
-				asset->passArray[i].hullShader = reader.read_asset<MaterialHullShader>();
-			}
-
-			if (asset->passArray[i].domainShader)
-			{
-				asset->passArray[i].domainShader = reader.read_asset<MaterialDomainShader>();
-			}
-
-			if (asset->passArray[i].pixelShader)
-			{
-				asset->passArray[i].pixelShader = reader.read_asset<MaterialPixelShader>();
-			}
-
-			if (asset->passArray[i].args)
-			{
-				asset->passArray[i].args = reader.read_array<MaterialShaderArgument>();
-
-				for (auto arg = 0; arg < asset->passArray[i].perObjArgCount + asset->passArray[i].perPrimArgCount + asset->passArray[i].stableArgCount; arg++)
-				{
-					if (asset->passArray[i].args[arg].type == 4)
-					{
-						asset->passArray[i].args[arg].u.literalConst = reader.read_array<float>();
-					}
-				}
-			}
-		}
-
-		reader.close();
-
-		return asset;
+		return nullptr;
 	}
 
 	MaterialTechniqueSet* ITechset::parse(const std::string& name, ZoneMemory* mem)
 	{
-		const auto path = "techsets\\" + name + ".techset";
-
-		assetmanager::reader reader(mem);
-		if (!reader.open(path))
-		{
-			return nullptr;
-		}
-
-		ZONETOOL_INFO("Parsing techset \"%s\"...", name.data());
-
-		const auto asset = reader.read_single<MaterialTechniqueSet>();
-		asset->name = reader.read_string();
-
-		for (auto i = 0u; i < TECHNIQUES_COUNT; i++)
-		{
-			if (asset->techniques[i])
-			{
-				asset->techniques[i] = parse_technique(reader.read_string(), mem, i);
-			}
-		}
-
-		if (asset->techniques[0] && asset->techniques[0]->hdr.name == "textured_3d"s)
-		{
-			ZONETOOL_WARNING("techset \"%s\" is invalid!", name.data());
-		}
-
-		reader.close();
-
-		return asset;
+		return nullptr;
 	}
 
 	void ITechset::parse_constant_buffer_indexes(const std::string& techset, unsigned char* indexes, ZoneMemory* mem)
 	{
-		const auto path = "techsets\\constantbuffer\\"s + techset + ".cbi";
-		auto file = filesystem::file(path);
-		file.open("rb");
-		auto fp = file.get_fp();
 
-		if (fp)
-		{
-			fread(indexes, TECHNIQUES_COUNT, 1, fp);
-			file.close();
-			return;
-		}
-
-		ZONETOOL_FATAL("constantbufferindexes for techset \"%s\" are missing!", techset.data());
 	}
 
 	void ITechset::parse_constant_buffer_def_array(const std::string& techset, MaterialConstantBufferDef** def_ptr, unsigned char* count, ZoneMemory* mem)
 	{
-		const auto path = "techsets\\constantbuffer\\"s + techset + ".cbt";
-		assetmanager::reader read(mem);
-		if (!read.open(path))
-		{
-			(*def_ptr) = nullptr;
-			return;
-		}
 
-		*count = static_cast<unsigned char>(read.read_int());
-		auto def = read.read_array<MaterialConstantBufferDef>();
-		for (int i = 0; i < *count; i++)
-		{
-			if (def[i].vsData)
-			{
-				def[i].vsData = read.read_array<unsigned char>();
-			}
-			if (def[i].hsData)
-			{
-				def[i].hsData = read.read_array<unsigned char>();
-			}
-			if (def[i].dsData)
-			{
-				def[i].dsData = read.read_array<unsigned char>();
-			}
-			if (def[i].psData)
-			{
-				def[i].psData = read.read_array<unsigned char>();
-			}
-			if (def[i].vsOffsetData)
-			{
-				def[i].vsOffsetData = read.read_array<unsigned short>();
-			}
-			if (def[i].hsOffsetData)
-			{
-				def[i].hsOffsetData = read.read_array<unsigned short>();
-			}
-			if (def[i].dsOffsetData)
-			{
-				def[i].dsOffsetData = read.read_array<unsigned short>();
-			}
-			if (def[i].psOffsetData)
-			{
-				def[i].psOffsetData = read.read_array<unsigned short>();
-			}
-		}
-
-		read.close();
-
-		(*def_ptr) = def;
 	}
 
 	void ITechset::parse_stateinfo(const std::string& techset, Material* mat, ZoneMemory* mem)
 	{
-		const auto path = "techsets\\state\\"s + techset + ".stateinfo"s;
-		filesystem::file file(path);
-		if (file.exists())
-		{
-			file.open("rb");
-			const auto size = file.size();
-			auto bytes = file.read_bytes(size);
-			file.close();
 
-			auto stateInfo = json::parse(bytes);
-
-			mat->stateFlags = stateInfo["stateFlags"].get<unsigned char>();
-
-			return;
-		}
-		ZONETOOL_FATAL("stateinfo for techset \"%s\" are missing!", techset.data());
 	}
 
 	void ITechset::parse_statebits(const std::string& techset, unsigned char* statebits, ZoneMemory* mem)
 	{
-		const auto path = "techsets\\state\\" + techset + ".statebits";
-		auto file = filesystem::file(path);
-		file.open("rb");
-		auto fp = file.get_fp();
 
-		if (fp)
-		{
-			fread(statebits, TECHNIQUES_COUNT, 1, fp);
-			file.close();
-			return;
-		}
-
-		ZONETOOL_FATAL("statebits for techset \"%s\" are missing!", techset.data());
 	}
 
 	void ITechset::parse_statebitsmap(const std::string& techset, GfxStateBits** map, unsigned char* count,
@@ -243,144 +195,22 @@ namespace zonetool
 		std::vector<std::array<std::uint32_t, 3>>* bsb,
 		ZoneMemory* mem)
 	{
-		const auto path = "techsets\\state\\"s + techset + ".statebitsmap"s;
-		filesystem::file file(path);
-		if (file.exists())
-		{
-			file.open("rb");
-			const auto size = file.size();
-			auto bytes = file.read_bytes(size);
-			file.close();
 
-			auto stateMap = json::parse(bytes);
-			if (stateMap.size() > 0)
-			{
-				auto stateBits = mem->Alloc<GfxStateBits>(stateMap.size());
-				for (int i = 0; i < stateMap.size(); i++)
-				{
-					stateBits[i].loadBits[0] = stateMap[i]["loadBits"][0].get<unsigned int>();
-					stateBits[i].loadBits[1] = stateMap[i]["loadBits"][1].get<unsigned int>();
-					stateBits[i].loadBits[2] = stateMap[i]["loadBits"][2].get<unsigned int>();
-					stateBits[i].loadBits[3] = stateMap[i]["loadBits"][3].get<unsigned int>();
-					stateBits[i].loadBits[4] = stateMap[i]["loadBits"][4].get<unsigned int>();
-					stateBits[i].loadBits[5] = stateMap[i]["loadBits"][5].get<unsigned int>();
-
-					std::array<std::uint64_t, 10> temp_bits = { 0 };
-					for (int j = 0; j < 10; j++)
-					{
-						temp_bits[j] = stateMap[i]["depthStencilStateBits"][j].get<std::uint64_t>();
-					}
-					dssb->push_back(std::move(temp_bits));
-
-					std::array<std::uint32_t, 3> temp_bits2;
-					for (int j = 0; j < 3; j++)
-					{
-						temp_bits2[j] = stateMap[i]["blendStateBits"][j].get<std::uint32_t>();
-					}
-					bsb->push_back(std::move(temp_bits2));
-
-					stateBits[i].rasterizerState = stateMap[i]["rasterizerState"].get<unsigned char>();
-				}
-				(*map) = stateBits;
-			}
-			else
-			{
-				(*map) = nullptr;
-			}
-			*count = static_cast<unsigned char>(stateMap.size());
-			return;
-		}
-		ZONETOOL_FATAL("statebitsmap for techset \"%s\" are missing!", techset.data());
 	}
 
 	void ITechset::init(const std::string& name, ZoneMemory* mem)
 	{
-		this->name_ = name;
 
-		if (this->referenced())
-		{
-			this->asset_ = mem->Alloc<typename std::remove_reference<decltype(*this->asset_)>::type>();
-			this->asset_->name = mem->StrDup(name);
-			return;
-		}
-
-		this->asset_ = this->parse(name, mem);
-		if (!this->asset_)
-		{
-			this->asset_ = DB_FindXAssetHeader_Safe(XAssetType(this->type()), this->name().data()).techniqueSet;
-			if (DB_IsXAssetDefault(XAssetType(this->type()), this->name().data()))
-			{
-				ZONETOOL_FATAL("techset \"%s\" not found.", name.data());
-			}
-		}
 	}
 
 	void ITechset::prepare(ZoneBuffer* buf, ZoneMemory* mem)
 	{
-		auto data = this->asset_;
-		for (auto technique = 0u; technique < TECHNIQUES_COUNT; technique++)
-		{
-			if (data->techniques[technique])
-			{
-				for (unsigned short pass = 0; pass < data->techniques[technique]->hdr.passCount; pass++)
-				{
-					auto& techniquePass = data->techniques[technique]->passArray[pass];
-					if (techniquePass.perPrimArgSize)
-					{
-						techniquePass.perPrimConstantBuffer = buf->write_ppas(techniquePass.perPrimArgSize);
-					}
-					if (techniquePass.perObjArgSize)
-					{
-						techniquePass.perObjConstantBuffer = buf->write_poas(techniquePass.perObjArgSize);
-					}
-					if (techniquePass.stableArgSize)
-					{
-						techniquePass.stableConstantBuffer = buf->write_sas(techniquePass.stableArgSize);
-					}
-				}
-			}
-		}
+
 	}
 
 	void ITechset::load_depending(IZone* zone)
 	{
-		auto data = this->asset_;
 
-		for (auto technique = 0u; technique < TECHNIQUES_COUNT; technique++)
-		{
-			if (data->techniques[technique])
-			{
-				for (unsigned short pass = 0; pass < data->techniques[technique]->hdr.passCount; pass++)
-				{
-					auto& techniquePass = data->techniques[technique]->passArray[pass];
-
-					if (techniquePass.vertexShader)
-					{
-						zone->add_asset_of_type(ASSET_TYPE_VERTEXSHADER, techniquePass.vertexShader->name);
-					}
-
-					/*if (techniquePass.vertexDecl)
-					{
-						zone->add_asset_of_type(ASSET_TYPE_VERTEXDECL, techniquePass.vertexDecl->name);
-					}*/
-
-					if (techniquePass.hullShader)
-					{
-						zone->add_asset_of_type(ASSET_TYPE_HULLSHADER, techniquePass.hullShader->name);
-					}
-
-					if (techniquePass.domainShader)
-					{
-						zone->add_asset_of_type(ASSET_TYPE_DOMAINSHADER, techniquePass.domainShader->name);
-					}
-
-					if (techniquePass.pixelShader)
-					{
-						zone->add_asset_of_type(ASSET_TYPE_PIXELSHADER, techniquePass.pixelShader->name);
-					}
-				}
-			}
-		}
 	}
 
 	std::string ITechset::name()
@@ -395,131 +225,17 @@ namespace zonetool
 
 	void ITechset::write(IZone* zone, ZoneBuffer* buf)
 	{
-		auto* data = this->asset_;
-		auto* dest = buf->write(data);
 
-		buf->push_stream(3);
-
-		dest->name = buf->write_str(this->name());
-
-		for (auto technique = 0; technique < TECHNIQUES_COUNT; technique++)
-		{
-			if (!data->techniques[technique])
-			{
-				continue;
-			}
-
-			buf->align(3);
-
-			auto* technique_header = buf->write(&data->techniques[technique]->hdr);
-			auto* technique_passes = buf->write(data->techniques[technique]->passArray, technique_header->passCount);
-
-			for (unsigned short pass = 0; pass < technique_header->passCount; pass++)
-			{
-				if (technique_passes[pass].vertexShader)
-				{
-					technique_passes[pass].vertexShader =
-						reinterpret_cast<MaterialVertexShader*>(zone->get_asset_pointer(
-						ASSET_TYPE_VERTEXSHADER, technique_passes[pass].vertexShader->name));
-				}
-
-				if (technique_passes[pass].vertexDecl)
-				{
-					/*technique_passes[pass].vertexDecl =
-						reinterpret_cast<MaterialVertexDeclaration*>(zone->get_asset_pointer(
-							ASSET_TYPE_VERTEXDECL, technique_passes[pass].vertexDecl->name));*/
-					std::uintptr_t ptr = get_vertexdecl_pointer(technique_passes[pass].vertexDecl->name);
-					if (ptr)
-					{
-						technique_passes[pass].vertexDecl = reinterpret_cast<MaterialVertexDeclaration*>(ptr);
-					}
-					else
-					{
-						buf->push_stream(0);
-
-						buf->push_stream(3);
-						buf->align(7);
-						ptr = 0xFDFDFDF300000000 + buf->stream_offset(3) + 1;
-						add_vertexdecl_pointer(technique_passes[pass].vertexDecl->name, ptr);
-						buf->inc_stream(3, 8);
-						buf->pop_stream();
-
-						auto vertexDecl = buf->write(data->techniques[technique]->passArray[pass].vertexDecl);
-
-						buf->push_stream(3);
-						if (data->techniques[technique]->passArray[pass].vertexDecl->name)
-						{
-							vertexDecl->name = buf->write_str(data->techniques[technique]->passArray[pass].vertexDecl->name);
-						}
-						buf->pop_stream();
-
-						buf->pop_stream();
-
-						ZoneBuffer::insert_pointer(&technique_passes[pass].vertexDecl);
-					}
-				}
-
-				if (technique_passes[pass].hullShader)
-				{
-					technique_passes[pass].hullShader =
-						reinterpret_cast<MaterialHullShader*>(zone->get_asset_pointer(
-						ASSET_TYPE_HULLSHADER, technique_passes[pass].hullShader->name));
-				}
-
-				if (technique_passes[pass].domainShader)
-				{
-					technique_passes[pass].domainShader =
-						reinterpret_cast<MaterialDomainShader*>(zone->get_asset_pointer(
-						ASSET_TYPE_DOMAINSHADER, technique_passes[pass].domainShader->name));
-				}
-
-				if (technique_passes[pass].pixelShader)
-				{
-					technique_passes[pass].pixelShader =
-						reinterpret_cast<MaterialPixelShader*>(zone->get_asset_pointer(
-						ASSET_TYPE_PIXELSHADER, technique_passes[pass].pixelShader->name));
-				}
-
-				if (technique_passes[pass].args)
-				{
-					buf->align(3);
-					technique_passes[pass].args = buf->write(data->techniques[technique]->passArray[pass].args,
-						technique_passes[pass].perPrimArgCount +
-						technique_passes[pass].perObjArgCount +
-						technique_passes[pass].stableArgCount);
-
-					for (auto arg = 0; arg <
-						technique_passes[pass].perPrimArgCount +
-						technique_passes[pass].perObjArgCount +
-						technique_passes[pass].stableArgCount; arg++)
-					{
-						if (technique_passes[pass].args[arg].type == 4)
-						{
-							if (technique_passes[pass].args[arg].u.literalConst)
-							{
-								technique_passes[pass].args[arg].u.literalConst = buf->write_s(3,
-									technique_passes[pass].args[arg].u.literalConst, 4);
-							}
-						}
-					}
-				}
-			}
-
-			buf->write_str(technique_header->name);
-			ZoneBuffer::clear_pointer(&technique_header->name);
-
-			ZoneBuffer::clear_pointer(&dest->techniques[technique]);
-		}
-
-		buf->pop_stream();
 	}
 
-	void ITechset::dump_constant_buffer_indexes(const std::string& techset, unsigned char* cbi)
+	void ITechset::dump_constant_buffer_indexes(const std::string& techset, unsigned char* h2_cbi)
 	{
+		utils::memory::allocator allocator;
 		const auto path = "techsets\\constantbuffer\\"s + techset + ".cbi";
 		auto file = filesystem::file(path);
 		file.open("wb");
 		auto fp = file.get_fp();
+		const auto cbi = convert_to_h1(h2_cbi, allocator);
 
 		if (fp)
 		{
@@ -597,12 +313,14 @@ namespace zonetool
 		}
 	}
 
-	void ITechset::dump_statebits(const std::string& techset, unsigned char* statebits)
+	void ITechset::dump_statebits(const std::string& techset, unsigned char* h2_statebits)
 	{
+		utils::memory::allocator allocator;
 		const auto path = "techsets\\state\\"s + techset + ".statebits";
 		auto file = filesystem::file(path);
 		file.open("wb");
 		auto fp = file.get_fp();
+		const auto statebits = convert_to_h1(h2_statebits, allocator);
 
 		if (fp)
 		{
@@ -659,46 +377,72 @@ namespace zonetool
 			return;
 		}
 
+		utils::memory::allocator allocator;
+
 		dumper.dump_single(&asset->hdr);
-		dumper.dump_array(asset->passArray, asset->hdr.passCount);
+		const auto pass_array = allocator.allocate_array<MaterialPass>(asset->hdr.passCount);
+		std::memcpy(pass_array, asset->passArray, sizeof(MaterialPass) * asset->hdr.passCount);
+		for (auto i = 0; i < asset->hdr.passCount; i++)
+		{
+			pass_array[i].stableArgSize -= 16;
+		}
+		dumper.dump_array(pass_array, asset->hdr.passCount);
 
 		dumper.dump_string(asset->hdr.name);
 		for (unsigned short i = 0; i < asset->hdr.passCount; i++)
 		{
 			if (asset->passArray[i].vertexShader)
 			{
-				dumper.dump_asset(asset->passArray[i].vertexShader);
+				const auto vertex_shader = allocator.allocate<MaterialVertexShader>();
+				std::memcpy(vertex_shader, asset->passArray[i].vertexShader, sizeof(MaterialVertexShader));
+				vertex_shader->name = allocator.duplicate_string(add_postfix(vertex_shader->name));
+				dumper.dump_asset(vertex_shader);
 				//IVertexShader::dump(asset->passArray[i].vertexShader);
 			}
 
 			if (asset->passArray[i].vertexDecl)
 			{
-				dumper.dump_asset(asset->passArray[i].vertexDecl);
-				IVertexDecl::dump(asset->passArray[i].vertexDecl);
+				const auto vertex_decl = allocator.allocate<MaterialVertexDeclaration>();
+				std::memcpy(vertex_decl, asset->passArray[i].vertexDecl, sizeof(MaterialVertexDeclaration));
+				vertex_decl->name = allocator.duplicate_string(add_postfix(vertex_decl->name));
+				dumper.dump_asset(vertex_decl);
+				IVertexDecl::dump(reinterpret_cast<MaterialVertexDeclaration*>(asset->passArray[i].vertexDecl));
 			}
 
 			if (asset->passArray[i].hullShader)
 			{
-				dumper.dump_asset(asset->passArray[i].hullShader);
+				const auto hull_shader = allocator.allocate<MaterialHullShader>();
+				std::memcpy(hull_shader, asset->passArray[i].hullShader, sizeof(MaterialHullShader));
+				hull_shader->name = allocator.duplicate_string(add_postfix(hull_shader->name));
+				dumper.dump_asset(hull_shader);
 				//IHullShader::dump(asset->passArray[i].hullShader);
 			}
 
 			if (asset->passArray[i].domainShader)
 			{
-				dumper.dump_asset(asset->passArray[i].domainShader);
+				const auto domain_shader = allocator.allocate<MaterialDomainShader>();
+				std::memcpy(domain_shader, asset->passArray[i].domainShader, sizeof(MaterialDomainShader));
+				domain_shader->name = allocator.duplicate_string(add_postfix(domain_shader->name));
+				dumper.dump_asset(domain_shader);
 				//IDomainShader::dump(asset->passArray[i].domainShader);
 			}
 
 			if (asset->passArray[i].pixelShader)
 			{
-				dumper.dump_asset(asset->passArray[i].pixelShader);
+				const auto pixel_shader = allocator.allocate<MaterialPixelShader>();
+				std::memcpy(pixel_shader, asset->passArray[i].pixelShader, sizeof(MaterialPixelShader));
+				pixel_shader->name = allocator.duplicate_string(add_postfix(pixel_shader->name));
+				dumper.dump_asset(pixel_shader);
 				//IPixelShader::dump(asset->passArray[i].pixelShader);
 			}
 
 			if (asset->passArray[i].args)
 			{
-				dumper.dump_array(asset->passArray[i].args, asset->passArray[i].perObjArgCount + asset->passArray[i].perPrimArgCount + asset->passArray[i].stableArgCount);
-				for (auto arg = 0; arg < asset->passArray[i].perObjArgCount + asset->passArray[i].perPrimArgCount + asset->passArray[i].stableArgCount; arg++)
+				const auto arg_count = asset->passArray[i].perObjArgCount + asset->passArray[i].perPrimArgCount + asset->passArray[i].stableArgCount;
+				const auto converted_args = convert_shader_arguments(&asset->passArray[i], asset->passArray[i].args, allocator);
+				dumper.dump_array(converted_args, arg_count);
+
+				for (auto arg = 0; arg < arg_count; arg++)
 				{
 					if (asset->passArray[i].args[arg].type == 4)
 					{
@@ -711,7 +455,7 @@ namespace zonetool
 		dumper.close();
 	}
 
-	void yeet(MaterialTechniqueSet* asset)
+	void yeet(h1::MaterialTechniqueSet* asset)
 	{
 		const auto path = "techsets\\"s + asset->name + ".techset.txt";
 
@@ -734,8 +478,10 @@ namespace zonetool
 		file.close();
 	}
 
-	void ITechset::dump(MaterialTechniqueSet* asset)
+	void ITechset::dump(MaterialTechniqueSet* h2_asset)
 	{
+		utils::memory::allocator allocator;
+		const auto asset = convert_to_h1(h2_asset, allocator);
 		const auto path = "techsets\\"s + asset->name + ".techset";
 
 		yeet(asset);
@@ -754,7 +500,7 @@ namespace zonetool
 			if (asset->techniques[i])
 			{
 				dumper.dump_string(asset->techniques[i]->hdr.name);
-				ITechset::dump_technique(asset->techniques[i]);
+				ITechset::dump_technique(reinterpret_cast<MaterialTechnique*>(asset->techniques[i]));
 			}
 		}
 

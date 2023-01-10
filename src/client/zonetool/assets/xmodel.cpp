@@ -1,8 +1,99 @@
 #include "std_include.hpp"
 #include "xmodel.hpp"
 
+#define COPY_VALUE(name) \
+		static_assert(sizeof(asset->name) == sizeof(h2_asset->name)); \
+		asset->name = h2_asset->name;
+
+#define COPY_ARR(name) \
+		static_assert(sizeof(asset->name) == sizeof(h2_asset->name)); \
+		std::memcpy(&asset->name, &h2_asset->name, sizeof(asset->name));
+
+#define REINTERPRET_CAST_SAFE(name) \
+		static_assert(sizeof(*asset->name) == sizeof(*h2_asset->name)); \
+		asset->name = reinterpret_cast<decltype(asset->name)>(h2_asset->name);
+
 namespace zonetool
 {
+	namespace
+	{
+		h1::XModel* convert_to_h1(XModel* h2_asset, utils::memory::allocator& allocator)
+		{
+			const auto asset = allocator.allocate<h1::XModel>();
+
+			COPY_VALUE(name);
+			COPY_VALUE(numBones);
+			COPY_VALUE(numRootBones);
+			COPY_VALUE(numsurfs);
+			asset->numReactiveMotionParts = 0;
+			COPY_VALUE(lodRampType);
+			COPY_VALUE(numBonePhysics);
+			COPY_VALUE(numCompositeModels);
+			COPY_VALUE(scale);
+			COPY_ARR(noScalePartBits);
+			REINTERPRET_CAST_SAFE(boneNames);
+			REINTERPRET_CAST_SAFE(parentList);
+			REINTERPRET_CAST_SAFE(tagAngles);
+			REINTERPRET_CAST_SAFE(tagPositions);
+			REINTERPRET_CAST_SAFE(partClassification);
+			REINTERPRET_CAST_SAFE(baseMat);
+			REINTERPRET_CAST_SAFE(reactiveMotionTweaks);
+
+			asset->materialHandles = allocator.allocate_array<h1::Material*>(h2_asset->numsurfs);
+			for (auto i = 0; i < h2_asset->numsurfs; i++)
+			{
+				const auto material = allocator.allocate<h1::Material>();
+				material->name = h2_asset->materialHandles[i]->name;
+				asset->materialHandles[i] = material;
+			}
+
+			for (auto i = 0; i < h2_asset->numLods; i++)
+			{
+				COPY_VALUE(lodInfo[i].dist);
+				COPY_VALUE(lodInfo[i].numsurfs);
+				COPY_VALUE(lodInfo[i].surfIndex);
+				COPY_ARR(lodInfo[i].partBits);
+				REINTERPRET_CAST_SAFE(lodInfo[i].modelSurfs);
+				REINTERPRET_CAST_SAFE(lodInfo[i].surfs);
+			}
+
+			COPY_VALUE(numLods);
+			COPY_VALUE(collLod);
+			COPY_VALUE(flags);
+			COPY_VALUE(numCollSurfs);
+			REINTERPRET_CAST_SAFE(collSurfs);
+			REINTERPRET_CAST_SAFE(boneInfo);
+			COPY_VALUE(contents);
+			COPY_VALUE(radius);
+			COPY_VALUE(bounds);
+			REINTERPRET_CAST_SAFE(invHighMipRadius);
+			REINTERPRET_CAST_SAFE(mdaoVolumes);
+			COPY_VALUE(mdaoVolumeCount);
+			COPY_VALUE(targetCount);
+			COPY_VALUE(numberOfWeights);
+			COPY_VALUE(numberOfWeightMaps);
+			REINTERPRET_CAST_SAFE(weightNames);
+			REINTERPRET_CAST_SAFE(blendShapeWeightMap);
+			REINTERPRET_CAST_SAFE(physPreset);
+			REINTERPRET_CAST_SAFE(physCollmap);
+			COPY_VALUE(quantization);
+			COPY_VALUE(memUsage);
+			REINTERPRET_CAST_SAFE(skeletonScript);
+
+			asset->compositeModels = allocator.allocate_array<h1::XModel*>(h2_asset->numCompositeModels);
+			for (auto i = 0; i < h2_asset->numCompositeModels; i++)
+			{
+				const auto model = allocator.allocate<h1::XModel>();
+				model->name = h2_asset->compositeModels[i]->name;
+				asset->compositeModels[i] = model;
+			}
+
+			REINTERPRET_CAST_SAFE(bonePhysics);
+
+			return asset;
+		}
+	}
+
 	void IXModel::add_script_string(scr_string_t* ptr, std::string str)
 	{
 		for (std::uint32_t i = 0; i < this->script_strings.size(); i++)
@@ -29,243 +120,22 @@ namespace zonetool
 
 	XModel* IXModel::parse(std::string name, ZoneMemory* mem)
 	{
-		const auto path = "xmodel\\"s + name + ".xmodel_export";
-
-		assetmanager::reader read(mem);
-		if (!read.open(path))
-		{
-			return nullptr;
-		}
-
-		ZONETOOL_INFO("Parsing xmodel \"%s\"...", name.data());
-
-		// asset
-		auto* asset = read.read_single<XModel>();
-		asset->name = read.read_string();
-
-		// tags
-		asset->boneNames = read.read_array<scr_string_t>();
-		for (unsigned char i = 0; i < asset->numBones; i++)
-		{
-			this->add_script_string(&asset->boneNames[i], read.read_string());
-		}
-
-		// basic info
-		asset->parentList = read.read_array<unsigned char>();
-		asset->tagAngles = read.read_array<XModelAngle>();
-		asset->tagPositions = read.read_array<XModelTagPos>();
-		asset->partClassification = read.read_array<unsigned char>();
-		asset->baseMat = read.read_array<DObjAnimMat>();
-		//asset->reactiveMotionParts = read.read_array<ReactiveMotionModelPart>();
-		asset->reactiveMotionTweaks = read.read_single<ReactiveMotionModelTweaks>();
-		asset->collSurfs = read.read_array<XModelCollSurf_s>();
-		asset->boneInfo = read.read_array<XBoneInfo>();
-		asset->invHighMipRadius = read.read_array<unsigned short>();
-
-		// surfaces
-		asset->materialHandles = read.read_array<Material*>();
-		for (unsigned char i = 0; i < asset->numsurfs; i++)
-		{
-			asset->materialHandles[i] = read.read_asset<Material>();
-		}
-
-		// lods
-		for (auto i = 0; i < 6; i++)
-		{
-			asset->lodInfo[i].modelSurfs = read.read_asset<XModelSurfs>();
-			asset->lodInfo[i].reactiveMotionParts = read.read_array<ReactiveMotionModelPart>();
-		}
-
-		// subassets
-		asset->physPreset = read.read_asset<PhysPreset>();
-		asset->physCollmap = read.read_asset<PhysCollmap>();
-
-		// weights
-		asset->weightNames = read.read_array<scr_string_t>();
-		for (unsigned short i = 0; i < asset->numberOfWeights; i++)
-		{
-			this->add_script_string(&asset->weightNames[i], read.read_string());
-		}
-
-		// blendshape
-		asset->blendShapeWeightMap = read.read_array<BlendShapeWeightMap>();
-
-		// mdao
-		asset->mdaoVolumes = read.read_array<MdaoVolume>();
-		for (auto i = 0; i < asset->mdaoVolumeCount; i++)
-		{
-			asset->mdaoVolumes[i].volumeData = read.read_asset<GfxImage>();
-		}
-
-		// extra models
-		asset->compositeModels = read.read_array<XModel*>();
-		for (char i = 0; i < asset->numCompositeModels; i++)
-		{
-			asset->compositeModels[i] = read.read_asset<XModel>();
-		}
-
-		// skeletonscript subasset
-		asset->skeletonScript = read.read_asset<SkeletonScript>();
-
-		// bone physics
-		asset->bonePhysics = read.read_array<XPhysBoneInfo>();
-		for (char i = 0; i < asset->numBonePhysics; i++)
-		{
-			asset->bonePhysics[i].physPreset = read.read_asset<PhysPreset>();
-			asset->bonePhysics[i].physContraint = read.read_asset<PhysConstraint>();
-			asset->bonePhysics[i].physCollmap = read.read_asset<PhysCollmap>();
-		}
-
-		read.close();
-
-		return asset;
+		return nullptr;
 	}
 
 	void IXModel::init(const std::string& name, ZoneMemory* mem)
 	{
-		this->name_ = name;
-
-		if (this->referenced())
-		{
-			this->asset_ = mem->Alloc<typename std::remove_reference<decltype(*this->asset_)>::type>();
-			this->asset_->name = mem->StrDup(name);
-			return;
-		}
-
-		this->asset_ = this->parse(name, mem);
-		if (!this->asset_)
-		{
-			this->asset_ = DB_FindXAssetHeader_Copy<XModel>(XAssetType(this->type()), this->name_.data(), mem).model;
-
-			if (DB_IsXAssetDefault(ASSET_TYPE_XMODEL, this->name_.data()))
-			{
-				ZONETOOL_WARNING("Missing xmodel \"%s\", using default", this->name_.data());
-			}
-
-			auto* asset = this->asset_;
-
-			auto* original_scriptstrings = asset->boneNames;
-			asset->boneNames = mem->Alloc<scr_string_t>(asset->numBones);
-			for (unsigned char i = 0; i < asset->numBones; i++)
-			{
-				this->add_script_string(&asset->boneNames[i], SL_ConvertToString(original_scriptstrings[i]));
-			}
-
-			auto* original_weights = asset->weightNames;
-			asset->weightNames = mem->Alloc<scr_string_t>(asset->numberOfWeights);
-			for (unsigned char i = 0; i < asset->numberOfWeights; i++)
-			{
-				this->add_script_string(&asset->weightNames[i], SL_ConvertToString(original_weights[i]));
-			}
-		}
+		
 	}
 
 	void IXModel::prepare(ZoneBuffer* buf, ZoneMemory* mem)
 	{
-		// fixup scriptstrings
-		auto* xmodel = this->asset_;
 
-		// name bonenames
-		if (xmodel->boneNames)
-		{
-			for (unsigned char i = 0; i < xmodel->numBones; i++)
-			{
-				auto bone = buf->write_scriptstring(this->get_script_string(&xmodel->boneNames[i]));
-				xmodel->boneNames[i] = static_cast<scr_string_t>(bone);
-			}
-		}
-
-		// name weights
-		if (xmodel->weightNames)
-		{
-			for (unsigned short i = 0; i < xmodel->numberOfWeights; i++)
-			{
-				auto weight = buf->write_scriptstring(this->get_script_string(&xmodel->weightNames[i]));
-				xmodel->weightNames[i] = static_cast<scr_string_t>(weight);
-			}
-		}
 	}
 
 	void IXModel::load_depending(IZone* zone)
 	{
-		auto* data = this->asset_;
 
-		// Materials
-		for (unsigned char i = 0; i < data->numsurfs; i++)
-		{
-			if (data->materialHandles[i])
-			{
-				zone->add_asset_of_type(ASSET_TYPE_MATERIAL, data->materialHandles[i]->name);
-			}
-		}
-
-		// XSurfaces
-		for (auto i = 0; i < 6; i++)
-		{
-			if (data->lodInfo[i].modelSurfs)
-			{
-				zone->add_asset_of_type(ASSET_TYPE_XMODEL_SURFS, data->lodInfo[i].modelSurfs->name);
-			}
-		}
-
-		// PhysCollmap
-		if (data->physCollmap)
-		{
-			zone->add_asset_of_type(ASSET_TYPE_PHYSCOLLMAP, data->physCollmap->name);
-		}
-
-		// PhysPreset
-		if (data->physPreset)
-		{
-			zone->add_asset_of_type(ASSET_TYPE_PHYSPRESET, data->physPreset->name);
-		}
-
-		// GfxImage
-		if (data->mdaoVolumes)
-		{
-			for (auto i = 0; i < data->mdaoVolumeCount; i++)
-			{
-				zone->add_asset_of_type(ASSET_TYPE_IMAGE, data->mdaoVolumes[i].volumeData->name);
-			}
-		}
-
-		// Sub XModels
-		if (data->compositeModels)
-		{
-			for (char i = 0; i < data->numCompositeModels; i++)
-			{
-				zone->add_asset_of_type(ASSET_TYPE_XMODEL, data->compositeModels[i]->name);
-			}
-		}
-
-		// SkeletonScript
-		if (data->skeletonScript)
-		{
-			zone->add_asset_of_type(ASSET_TYPE_SKELETONSCRIPT, data->skeletonScript->name);
-		}
-
-		// Bone Physics
-		if (data->bonePhysics)
-		{
-			for (unsigned char i = 0; i < data->numBonePhysics; i++)
-			{
-				if (data->bonePhysics[i].physPreset)
-				{
-					zone->add_asset_of_type(ASSET_TYPE_PHYSPRESET, data->bonePhysics[i].physPreset->name);
-				}
-
-				if (data->bonePhysics[i].physContraint)
-				{
-					zone->add_asset_of_type(ASSET_TYPE_PHYSCONSTRAINT, data->bonePhysics[i].physContraint->name);
-				}
-
-
-				if (data->bonePhysics[i].physCollmap)
-				{
-					zone->add_asset_of_type(ASSET_TYPE_PHYSCOLLMAP, data->bonePhysics[i].physCollmap->name);
-				}
-			}
-		}
 	}
 
 	std::string IXModel::name()
@@ -280,239 +150,18 @@ namespace zonetool
 
 	void IXModel::write(IZone* zone, ZoneBuffer* buf)
 	{
-		auto data = this->asset_;
-		auto dest = buf->write(data);
 
-		buf->push_stream(3);
-
-		dest->name = buf->write_str(this->name());
-
-		if (data->boneNames)
-		{
-			buf->align(3);
-			buf->write(data->boneNames, data->numBones);
-			ZoneBuffer::clear_pointer(&dest->boneNames);
-		}
-
-		if (data->parentList)
-		{
-			buf->align(0);
-			buf->write(data->parentList, (data->numBones - data->numRootBones));
-			ZoneBuffer::clear_pointer(&dest->parentList);
-		}
-
-		if (data->tagAngles)
-		{
-			buf->align(1);
-			buf->write(data->tagAngles, (data->numBones - data->numRootBones));
-			ZoneBuffer::clear_pointer(&dest->tagAngles);
-		}
-
-		if (data->tagPositions)
-		{
-			buf->align(3);
-			buf->write(data->tagPositions, (data->numBones - data->numRootBones));
-			ZoneBuffer::clear_pointer(&dest->tagPositions);
-		}
-
-		if (data->partClassification)
-		{
-			buf->align(0);
-			buf->write(data->partClassification, data->numBones);
-			ZoneBuffer::clear_pointer(&dest->partClassification);
-		}
-
-		if (data->baseMat)
-		{
-			buf->align(3);
-			buf->write(data->baseMat, data->numBones);
-			ZoneBuffer::clear_pointer(&dest->baseMat);
-		}
-
-		/*if (data->reactiveMotionParts)
-		{
-			buf->align(15);
-			buf->write(data->reactiveMotionParts, data->numReactiveMotionParts);
-			ZoneBuffer::clear_pointer(&dest->reactiveMotionParts);
-		}*/
-
-		if (data->reactiveMotionTweaks)
-		{
-			buf->align(15);
-			buf->write(data->reactiveMotionTweaks);
-			ZoneBuffer::clear_pointer(&dest->reactiveMotionTweaks);
-		}
-
-		buf->inc_stream(5, 4 * data->numsurfs);
-		if (data->materialHandles)
-		{
-			buf->align(7);
-			auto* dest_materials = buf->write(data->materialHandles, data->numsurfs);
-			for (unsigned char i = 0; i < data->numsurfs; i++)
-			{
-				dest_materials[i] = reinterpret_cast<Material*>(zone->get_asset_pointer(
-					ASSET_TYPE_MATERIAL, data->materialHandles[i]->name));
-			}
-		}
-
-		for (auto i = 0; i < 6; i++)
-		{
-			if (data->lodInfo[i].modelSurfs)
-			{
-				dest->lodInfo[i].modelSurfs = reinterpret_cast<XModelSurfs*>(zone->get_asset_pointer(
-					ASSET_TYPE_XMODEL_SURFS, data->lodInfo[i].modelSurfs->name));
-			}
-
-			if (data->lodInfo[i].reactiveMotionParts)
-			{
-				buf->align(15);
-				buf->write(data->lodInfo[i].reactiveMotionParts, data->lodInfo[i].numReactiveMotionParts);
-				ZoneBuffer::clear_pointer(&dest->lodInfo[i].reactiveMotionParts);
-			}
-		}
-
-		if (data->collSurfs)
-		{
-			buf->align(3);
-			buf->write(data->collSurfs, data->numCollSurfs);
-			ZoneBuffer::clear_pointer(&dest->collSurfs);
-		}
-
-		if (data->boneInfo)
-		{
-			buf->align(3);
-			buf->write(data->boneInfo, data->numBones);
-			ZoneBuffer::clear_pointer(&dest->boneInfo);
-		}
-
-		if (data->invHighMipRadius)
-		{
-			buf->align(1);
-			buf->write(data->invHighMipRadius, data->numsurfs);
-			ZoneBuffer::clear_pointer(&dest->invHighMipRadius);
-		}
-
-		if (data->weightNames)
-		{
-			buf->align(3);
-			buf->write(data->weightNames, data->numberOfWeights);
-			ZoneBuffer::clear_pointer(&dest->weightNames);
-		}
-		//dest->weightNames = nullptr;
-		//dest->numberOfWeights = 0;
-		//dest->targetCount = 0;
-
-		if (data->blendShapeWeightMap)
-		{
-			buf->align(3);
-			buf->write(data->blendShapeWeightMap, data->numberOfWeightMaps);
-			ZoneBuffer::clear_pointer(&dest->blendShapeWeightMap);
-		}
-		//dest->blendShapeWeightMap = nullptr;
-		//dest->numberOfWeightMaps = 0;
-
-		if (data->physPreset)
-		{
-			dest->physPreset = reinterpret_cast<PhysPreset*>(zone->get_asset_pointer(
-				ASSET_TYPE_PHYSPRESET, data->physPreset->name));
-		}
-
-		if (data->physCollmap)
-		{
-			dest->physCollmap = reinterpret_cast<PhysCollmap*>(zone->get_asset_pointer(
-				ASSET_TYPE_PHYSCOLLMAP, data->physCollmap->name));
-		}
-
-		if (data->mdaoVolumes)
-		{
-			buf->align(3);
-			auto* dest_mdaoVolumes = buf->write(data->mdaoVolumes, data->mdaoVolumeCount);
-			for (unsigned short i = 0; i < data->mdaoVolumeCount; i++)
-			{
-				dest_mdaoVolumes[i].volumeData = reinterpret_cast<GfxImage*>(zone->get_asset_pointer(
-					ASSET_TYPE_IMAGE, data->mdaoVolumes[i].volumeData->name));
-			}
-			ZoneBuffer::clear_pointer(&dest->mdaoVolumes);
-		}
-		//dest->mdaoVolumes = nullptr;
-		//dest->mdaoVolumeCount = 0;
-
-		if (data->compositeModels)
-		{
-			buf->align(7);
-			auto* dest_compositeModels = buf->write(data->compositeModels, data->numCompositeModels);
-			for (char i = 0; i < data->numCompositeModels; i++)
-			{
-				dest_compositeModels[i] = reinterpret_cast<XModel*>(zone->get_asset_pointer(
-					ASSET_TYPE_XMODEL, data->compositeModels[i]->name));
-			}
-			ZoneBuffer::clear_pointer(&dest->compositeModels);
-		}
-		//dest->compositeModels = nullptr;
-		//dest->numCompositeModels = 0;
-
-		if (data->skeletonScript)
-		{
-			dest->skeletonScript = reinterpret_cast<SkeletonScript*>(zone->get_asset_pointer(
-				ASSET_TYPE_SKELETONSCRIPT, data->skeletonScript->name));
-		}
-		//dest->skeletonScript = nullptr;
-
-		if (data->bonePhysics)
-		{
-			buf->align(3);
-			auto* dest_bonePhysics = buf->write(data->bonePhysics, data->numBonePhysics);
-			for (unsigned char i = 0; i < data->numBonePhysics; i++)
-			{
-				if (data->bonePhysics[i].physPreset)
-				{
-					dest_bonePhysics[i].physPreset = reinterpret_cast<PhysPreset*>(zone->get_asset_pointer(
-						ASSET_TYPE_PHYSPRESET, data->bonePhysics[i].physPreset->name));
-				}
-
-				if (data->bonePhysics[i].physContraint)
-				{
-					dest_bonePhysics[i].physContraint = reinterpret_cast<PhysConstraint*>(zone->get_asset_pointer(
-						ASSET_TYPE_PHYSCONSTRAINT, data->bonePhysics[i].physContraint->name));
-				}
-
-				if (data->bonePhysics[i].physCollmap)
-				{
-					dest_bonePhysics[i].physCollmap = reinterpret_cast<PhysCollmap*>(zone->get_asset_pointer(
-						ASSET_TYPE_PHYSCOLLMAP, data->bonePhysics[i].physCollmap->name));
-				}
-			}
-			ZoneBuffer::clear_pointer(&dest->bonePhysics);
-		}
-		//dest->bonePhysics = nullptr;
-		//dest->numBonePhysics = 0;
-
-		buf->pop_stream();
 	}
 	
 	void IXModel::build_composite_model(const std::string& name, std::vector<std::string> attachments)
 	{
-		utils::memory::allocator allocator;
-		const auto asset = allocator.allocate<XModel>();
 
-		asset->name = allocator.duplicate_string(name);
-		asset->unk_float = -1.f;
-		asset->numCompositeModels = static_cast<unsigned char>(attachments.size());
-		asset->compositeModels = allocator.allocate_array<XModel*>(asset->numCompositeModels);
-		asset->memUsage = sizeof(XModel) + asset->numCompositeModels * 8;
-		asset->flags = 1024;
-
-		for (auto i = 0; i < asset->numCompositeModels; i++)
-		{
-			asset->compositeModels[i] = allocator.allocate<XModel>();
-			asset->compositeModels[i]->name = allocator.duplicate_string(attachments[i]);
-		}
-
-		IXModel::dump(asset);
 	}
 
-	void IXModel::dump(XModel* asset)
+	void IXModel::dump(XModel* h2_asset)
 	{
+		utils::memory::allocator allocator;
+		const auto asset = convert_to_h1(h2_asset, allocator);
 		const auto path = "xmodel\\"s + asset->name + ".xmodel_export";
 
 		assetmanager::dumper dump;
@@ -538,7 +187,7 @@ namespace zonetool
 		dump.dump_array(asset->tagPositions, asset->numBones - asset->numRootBones);
 		dump.dump_array(asset->partClassification, asset->numBones);
 		dump.dump_array(asset->baseMat, asset->numBones);
-		//dump.dump_array(asset->reactiveMotionParts, asset->numReactiveMotionParts);
+		dump.dump_array(asset->reactiveMotionParts, asset->numReactiveMotionParts);
 		dump.dump_single(asset->reactiveMotionTweaks);
 		dump.dump_array(asset->collSurfs, asset->numCollSurfs);
 		dump.dump_array(asset->boneInfo, asset->numBones);
@@ -555,7 +204,6 @@ namespace zonetool
 		for (auto i = 0; i < 6; i++)
 		{
 			dump.dump_asset(asset->lodInfo[i].modelSurfs);
-			dump.dump_array(asset->lodInfo[i].reactiveMotionParts, asset->lodInfo[i].numReactiveMotionParts);
 		}
 
 		// physics subassets
