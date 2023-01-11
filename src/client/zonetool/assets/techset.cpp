@@ -55,7 +55,7 @@ namespace zonetool
 		{
 			const auto array = allocator.allocate_array<unsigned char>(TECHNIQUES_COUNT);
 
-			std::vector<int> debug_tech_indexes = {59, 119, 179, 239};
+			std::vector<int> debug_tech_indexes = {59, 122, 185, 248};
 			auto current_debug_tech = 0;
 			auto h2_tecniques_index = 0;
 			for (auto i = 0u; i < TECHNIQUES_COUNT; i++)
