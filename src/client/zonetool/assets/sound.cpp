@@ -1049,6 +1049,11 @@ namespace zonetool
 
 		for (unsigned char i = 0; i < asset->count; i++)
 		{
+			if (asset->head[i].soundFile && asset->head[i].soundFile->type == SAT_STREAMED)
+			{
+				return;
+			}
+
 			ordered_json alias;
 			json_dump_snd_alias(alias, &asset->head[i]);
 			sound["head"][i] = alias;

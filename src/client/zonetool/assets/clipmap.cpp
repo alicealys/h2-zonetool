@@ -942,7 +942,7 @@ namespace zonetool
 
 		dump_info(&asset->info, write);
 
-		write.dump_single(asset->pInfo);
+		//write.dump_single(asset->pInfo);
 		//dump_info(asset->pInfo, write);
 
 		write.dump_array(asset->nodes, asset->numNodes);
@@ -956,16 +956,25 @@ namespace zonetool
 
 		write.dump_array(asset->leafs, asset->numLeafs);
 		write.dump_array(asset->cmodels, asset->numSubModels);
-		for (unsigned int i = 0; i < asset->numSubModels; i++)
-		{
-			if (asset->cmodels[i].info)
-			{
-				write.dump_single(asset->cmodels[i].info);
-				//dump_info(asset->cmodels[i].info, write);
-			}
-		}
+		//for (unsigned int i = 0; i < asset->numSubModels; i++)
+		//{
+		//	if (asset->cmodels[i].info)
+		//	{
+		//		write.dump_single(asset->cmodels[i].info);
+		//		dump_info(asset->cmodels[i].info, write);
+		//	}
+		//}
 
 		write.dump_asset(asset->mapEnts);
+
+		write.dump_array(asset->stages, asset->stageCount);
+		for (unsigned char i = 0; i < asset->stageCount; i++)
+		{
+			write.dump_string(asset->stages[i].name);
+		}
+		//write.dump_array(asset->stageTrigger.models, asset->stageTrigger.count);
+		//write.dump_array(asset->stageTrigger.hulls, asset->stageTrigger.hullCount);
+		//write.dump_array(asset->stageTrigger.slabs, asset->stageTrigger.slabCount);
 
 		for (int i = 0; i < 2; i++)
 		{
@@ -988,7 +997,7 @@ namespace zonetool
 				write.dump_asset(asset->dynEntDefList[i][j].physPreset);
 				write.dump_single(asset->dynEntDefList[i][j].hinge);
 				write.dump_single(asset->dynEntDefList[i][j].linkTo);
-				
+
 				//write.dump_single(asset->dynEntClientList[i][j].hinge);
 				//write.dump_asset(asset->dynEntClientList[i][j].activeModel);
 			}
@@ -1063,27 +1072,5 @@ namespace zonetool
 		write.dump_array(asset->grappleData.magnet, asset->grappleData.magnetCount);
 
 		write.close();
-
-		// dump stages
-		if (asset->stages)
-		{
-			assetmanager::dumper stageDumper;
-
-			if (stageDumper.open(asset->name + ".ents.stages"s))
-			{
-				stageDumper.dump_int(asset->stageCount);
-				if (asset->stageCount)
-				{
-					stageDumper.dump_array(asset->stages, asset->stageCount);
-
-					for (int i = 0; i < asset->stageCount; i++)
-					{
-						stageDumper.dump_string(asset->stages[i].name);
-					}
-				}
-			}
-
-			stageDumper.close();
-		}
 	}
 }

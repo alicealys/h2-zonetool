@@ -14,7 +14,7 @@ namespace zonetool
 		h1::MaterialTechniqueSet* convert_to_h1(MaterialTechniqueSet* h2_asset, utils::memory::allocator& allocator)
 		{
 			const auto asset = allocator.allocate<h1::MaterialTechniqueSet>();
-			asset->name = allocator.duplicate_string(add_postfix(h2_asset->name));
+			asset->name = allocator.duplicate_string(h2_asset->name);
 			asset->flags = h2_asset->flags;
 			asset->worldVertFormat = h2_asset->worldVertFormat;
 			asset->preDisplacementOnlyCount = h2_asset->preDisplacementOnlyCount;

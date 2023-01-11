@@ -3,42 +3,59 @@
 
 namespace zonetool
 {
+	namespace
+	{
+#define COPY_VALUE(name) \
+		lights[i].name = h2_lights[i].name; \
+
+#define COPY_ARR(name) \
+		std::memcpy(&lights[i].name, &h2_lights[i].name, sizeof(lights[i].name)); \
+
+		h1::ComPrimaryLight* convert_primary_lights(ComPrimaryLight* h2_lights, const unsigned int count,
+			utils::memory::allocator& allocator)
+		{
+			const auto lights = allocator.allocate_array<h1::ComPrimaryLight>(count);
+
+			for (auto i = 0u; i < count; i++)
+			{
+				lights[i].type = static_cast<h1::GfxLightType>(h2_lights[i].type);
+				COPY_VALUE(canUseShadowMap);
+				COPY_VALUE(needsDynamicShadows);
+				COPY_VALUE(exponent);
+				COPY_VALUE(isVolumetric);
+				COPY_ARR(color);
+				COPY_ARR(dir);
+				COPY_ARR(up);
+				COPY_ARR(origin);
+				COPY_ARR(fadeOffset);
+				COPY_VALUE(bulbRadius);
+				COPY_ARR(bulbLength);
+				COPY_VALUE(radius);
+				COPY_VALUE(cosHalfFovOuter);
+				COPY_VALUE(cosHalfFovInner);
+				COPY_VALUE(cosHalfFovExpanded);
+				COPY_VALUE(rotationLimit);
+				COPY_VALUE(translationLimit);
+				COPY_VALUE(cucRotationOffsetRad);
+				COPY_VALUE(cucRotationSpeedRad);
+				COPY_ARR(cucScrollVector);
+				COPY_ARR(cucScaleVector);
+				COPY_ARR(cucTransVector);
+				lights[i].defName = h2_lights[i].defName;
+			}
+			
+			return lights;
+		}
+	}
+
 	ComWorld* IComWorld::parse(const std::string& name, ZoneMemory* mem)
 	{
-		const auto path = name + ".commap";
-
-		assetmanager::reader read(mem);
-		if (!read.open(path))
-		{
-			return nullptr;
-		}
-
-		ZONETOOL_INFO("Parsing commap \"%s\"...", name.data());
-
-		ComWorld* asset = read.read_single<ComWorld>();
-		asset->name = read.read_string();
-
-		asset->primaryLights = read.read_array<ComPrimaryLight>();
-		for (unsigned int i = 0; i < asset->primaryLightCount; i++)
-		{
-			asset->primaryLights[i].defName = read.read_string();
-		}
-		asset->primaryLightEnvs = read.read_array<ComPrimaryLightEnv>();
-
-		read.close();
-
-		return asset;
+		return nullptr;
 	}
 
 	void IComWorld::init(const std::string& name, ZoneMemory* mem)
 	{
-		this->name_ = "maps/"s + (filesystem::get_fastfile().substr(0, 3) == "mp_" ? "mp/" : "") + filesystem::get_fastfile() + ".d3dbsp"; // name;
-		this->asset_ = this->parse(name, mem);
 
-		if (!this->asset_)
-		{
-			ZONETOOL_FATAL("Could not parse commap \"%s\"", name.data());
-		}
 	}
 
 	void IComWorld::prepare(ZoneBuffer* buf, ZoneMemory* mem)
@@ -47,15 +64,7 @@ namespace zonetool
 
 	void IComWorld::load_depending(IZone* zone)
 	{
-		auto asset = this->asset_;
 
-		for (unsigned int i = 0; i < asset->primaryLightCount; i++)
-		{
-			if (asset->primaryLights[i].defName)
-			{
-				zone->add_asset_of_type(ASSET_TYPE_LIGHT_DEF, asset->primaryLights[i].defName);
-			}
-		}
 	}
 
 	std::string IComWorld::name()
@@ -70,41 +79,15 @@ namespace zonetool
 
 	void IComWorld::write(IZone* zone, ZoneBuffer* buf)
 	{
-		auto* data = this->asset_;
-		auto* dest = buf->write(data);
 
-		buf->push_stream(3);
-
-		dest->name = buf->write_str(this->name());
-
-		if (data->primaryLights)
-		{
-			buf->align(3);
-			auto* primary_light = buf->write(data->primaryLights, data->primaryLightCount);
-
-			for (unsigned int i = 0; i < data->primaryLightCount; i++)
-			{
-				if (data->primaryLights[i].defName)
-				{
-					primary_light[i].defName = buf->write_str(data->primaryLights[i].defName);
-				}
-			}
-
-			ZoneBuffer::clear_pointer(&dest->primaryLights);
-		}
-
-		if (data->primaryLightEnvs)
-		{
-			buf->align(3);
-			buf->write(data->primaryLightEnvs, data->primaryLightEnvCount);
-			ZoneBuffer::clear_pointer(&dest->primaryLightEnvs);
-		}
-
-		buf->pop_stream();
 	}
 
-	void IComWorld::dump(ComWorld* asset)
+	void IComWorld::dump(ComWorld* h2_asset)
 	{
+		utils::memory::allocator allocator;
+		const auto asset = allocator.allocate<h1::ComWorld>();
+		std::memcpy(asset, h2_asset, sizeof(h1::ComWorld));
+
 		const auto path = asset->name + ".commap"s;
 
 		assetmanager::dumper write;
@@ -112,6 +95,9 @@ namespace zonetool
 		{
 			return;
 		}
+
+		asset->primaryLights = convert_primary_lights(h2_asset->primaryLights,
+			asset->primaryLightCount, allocator);
 
 		write.dump_single(asset);
 		write.dump_string(asset->name);

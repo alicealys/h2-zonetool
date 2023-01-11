@@ -198,10 +198,10 @@ namespace zonetool
 
 				DUMP_ASSET(ASSET_TYPE_AIPATHS, IAIPaths, PathData);
 				DUMP_ASSET(ASSET_TYPE_COL_MAP_SP, IClipMap, clipMap_t);
-				//DUMP_ASSET(ASSET_TYPE_COM_MAP, IComWorld, ComWorld);
-				//DUMP_ASSET(ASSET_TYPE_FX_MAP, IFxWorld, FxWorld);
-				//DUMP_ASSET(ASSET_TYPE_GFX_MAP, IGfxWorld, GfxWorld);
-				//DUMP_ASSET(ASSET_TYPE_GLASS_MAP, IGlassWorld, GlassWorld);
+				DUMP_ASSET(ASSET_TYPE_COM_MAP, IComWorld, ComWorld);
+				DUMP_ASSET(ASSET_TYPE_FX_MAP, IFxWorld, FxWorld);
+				DUMP_ASSET(ASSET_TYPE_GFX_MAP, IGfxWorld, GfxWorld);
+				DUMP_ASSET(ASSET_TYPE_GLASS_MAP, IGlassWorld, GlassWorld);
 			}
 			catch (const std::exception& e)
 			{

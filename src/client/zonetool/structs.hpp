@@ -995,18 +995,18 @@ namespace zonetool
 		ClientTriggerAabbNode* clientTriggerAabbTree;
 		unsigned int triggerStringLength;
 		char* triggerString;
-		short* unk0;
+		short* visionSetTriggers;
+		short* blendLookup;
 		short* unk1;
-		short* unk2;
 		short* triggerType;
 		vec3_t* origins;
 		float* scriptDelay;
+		short* audioTriggers;
+		short* unk2;
 		short* unk3;
 		short* unk4;
 		short* unk5;
 		short* unk6;
-		short* unk7;
-		short* unk8;
 	}; static_assert(sizeof(ClientTriggers) == 0xB0);
 
 	struct ClientTriggerBlendNode
@@ -4688,11 +4688,17 @@ namespace zonetool
 		Bounds bounds;
 	}; assert_sizeof(GfxSky, 56);
 
+	struct mnode_t
+	{
+		unsigned short unk0;
+		unsigned short unk1;
+	};
+
 	struct GfxWorldDpvsPlanes
 	{
 		int cellCount;
 		cplane_s* planes;
-		unsigned int* nodes;
+		mnode_t* nodes;
 		unsigned int* sceneEntCellBits;
 	}; assert_sizeof(GfxWorldDpvsPlanes, 32);
 
@@ -5205,13 +5211,25 @@ namespace zonetool
 		*/
 	};
 
-	struct GfxStaticModelLighting
+	struct GfxStaticModelGroundLightingInfo
 	{
-		union
-		{
-			GfxStaticModelVertexLightingInfo info;
-			GfxStaticModelLightmapInfo info2;
-		};
+		unsigned short groundLighting[4]; // float16
+	};
+
+	struct GfxStaticModelLightGridLightingInfo
+	{
+		unsigned short colorFloat16[4];
+		int a;
+		float b;
+		char __pad1[8];
+	};
+
+	union GfxStaticModelLighting
+	{
+		GfxStaticModelVertexLightingInfo vertexLightingInfo;
+		GfxStaticModelLightmapInfo modelLightmapInfo;
+		GfxStaticModelGroundLightingInfo modelGroundLightingInfo;
+		GfxStaticModelLightGridLightingInfo modelLightGridLightingInfo;
 	}; assert_sizeof(GfxStaticModelLighting, 24);
 
 	struct GfxSubdivVertexLightingInfo

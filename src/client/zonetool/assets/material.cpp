@@ -449,7 +449,7 @@ namespace zonetool
 
 			if (asset && asset->techniqueSet)
 			{
-				const auto techset_name = add_postfix(asset->techniqueSet->name);
+				const auto techset_name = asset->techniqueSet->name;
 				ITechset::dump_stateinfo(techset_name, asset);
 				ITechset::dump_statebits(techset_name, asset->stateBitsEntry);
 				ITechset::dump_statebits_map(techset_name, asset->stateBitsTable, asset->stateBitsCount);
