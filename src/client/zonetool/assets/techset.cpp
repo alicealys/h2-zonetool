@@ -77,11 +77,6 @@ namespace zonetool
 		{
 			if (index < 364)
 			{
-				if (index <= 342 + 15 && index >= 338 + 15)
-				{
-					return index - 15;
-				}
-
 				if (index >= 312 + 14)
 				{
 					return index - 14;
