@@ -1,5 +1,8 @@
 #include <std_include.hpp>
 #include "vertexshader.hpp"
+#include "techset.hpp"
+
+#include <utils/compression.hpp>
 
 namespace zonetool
 {
@@ -88,6 +91,9 @@ namespace zonetool
 		std::memcpy(asset, h2_asset, sizeof(MaterialVertexShader));
 		asset->name = allocator.duplicate_string(add_postfix(asset->name));
 		const auto path = "techsets\\"s + asset->name + ".vertexshader"s;
+		asset->prog.loadDef.program = 
+			convert_shader(asset->prog.loadDef.program, asset->prog.loadDef.programSize, allocator);
+		asset->prog.loadDef.microCodeCrc = shader::crc32(asset->prog.loadDef.program, asset->prog.loadDef.programSize);
 
 		assetmanager::dumper write;
 		if (!write.open(path))

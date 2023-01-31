@@ -89,6 +89,8 @@ namespace zonetool
 		std::memcpy(asset, h2_asset, sizeof(ComputeShader));
 		asset->name = allocator.duplicate_string(add_postfix(asset->name));
 		const auto path = "techsets\\"s + asset->name + ".computeshader"s;
+		asset->prog.loadDef.program =
+			convert_shader(asset->prog.loadDef.program, asset->prog.loadDef.programSize, allocator);
 
 		assetmanager::dumper write;
 		if (!write.open(path))

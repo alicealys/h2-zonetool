@@ -1,10 +1,14 @@
 #pragma once
 #include "../zonetool.hpp"
+#include "../utils/shader.hpp"
 
 #define TECHNIQUES_COUNT 240u
 
 namespace zonetool
 {
+	unsigned char* convert_shader(unsigned char* program, unsigned int program_size,
+		utils::memory::allocator& allocator);
+
 	class ITechset : public IAsset
 	{
 	private:
@@ -42,7 +46,7 @@ namespace zonetool
 		static void dump_statebits_map(const std::string& techset, GfxStateBits* map, unsigned char count);
 		static void dump_constant_buffer_indexes(const std::string& techset, unsigned char* cbi);
 		static void dump_constant_buffer_def_array(const std::string& techset, unsigned char count, MaterialConstantBufferDef* def);
-		static void dump_technique(MaterialTechnique* asset);
+		static void dump_technique(MaterialTechnique* asset, MaterialTechniqueSet* techset, int index);
 		static void dump(MaterialTechniqueSet* asset);
 	};
 }

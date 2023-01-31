@@ -920,8 +920,8 @@ namespace zonetool
 		}
 	}
 	
-	const auto dump_pixels = false;
-	const auto dump_dds = true;
+	const auto dump_pixels = true;
+	const auto dump_dds = false;
 
 	void dump_streamed_image_dds(GfxImage* image)
 	{
