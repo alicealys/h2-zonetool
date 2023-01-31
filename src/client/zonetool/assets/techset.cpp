@@ -539,7 +539,7 @@ namespace zonetool
         {
             if (dest >= 65)
             {
-                //return dest - 3;
+                return dest - 3;
             }
 
             if (dest >= 15)

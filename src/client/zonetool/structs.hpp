@@ -12685,10 +12685,12 @@ namespace zonetool
 			unsigned short cellIndex;
 			unsigned short closeDistance;
 			unsigned char vertexCount;
+			short flags;
 			float hullAxis[2][3];
 		}; assert_sizeof(GfxPortal, 80);
 		assert_offsetof(GfxPortal, vertices, 40);
 		assert_offsetof(GfxPortal, vertexCount, 52);
+		assert_offsetof(GfxPortal, flags, 54);
 
 		struct GfxCell
 		{
