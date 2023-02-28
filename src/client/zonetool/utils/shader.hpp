@@ -2,16 +2,16 @@
 
 namespace shader
 {
-    struct dx11_shader_header
-    {
-        unsigned char dxbc[4]; // "DXBC"
-        unsigned int checksum[4];
-        unsigned int unk_int; // always 1, sanity check?
-        unsigned int program_size;
-        unsigned int chunk_count;
-        // unsigned int chunk_offsets[chunk_count];
-        // unsigned char chunks[chunk_count][?];
-    };
+	struct dx11_shader_header
+	{
+		unsigned char dxbc[4]; // "DXBC"
+		unsigned int checksum[4];
+		unsigned int unk_int; // always 1, sanity check?
+		unsigned int program_size;
+		unsigned int chunk_count;
+		// unsigned int chunk_offsets[chunk_count];
+		// unsigned char chunks[chunk_count][?];
+	};
 
 	struct shader_checksum
 	{
@@ -21,5 +21,5 @@ namespace shader
 	std::vector<size_t> get_dest_reference_offsets(unsigned char* program, unsigned int program_size);
 	shader_checksum generate_checksum(unsigned char* program, unsigned int program_size);
 
-    unsigned int crc32(unsigned char* program, unsigned int program_size);
+	unsigned int crc32(unsigned char* program, unsigned int program_size);
 }
