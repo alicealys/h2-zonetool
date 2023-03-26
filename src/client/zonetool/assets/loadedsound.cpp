@@ -450,7 +450,18 @@ namespace zonetool
 			if (asset->filename.fileIndex)
 			{
 				const auto db_fs = game::DB_FSInitialize();
-				const auto soundfile_path = utils::string::va("soundfile%d.pak", asset->filename.fileIndex);
+				const char* soundfile_path = nullptr;
+				if (asset->filename.isLocalized)
+				{
+					soundfile_path = utils::string::va("%s/%s_soundfile%d.pak", game::SEH_GetCurrentLanguageName(), 
+						game::SEH_GetCurrentLanguageCode(),
+						asset->filename.fileIndex);
+				}
+				else
+				{
+					soundfile_path = utils::string::va("soundfile%d.pak", asset->filename.fileIndex);
+				}
+
 				const auto soundfile = db_fs->vftbl->OpenFile(db_fs, game::Sys_Folder::SF_PAKFILE, soundfile_path);
 				const auto _0 = gsl::finally([&]
 				{
